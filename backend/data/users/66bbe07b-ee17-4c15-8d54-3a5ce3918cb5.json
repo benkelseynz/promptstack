@@ -1,0 +1,29 @@
+{
+  "id": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+  "email": "ben.kelsey.nz@gmail.com",
+  "name": "Ben Kelsey",
+  "passwordHash": "$2b$12$WwxOsUpE4.gq4mAsNkDV6OV5rZ7ORW9uL2i1k/54yWrrSToRqQnCG",
+  "emailVerified": true,
+  "tier": "free",
+  "createdAt": "2025-12-21T08:14:27.229Z",
+  "updatedAt": "2025-12-21T08:15:22.307Z",
+  "customPrompts": [
+    {
+      "id": "c231a4c4-c613-4b1a-b208-e2732683f01b",
+      "title": "Macro Event Implications",
+      "content": "Analyse the implications of [specific macro event, e.g., \"RBNZ rate decision,\" \"new government budget,\" or \"major sector consolidation\"] for our investment strategy and current portfolio.\nStructure:\n1. Event Summary: What happened and why it matters (fill any gaps in by searching online)\n2. Portfolio Impact: Which companies are most affected and how\n3. Deal Pipeline Impact: Does this change our view on active deals?\n4. Strategic Implications: Should this shift our sector focus or investment criteria?\nKeep it concise and action-oriented. Conclude with 2-3 specific recommendations.\nAttached is a summary of our current portfolio and opportunities in our pipeline.",
+      "keywords": [
+        "macro",
+        "strategy",
+        "portfolio",
+        "market",
+        "event"
+      ],
+      "createdAt": "2025-12-21T08:46:47.067Z",
+      "updatedAt": "2025-12-21T09:31:40.303Z",
+      "industry": "finance",
+      "role": "Financial Analyst"
+    }
+  ],
+  "savedPrompts": []
+}

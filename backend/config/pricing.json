@@ -1,0 +1,65 @@
+{
+  "currency": "NZD",
+  "currencySymbol": "$",
+  "tiers": [
+    {
+      "id": "free",
+      "name": "Free",
+      "monthlyPrice": 0,
+      "features": [
+        "Access to all free prompts",
+        "Save up to 10 prompts",
+        "Create up to 5 custom prompts",
+        "Basic search and filters",
+        "Email support"
+      ],
+      "limitations": [
+        "No premium prompts",
+        "Limited saved prompts",
+        "No AI prompt builder"
+      ]
+    },
+    {
+      "id": "professional",
+      "name": "Professional",
+      "monthlyPrice": 29,
+      "originalPrice": 39,
+      "discount": {
+        "percentage": 25,
+        "validUntil": "2025-03-31",
+        "label": "Launch Special"
+      },
+      "features": [
+        "Everything in Free",
+        "Access to ALL premium prompts",
+        "Unlimited saved prompts",
+        "Unlimited custom prompts",
+        "Advanced search filters",
+        "Priority email support",
+        "New prompts added weekly",
+        "Prompt usage analytics"
+      ],
+      "highlighted": true,
+      "badge": "Most Popular"
+    },
+    {
+      "id": "enterprise",
+      "name": "Enterprise",
+      "monthlyPrice": 99,
+      "features": [
+        "Everything in Professional",
+        "Team sharing (coming soon)",
+        "Custom prompt templates",
+        "API access (coming soon)",
+        "Dedicated account manager",
+        "Custom prompt development",
+        "Priority feature requests",
+        "SSO integration (coming soon)"
+      ],
+      "badge": "Best Value for Teams"
+    }
+  ],
+  "annualDiscount": 20,
+  "trialDays": 14,
+  "refundPolicy": "30-day money-back guarantee"
+}

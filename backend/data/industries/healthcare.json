@@ -1,0 +1,54 @@
+{
+  "name": "Healthcare",
+  "description": "Prompts for healthcare administrators, practice managers, and health sector professionals in New Zealand",
+  "icon": "heart-pulse",
+  "roles": ["Practice Manager", "Health Administrator", "Clinical Lead", "Quality Manager"],
+  "categories": ["Administration", "Compliance", "Communication", "Quality", "Planning"],
+  "prompts": [
+    {
+      "id": "health-001",
+      "title": "Patient Communication Template",
+      "content": "Create a patient communication for [Communication Type].\n\nHealthcare Provider: [Practice/Organisation Name]\nCommunication Type: [Appointment Reminder/Results/Follow-up/etc.]\nPatient Context: [General/Specific Condition]\n\nKey Information to Convey:\n[List Key Points]\n\nTone: [Empathetic/Informative/Urgent]\n\nNZ Health Context:\n- Relevant health regulations\n- Te Tiriti considerations\n- Cultural sensitivity requirements\n\nGenerate:\n1. Primary communication text\n2. Simplified version (health literacy appropriate)\n3. Key action items highlighted\n4. Contact information template\n5. Privacy statement if applicable",
+      "access": "free",
+      "role": "Practice Manager",
+      "category": "Communication",
+      "keywords": ["patient", "communication", "healthcare", "medical", "NZ"]
+    },
+    {
+      "id": "health-002",
+      "title": "Clinical Policy Document",
+      "content": "Draft a clinical policy document for [Policy Topic].\n\nOrganisation: [Healthcare Organisation]\nPolicy Area: [Policy Topic]\nApplicable Standards: [List Standards - e.g., HDSS, ACC, etc.]\n\nCurrent Practice:\n[Describe Current State]\n\nProposed Changes:\n[List Changes]\n\nStakeholders:\n[List Affected Parties]\n\nNZ Regulatory Framework:\n- Health and Disability Services Standards\n- Privacy Act requirements\n- Te Tiriti o Waitangi obligations\n\nCreate a policy including:\n1. Purpose and scope\n2. Policy statement\n3. Definitions\n4. Procedures\n5. Roles and responsibilities\n6. Related documents\n7. Review schedule\n8. Approval sign-off template",
+      "access": "premium",
+      "role": "Clinical Lead",
+      "category": "Compliance",
+      "keywords": ["policy", "clinical", "compliance", "HDSS", "healthcare"]
+    },
+    {
+      "id": "health-003",
+      "title": "Staff Roster Optimisation",
+      "content": "Optimise staff rostering for [Department/Practice].\n\nOrganisation: [Name]\nDepartment: [Department]\nStaff Count: [Number]\nOperating Hours: [Hours]\n\nStaff Mix:\n[List Roles and Numbers]\n\nDemand Patterns:\n[Describe Peak Times]\n\nConstraints:\n- NZ Employment law requirements\n- Union agreements if applicable\n- Leave balances\n[List Other Constraints]\n\nGenerate:\n1. Optimal roster structure\n2. Shift pattern recommendations\n3. Coverage analysis\n4. Fatigue risk considerations\n5. Holiday/leave integration\n6. Cost efficiency analysis\n7. Contingency planning",
+      "access": "premium",
+      "role": "Practice Manager",
+      "category": "Administration",
+      "keywords": ["roster", "staffing", "scheduling", "workforce", "planning"]
+    },
+    {
+      "id": "health-004",
+      "title": "Quality Improvement Initiative",
+      "content": "Design a quality improvement initiative for [Focus Area].\n\nOrganisation: [Healthcare Organisation]\nFocus Area: [QI Topic]\nCurrent Performance: [Baseline Data]\nTarget Performance: [Goal]\n\nStakeholders:\n[List Stakeholders]\n\nResources Available:\n[List Resources]\n\nTimeline: [Project Duration]\n\nNZ Quality Framework:\n- Health Quality & Safety Commission alignment\n- Relevant clinical indicators\n\nCreate a QI plan including:\n1. Problem statement\n2. Aim statement (SMART)\n3. Current state analysis\n4. Root cause analysis\n5. Change ideas (PDSA cycles)\n6. Measures (outcome, process, balancing)\n7. Implementation plan\n8. Sustainability approach",
+      "access": "premium",
+      "role": "Quality Manager",
+      "category": "Quality",
+      "keywords": ["quality improvement", "QI", "PDSA", "healthcare", "safety"]
+    },
+    {
+      "id": "health-005",
+      "title": "Funding Application Template",
+      "content": "Prepare a funding application for [Programme/Service].\n\nOrganisation: [Healthcare Provider]\nFunding Source: [e.g., Te Whatu Ora, PHO, ACC, etc.]\nProgramme: [Programme Name]\nFunding Amount: [Requested Amount]\n\nService Description:\n[Describe the Service]\n\nTarget Population:\n[Who Will Benefit]\n\nExpected Outcomes:\n[List Outcomes]\n\nNZ Health Priorities:\n- Alignment with NZ Health Strategy\n- Equity considerations\n- Maori health outcomes\n\nGenerate:\n1. Executive summary\n2. Needs assessment\n3. Service model description\n4. Implementation plan\n5. Budget breakdown\n6. Outcomes framework\n7. Risk assessment\n8. Evaluation approach",
+      "access": "free",
+      "role": "Health Administrator",
+      "category": "Planning",
+      "keywords": ["funding", "application", "Te Whatu Ora", "healthcare", "proposal"]
+    }
+  ]
+}

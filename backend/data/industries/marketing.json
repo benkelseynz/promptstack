@@ -1,0 +1,63 @@
+{
+  "name": "Marketing & Communications",
+  "description": "Prompts for marketing professionals, content creators, and communications specialists in New Zealand",
+  "icon": "megaphone",
+  "roles": ["Marketing Manager", "Content Strategist", "Social Media Manager", "Brand Manager", "CMO"],
+  "categories": ["Content", "Strategy", "Social Media", "Analytics", "Campaigns"],
+  "prompts": [
+    {
+      "id": "mkt-001",
+      "title": "Content Calendar Generator",
+      "content": "Create a content calendar for [Brand/Company Name] for [Time Period].\n\nBrand: [Brand Name]\nIndustry: [Industry]\nTarget Audience: [Audience Description]\n\nMarketing Goals:\n[List Goals]\n\nContent Pillars:\n[List 3-5 Content Themes]\n\nChannels:\n[List Channels - Blog, LinkedIn, Instagram, etc.]\n\nUpcoming Events/Dates:\n- NZ Public Holidays\n- Industry events\n- Product launches\n[List Specific Dates]\n\nGenerate a calendar including:\n1. Weekly content themes\n2. Post frequency per channel\n3. Content type mix\n4. Key dates and tie-ins\n5. Resource requirements\n6. Engagement prompts",
+      "access": "free",
+      "role": "Content Strategist",
+      "category": "Content",
+      "keywords": ["content calendar", "planning", "social media", "schedule", "marketing"]
+    },
+    {
+      "id": "mkt-002",
+      "title": "Campaign Brief Template",
+      "content": "Develop a comprehensive campaign brief for [Campaign Name].\n\nClient/Brand: [Brand Name]\nCampaign Type: [Awareness/Launch/Seasonal/etc.]\nBudget: [Budget in NZD]\nTimeline: [Start - End Dates]\n\nObjectives:\n[List SMART Objectives]\n\nTarget Audience:\n- Demographics: [Demographics]\n- Psychographics: [Interests, Values]\n- NZ-specific: [Regional Considerations]\n\nKey Message:\n[Core Message]\n\nCompetitive Context:\n[Competitor Activity]\n\nCreate a brief covering:\n1. Campaign overview\n2. Target audience personas\n3. Key messages and tone\n4. Channel strategy\n5. Creative requirements\n6. Success metrics and KPIs\n7. Timeline and milestones\n8. Budget allocation",
+      "access": "premium",
+      "role": "Marketing Manager",
+      "category": "Campaigns",
+      "keywords": ["campaign", "brief", "marketing", "strategy", "planning"]
+    },
+    {
+      "id": "mkt-003",
+      "title": "Social Media Post Generator",
+      "content": "Create social media posts for [Topic/Product/Event].\n\nBrand: [Brand Name]\nBrand Voice: [Describe Voice - Professional/Casual/Witty/etc.]\nPlatform: [LinkedIn/Instagram/Facebook/Twitter]\n\nTopic: [Topic Details]\n\nCall to Action: [Desired CTA]\n\nHashtag Strategy: [Branded/Industry/Trending]\n\nNZ Context: [Any NZ-specific elements to include]\n\nGenerate:\n1. Primary post with copy and emoji suggestions\n2. Two alternative versions\n3. Hashtag recommendations\n4. Best posting times for NZ audience\n5. Engagement question for comments\n6. Image/video direction suggestions",
+      "access": "free",
+      "role": "Social Media Manager",
+      "category": "Social Media",
+      "keywords": ["social media", "posts", "content", "engagement", "copywriting"]
+    },
+    {
+      "id": "mkt-004",
+      "title": "Marketing Performance Report",
+      "content": "Create a marketing performance report for [Period].\n\nCompany: [Company Name]\nReporting Period: [Dates]\n\nChannels to Report:\n[List Active Channels]\n\nMetrics Available:\n- Website: [Traffic, Conversions, etc.]\n- Social: [Followers, Engagement, etc.]\n- Email: [Open Rate, CTR, etc.]\n- Paid: [Spend, ROAS, etc.]\n\nCampaigns Run:\n[List Campaigns]\n\nBudget Spent: [Amount]\n\nGenerate a report including:\n1. Executive summary\n2. Channel-by-channel performance\n3. Campaign analysis\n4. Top performing content\n5. ROI analysis\n6. NZ market insights\n7. Recommendations for next period\n8. Visual dashboard suggestions",
+      "access": "premium",
+      "role": "Marketing Manager",
+      "category": "Analytics",
+      "keywords": ["report", "analytics", "performance", "ROI", "metrics"]
+    },
+    {
+      "id": "mkt-005",
+      "title": "Press Release Template",
+      "content": "Write a press release for [Announcement Type].\n\nCompany: [Company Name]\nHeadquarters: [NZ Location]\nAnnouncement: [What is Being Announced]\n\nKey Details:\n- What: [Description]\n- When: [Date/Timeline]\n- Who: [People Involved]\n- Why: [Significance]\n\nQuotes from:\n- [Name, Title]: [Key Message]\n\nSupporting Information:\n[Background, Statistics, Context]\n\nNZ Media Considerations:\n[Relevant NZ Angle]\n\nCreate a press release with:\n1. Compelling headline\n2. Subheadline\n3. Dateline and lead paragraph\n4. Body with quotes\n5. Boilerplate about the company\n6. Media contact information\n7. Notes to editor if applicable",
+      "access": "free",
+      "role": "Brand Manager",
+      "category": "Content",
+      "keywords": ["press release", "PR", "media", "announcement", "communications"]
+    },
+    {
+      "id": "mkt-006",
+      "title": "Brand Voice Guidelines",
+      "content": "Develop brand voice guidelines for [Brand Name].\n\nCompany: [Company Name]\nIndustry: [Industry]\nTarget Audience: [Primary Audience]\n\nBrand Values:\n[List Core Values]\n\nBrand Personality:\n[Describe Personality Traits]\n\nCompetitor Positioning:\n[How You Want to Differ]\n\nExisting Examples:\n[Links or Descriptions of Current Content]\n\nNZ Brand Considerations:\n[Local Cultural Elements]\n\nCreate guidelines covering:\n1. Brand personality definition\n2. Tone of voice spectrum\n3. Language do's and don'ts\n4. NZ English conventions\n5. Channel-specific adaptations\n6. Example copy for different scenarios\n7. Words to use and avoid\n8. Cultural sensitivity notes",
+      "access": "premium",
+      "role": "Brand Manager",
+      "category": "Strategy",
+      "keywords": ["brand voice", "guidelines", "tone", "messaging", "identity"]
+    }
+  ]
+}

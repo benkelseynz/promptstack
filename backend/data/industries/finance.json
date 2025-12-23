@@ -1,0 +1,63 @@
+{
+  "name": "Finance & Banking",
+  "description": "Prompts tailored for finance professionals, accountants, and banking specialists in New Zealand",
+  "icon": "dollar-sign",
+  "roles": ["Financial Analyst", "Accountant", "Investment Advisor", "Risk Manager", "CFO"],
+  "categories": ["Analysis", "Reporting", "Compliance", "Advisory", "Planning"],
+  "prompts": [
+    {
+      "id": "fin-001",
+      "title": "Financial Report Analysis",
+      "content": "Analyse the financial performance of [Company Name] based on the following data:\n\nRevenue: [Revenue Figures]\nExpenses: [Expense Breakdown]\nProfit Margin: [Margin Percentage]\nYear-over-Year Growth: [Growth Rate]\n\nReporting Period: [Period]\nIndustry: [Industry Sector]\nNZ Market Context: [Relevant NZ Market Conditions]\n\nProvide:\n1. Key financial metrics analysis\n2. Trend identification\n3. Comparison to NZ industry benchmarks\n4. Areas of concern\n5. Recommendations for improvement\n6. Forecast considerations",
+      "access": "free",
+      "role": "Financial Analyst",
+      "category": "Analysis",
+      "keywords": ["financial", "analysis", "report", "metrics", "performance", "NZ"]
+    },
+    {
+      "id": "fin-002",
+      "title": "Investment Portfolio Review",
+      "content": "Conduct a comprehensive portfolio review for [Client Name/Type].\n\nPortfolio Value: [Total Value]\nRisk Profile: [Conservative/Balanced/Growth/Aggressive]\nInvestment Horizon: [Timeframe]\n\nCurrent Allocation:\n[List Asset Classes and Percentages]\n\nPerformance Period: [Period]\nBenchmark: [Relevant Benchmark]\n\nNZ-Specific Considerations:\n- PIE tax implications\n- KiwiSaver alignment (if applicable)\n- NZ dollar exposure\n\nProvide:\n1. Performance analysis vs benchmark\n2. Risk assessment\n3. Rebalancing recommendations\n4. Tax efficiency opportunities\n5. Forward outlook",
+      "access": "premium",
+      "role": "Investment Advisor",
+      "category": "Advisory",
+      "keywords": ["investment", "portfolio", "review", "KiwiSaver", "PIE", "NZ"]
+    },
+    {
+      "id": "fin-003",
+      "title": "GST Return Preparation Checklist",
+      "content": "Generate a GST return preparation checklist for [Business Name].\n\nBusiness Type: [Business Type]\nGST Filing Period: [Period - Monthly/Two-monthly/Six-monthly]\nAccounting Basis: [Invoice/Payments/Hybrid]\n\nRevenue Sources:\n[List Revenue Types]\n\nExpense Categories:\n[List Major Expense Categories]\n\nSpecial Considerations:\n[Any Special GST Treatments]\n\nCreate a comprehensive checklist including:\n1. Documentation required\n2. Reconciliation steps\n3. Common adjustments\n4. IRD compliance requirements\n5. Filing deadlines and penalties\n6. Record-keeping requirements",
+      "access": "free",
+      "role": "Accountant",
+      "category": "Compliance",
+      "keywords": ["GST", "tax", "IRD", "compliance", "return", "NZ"]
+    },
+    {
+      "id": "fin-004",
+      "title": "Cash Flow Forecast Model",
+      "content": "Create a cash flow forecast for [Company Name] for the next [Timeframe].\n\nCurrent Cash Position: [Amount]\nMonthly Revenue Range: [Range]\nFixed Monthly Costs: [List Costs]\nVariable Costs: [List Variable Costs]\n\nSeasonal Factors:\n[Describe Seasonality]\n\nPlanned Capital Expenditure:\n[List CapEx]\n\nDebt Obligations:\n[List Debt Payments]\n\nNZ Economic Factors:\n- Interest rate environment\n- Exchange rate considerations\n- Industry-specific NZ trends\n\nGenerate:\n1. Monthly cash flow projections\n2. Best/worst case scenarios\n3. Key assumptions documented\n4. Warning triggers and thresholds\n5. Funding requirement analysis",
+      "access": "premium",
+      "role": "CFO",
+      "category": "Planning",
+      "keywords": ["cash flow", "forecast", "projection", "planning", "treasury"]
+    },
+    {
+      "id": "fin-005",
+      "title": "Credit Risk Assessment",
+      "content": "Perform a credit risk assessment for [Applicant/Company Name].\n\nLoan Amount Requested: [Amount]\nPurpose: [Loan Purpose]\nTerm: [Loan Term]\n\nFinancial Information:\n- Annual Revenue: [Revenue]\n- EBITDA: [EBITDA]\n- Existing Debt: [Debt Levels]\n- Assets: [Asset Summary]\n\nCredit History:\n[Summary of Credit History]\n\nIndustry: [Industry]\nYears in Business: [Years]\n\nAssess:\n1. Creditworthiness score\n2. Debt service capacity\n3. Collateral adequacy\n4. Industry risk factors\n5. NZ economic exposure\n6. Recommendation with conditions",
+      "access": "premium",
+      "role": "Risk Manager",
+      "category": "Analysis",
+      "keywords": ["credit", "risk", "assessment", "lending", "due diligence"]
+    },
+    {
+      "id": "fin-006",
+      "title": "Board Financial Presentation",
+      "content": "Create a board-level financial presentation for [Company Name].\n\nReporting Period: [Period]\nAudience: [Board/Executive Team]\n\nFinancial Highlights:\n[Key Numbers]\n\nStrategic Initiatives:\n[List Initiatives]\n\nChallenges:\n[Current Challenges]\n\nMarket Position:\n[Market Context]\n\nPrepare a presentation covering:\n1. Executive summary (one page)\n2. Financial performance vs budget\n3. KPI dashboard\n4. Strategic progress update\n5. Risk register highlights\n6. Outlook and recommendations\n\nKeep language board-appropriate and strategic.",
+      "access": "premium",
+      "role": "CFO",
+      "category": "Reporting",
+      "keywords": ["board", "presentation", "executive", "financial", "reporting"]
+    }
+  ]
+}

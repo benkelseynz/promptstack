@@ -1,0 +1,60 @@
+{
+  "name": "General",
+  "description": "General purpose prompts suitable for any industry or role",
+  "prompts": [
+    {
+      "id": "gen-001",
+      "title": "Professional Email Response",
+      "content": "Write a professional email response to the following message. The response should be from [Your Name] at [Company Name], maintaining a [Tone: formal/friendly/assertive] tone.\n\nOriginal message:\n[Paste Original Email]\n\nKey points to address:\n[List Key Points]\n\nDesired outcome:\n[Desired Outcome]",
+      "access": "free",
+      "role": "General",
+      "category": "Communication",
+      "keywords": ["email", "response", "professional", "communication", "business"]
+    },
+    {
+      "id": "gen-002",
+      "title": "Meeting Summary Template",
+      "content": "Create a comprehensive meeting summary based on the following details:\n\nMeeting Title: [Meeting Title]\nDate: [Date]\nAttendees: [List Attendees]\nDuration: [Duration]\n\nKey Discussion Points:\n[List Discussion Points]\n\nDecisions Made:\n[List Decisions]\n\nAction Items:\n[List Action Items with Owners and Due Dates]\n\nFormat the summary professionally with clear sections for: Overview, Key Discussions, Decisions, Action Items, and Next Steps.",
+      "access": "free",
+      "role": "General",
+      "category": "Documentation",
+      "keywords": ["meeting", "summary", "minutes", "notes", "documentation"]
+    },
+    {
+      "id": "gen-003",
+      "title": "Project Status Report Generator",
+      "content": "Generate a project status report for [Project Name] at [Company Name].\n\nReporting Period: [Start Date] to [End Date]\nProject Manager: [Name]\n\nCurrent Status: [On Track/At Risk/Behind Schedule]\n\nKey Accomplishments:\n[List Accomplishments]\n\nUpcoming Milestones:\n[List Milestones with Dates]\n\nRisks and Issues:\n[List Risks]\n\nBudget Status: [Budget Information]\n\nCreate a professional report suitable for executive review.",
+      "access": "premium",
+      "role": "Project Manager",
+      "category": "Reporting",
+      "keywords": ["project", "status", "report", "executive", "management"]
+    },
+    {
+      "id": "gen-004",
+      "title": "SWOT Analysis Framework",
+      "content": "Conduct a comprehensive SWOT analysis for [Company/Product/Initiative Name].\n\nContext:\n[Provide Background Context]\n\nMarket Position: [Current Market Position]\nKey Competitors: [List Competitors]\n\nAnalyse and provide detailed insights for:\n1. Strengths - Internal positive attributes\n2. Weaknesses - Internal areas for improvement\n3. Opportunities - External factors to leverage\n4. Threats - External challenges to address\n\nConclude with strategic recommendations based on the analysis.",
+      "access": "premium",
+      "role": "Strategy",
+      "category": "Analysis",
+      "keywords": ["swot", "analysis", "strategy", "planning", "business"]
+    },
+    {
+      "id": "gen-005",
+      "title": "Interview Question Generator",
+      "content": "Generate interview questions for a [Job Title] position at [Company Name].\n\nRole Level: [Junior/Mid/Senior/Executive]\nDepartment: [Department]\n\nRequired Skills:\n[List Required Skills]\n\nKey Responsibilities:\n[List Responsibilities]\n\nCompany Values: [List Values]\n\nGenerate questions covering:\n1. Technical competency\n2. Behavioural assessment\n3. Cultural fit\n4. Problem-solving ability\n5. Leadership potential (if applicable)\n\nInclude suggested answer frameworks for interviewers.",
+      "access": "free",
+      "role": "HR",
+      "category": "Recruitment",
+      "keywords": ["interview", "questions", "hiring", "recruitment", "HR"]
+    },
+    {
+      "id": "gen-006",
+      "title": "Change Management Communication",
+      "content": "Draft a change management communication for [Organisation Name] regarding [Change Initiative].\n\nType of Change: [Organisational/Process/Technology/Policy]\nAffected Teams: [List Teams]\nImplementation Timeline: [Timeline]\n\nKey Benefits:\n[List Benefits]\n\nPotential Concerns:\n[List Known Concerns]\n\nSupport Available:\n[List Support Resources]\n\nCreate communications for:\n1. Initial announcement\n2. FAQ document\n3. Manager talking points\n4. Follow-up communication",
+      "access": "premium",
+      "role": "HR",
+      "category": "Change Management",
+      "keywords": ["change management", "communication", "organisational", "transformation"]
+    }
+  ]
+}

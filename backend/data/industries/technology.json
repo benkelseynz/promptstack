@@ -1,0 +1,63 @@
+{
+  "name": "Technology",
+  "description": "Prompts for software developers, product managers, and tech professionals across New Zealand",
+  "icon": "code",
+  "roles": ["Software Developer", "Product Manager", "DevOps Engineer", "Tech Lead", "CTO"],
+  "categories": ["Development", "Product", "Architecture", "Security", "Documentation"],
+  "prompts": [
+    {
+      "id": "tech-001",
+      "title": "Code Review Feedback",
+      "content": "Provide comprehensive code review feedback for the following code:\n\n```[Language]\n[Paste Code Here]\n```\n\nContext:\n- Project: [Project Name]\n- Feature: [Feature Description]\n- Author Experience Level: [Junior/Mid/Senior]\n\nReview for:\n1. Code quality and readability\n2. Potential bugs or edge cases\n3. Performance considerations\n4. Security vulnerabilities\n5. Best practices adherence\n6. Test coverage suggestions\n\nProvide feedback that is constructive and educational.",
+      "access": "free",
+      "role": "Software Developer",
+      "category": "Development",
+      "keywords": ["code review", "development", "programming", "quality", "feedback"]
+    },
+    {
+      "id": "tech-002",
+      "title": "Product Requirements Document",
+      "content": "Create a Product Requirements Document (PRD) for [Feature/Product Name].\n\nProduct: [Product Name]\nTarget Users: [User Types]\nBusiness Objective: [Objective]\n\nProblem Statement:\n[Describe the Problem]\n\nProposed Solution:\n[High-level Solution]\n\nSuccess Metrics:\n[List KPIs]\n\nConstraints:\n- Timeline: [Timeline]\n- Budget: [Budget]\n- Technical: [Technical Constraints]\n\nGenerate a PRD including:\n1. Executive summary\n2. User stories with acceptance criteria\n3. Functional requirements\n4. Non-functional requirements\n5. Dependencies and assumptions\n6. Out of scope items\n7. Timeline and milestones",
+      "access": "premium",
+      "role": "Product Manager",
+      "category": "Product",
+      "keywords": ["PRD", "requirements", "product", "feature", "specification"]
+    },
+    {
+      "id": "tech-003",
+      "title": "API Documentation Generator",
+      "content": "Generate comprehensive API documentation for [API Name].\n\nAPI Purpose: [Purpose]\nBase URL: [Base URL]\nAuthentication: [Auth Method]\n\nEndpoints to Document:\n[List Endpoints]\n\nRequest/Response Examples:\n[Provide Examples]\n\nError Codes:\n[List Error Codes]\n\nCreate documentation including:\n1. Getting started guide\n2. Authentication instructions\n3. Endpoint reference with examples\n4. Request/response schemas\n5. Error handling guide\n6. Rate limiting information\n7. Code samples in multiple languages",
+      "access": "free",
+      "role": "Software Developer",
+      "category": "Documentation",
+      "keywords": ["API", "documentation", "REST", "developer", "reference"]
+    },
+    {
+      "id": "tech-004",
+      "title": "System Architecture Design",
+      "content": "Design a system architecture for [System/Application Name].\n\nRequirements:\n- Expected Users: [User Count]\n- Peak Load: [Requests/Second]\n- Data Volume: [Data Estimates]\n- Availability Target: [SLA]\n\nFunctional Requirements:\n[List Requirements]\n\nTechnology Preferences:\n[Preferred Stack]\n\nBudget Constraints:\n[Budget Information]\n\nNZ Hosting Considerations:\n- Data sovereignty requirements\n- NZ-based cloud regions\n- Latency requirements\n\nProvide:\n1. High-level architecture diagram description\n2. Component breakdown\n3. Technology recommendations\n4. Scalability approach\n5. Security considerations\n6. Cost estimates\n7. Trade-offs and alternatives",
+      "access": "premium",
+      "role": "Tech Lead",
+      "category": "Architecture",
+      "keywords": ["architecture", "system design", "scalability", "cloud", "infrastructure"]
+    },
+    {
+      "id": "tech-005",
+      "title": "Incident Post-Mortem Template",
+      "content": "Create an incident post-mortem report for [Incident Name].\n\nIncident Details:\n- Date/Time: [When]\n- Duration: [How Long]\n- Severity: [P1/P2/P3/P4]\n- Services Affected: [List Services]\n\nImpact:\n- Users Affected: [Count]\n- Revenue Impact: [If Applicable]\n- SLA Breach: [Yes/No]\n\nTimeline of Events:\n[Chronological Events]\n\nRoot Cause:\n[Initial Assessment]\n\nGenerate a blameless post-mortem including:\n1. Executive summary\n2. Impact assessment\n3. Timeline reconstruction\n4. Root cause analysis (5 Whys)\n5. What went well\n6. What could be improved\n7. Action items with owners and due dates\n8. Lessons learned",
+      "access": "premium",
+      "role": "DevOps Engineer",
+      "category": "Documentation",
+      "keywords": ["incident", "post-mortem", "RCA", "outage", "SRE"]
+    },
+    {
+      "id": "tech-006",
+      "title": "Technical Debt Assessment",
+      "content": "Assess technical debt for [Project/System Name].\n\nSystem Age: [Years]\nTeam Size: [Size]\nDeployment Frequency: [Frequency]\n\nKnown Issues:\n[List Known Technical Debt]\n\nRecent Pain Points:\n[List Recent Issues]\n\nCode Metrics (if available):\n[Metrics]\n\nAnalyse and provide:\n1. Technical debt inventory\n2. Priority scoring matrix\n3. Estimated remediation effort\n4. Business impact assessment\n5. Recommended roadmap\n6. Quick wins vs long-term fixes\n7. Resource requirements",
+      "access": "premium",
+      "role": "Tech Lead",
+      "category": "Development",
+      "keywords": ["technical debt", "refactoring", "code quality", "maintenance"]
+    }
+  ]
+}
