@@ -80,8 +80,8 @@ export default function SavedPromptsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Prompts</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl font-bold text-text-heading">My Prompts</h1>
+          <p className="text-text-body">
             Your saved and custom prompts in one place
           </p>
         </div>
@@ -95,14 +95,14 @@ export default function SavedPromptsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
+      <div className="border-b border-ice-200 mb-6">
         <nav className="flex gap-8">
           <button
             onClick={() => setActiveTab('saved')}
             className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
               activeTab === 'saved'
                 ? 'border-primary-600 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                : 'border-transparent text-text-muted hover:text-text-body'
             }`}
           >
             Saved from Library ({savedPrompts.length})
@@ -112,7 +112,7 @@ export default function SavedPromptsPage() {
             className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
               activeTab === 'custom'
                 ? 'border-primary-600 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                : 'border-transparent text-text-muted hover:text-text-body'
             }`}
           >
             My Custom Prompts ({customPrompts.length})
@@ -128,11 +128,11 @@ export default function SavedPromptsPage() {
         /* Saved Prompts */
         savedPrompts.length === 0 ? (
           <div className="text-center py-12">
-            <Bookmark className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <Bookmark className="w-12 h-12 text-ice-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-text-heading mb-2">
               No saved prompts yet
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-text-body mb-4">
               Browse the library and save your favourite prompts for quick access.
             </p>
           </div>
@@ -141,8 +141,8 @@ export default function SavedPromptsPage() {
             {savedPrompts.map((prompt) => (
               <div
                 key={prompt.id}
-                className={`card cursor-pointer hover:shadow-md transition-shadow ${
-                  prompt.isLocked ? 'border-amber-200 bg-amber-50/30' : ''
+                className={`glass-card cursor-pointer ${
+                  prompt.isLocked ? 'border-amber-200 bg-amber-50/50' : ''
                 }`}
                 onClick={() => setSelectedPrompt(prompt)}
               >
@@ -151,25 +151,25 @@ export default function SavedPromptsPage() {
                     className={`text-xs font-medium px-2 py-1 rounded-full ${
                       prompt.access === 'premium'
                         ? 'bg-amber-100 text-amber-700'
-                        : 'bg-green-100 text-green-700'
+                        : 'bg-emerald-100 text-emerald-700'
                     }`}
                   >
                     {prompt.access === 'premium' ? 'Premium' : 'Free'}
                   </span>
                   {prompt.isLocked && <Lock className="w-4 h-4 text-amber-600" />}
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">{prompt.title}</h3>
-                <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                <h3 className="font-semibold text-text-heading mb-2">{prompt.title}</h3>
+                <p className="text-sm text-text-body mb-3 line-clamp-2">
                   {prompt.preview}
                 </p>
-                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                  <span className="text-xs text-gray-500">{prompt.industryName}</span>
+                <div className="flex items-center justify-between pt-3 border-t border-ice-200">
+                  <span className="text-xs text-text-muted">{prompt.industryName}</span>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleRemoveSaved(prompt.id);
                     }}
-                    className="text-gray-400 hover:text-red-600 transition-colors"
+                    className="text-ice-400 hover:text-red-600 transition-colors"
                     title="Remove from saved"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -183,11 +183,11 @@ export default function SavedPromptsPage() {
         /* Custom Prompts */
         customPrompts.length === 0 ? (
           <div className="text-center py-12">
-            <Plus className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <Plus className="w-12 h-12 text-ice-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-text-heading mb-2">
               No custom prompts yet
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-text-body mb-4">
               Create your own prompts to use with any AI assistant.
             </p>
             <button
@@ -202,24 +202,24 @@ export default function SavedPromptsPage() {
             {customPrompts.map((prompt) => (
               <div
                 key={prompt.id}
-                className="card cursor-pointer hover:shadow-md transition-shadow"
+                className="glass-card cursor-pointer"
                 onClick={() => setSelectedCustomPrompt(prompt)}
               >
                 <div className="flex items-start gap-2 mb-2">
                   <span className="text-xs font-medium px-2 py-1 rounded-full bg-purple-100 text-purple-700">
                     Custom
                   </span>
-                  <span className="text-xs text-gray-500">{prompt.industryName || prompt.industry || 'General'}</span>
+                  <span className="text-xs text-text-muted">{prompt.industryName || prompt.industry || 'General'}</span>
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">{prompt.title}</h3>
-                <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                <h3 className="font-semibold text-text-heading mb-2">{prompt.title}</h3>
+                <p className="text-sm text-text-body mb-3 line-clamp-2">
                   {prompt.content}
                 </p>
                 {prompt.role && prompt.role !== 'General' && (
-                  <p className="text-xs text-gray-500 mb-3">Role: {prompt.role}</p>
+                  <p className="text-xs text-text-muted mb-3">Role: {prompt.role}</p>
                 )}
-                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                  <span className="text-xs text-gray-500">
+                <div className="flex items-center justify-between pt-3 border-t border-ice-200">
+                  <span className="text-xs text-text-muted">
                     {new Date(prompt.updatedAt).toLocaleDateString('en-NZ')}
                   </span>
                   <div className="flex items-center gap-2">
@@ -228,7 +228,7 @@ export default function SavedPromptsPage() {
                         e.stopPropagation();
                         setEditingPrompt(prompt);
                       }}
-                      className="text-gray-400 hover:text-primary-600 transition-colors"
+                      className="text-ice-400 hover:text-primary-600 transition-colors"
                       title="Edit"
                     >
                       <Pencil className="w-4 h-4" />
@@ -238,7 +238,7 @@ export default function SavedPromptsPage() {
                         e.stopPropagation();
                         handleDeleteCustom(prompt.id);
                       }}
-                      className="text-gray-400 hover:text-red-600 transition-colors"
+                      className="text-ice-400 hover:text-red-600 transition-colors"
                       title="Delete"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -360,11 +360,11 @@ function CustomPromptModal({
 
       <div className="relative min-h-full flex items-center justify-center p-4">
         <div className="relative bg-white rounded-xl shadow-xl max-w-2xl w-full">
-          <div className="flex items-center justify-between p-4 border-b">
-            <h2 className="text-lg font-semibold text-gray-900">
+          <div className="flex items-center justify-between p-4 border-b border-ice-200">
+            <h2 className="text-lg font-semibold text-text-heading">
               {prompt ? 'Edit Prompt' : 'Create Custom Prompt'}
             </h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <button onClick={onClose} className="text-ice-400 hover:text-text-body">
               <X className="w-6 h-6" />
             </button>
           </div>
@@ -377,7 +377,7 @@ function CustomPromptModal({
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-text-body mb-1">
                 Title
               </label>
               <input
@@ -392,7 +392,7 @@ function CustomPromptModal({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-text-body mb-1">
                   Industry
                 </label>
                 <select
@@ -411,7 +411,7 @@ function CustomPromptModal({
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-text-body mb-1">
                   Role
                 </label>
                 <select
@@ -430,7 +430,7 @@ function CustomPromptModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-text-body mb-1">
                 Prompt Content
               </label>
               <textarea
@@ -441,13 +441,13 @@ function CustomPromptModal({
                 placeholder="Enter your prompt here. Use [Placeholder] syntax for variables."
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-text-muted mt-1">
                 Tip: Use [Placeholder] for values you want to fill in later
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-text-body mb-1">
                 Keywords (comma separated)
               </label>
               <input
@@ -531,39 +531,39 @@ function CustomPromptViewModal({
       <div className="relative min-h-full flex items-center justify-center p-4">
         <div className="relative bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex items-center justify-between p-4 border-b border-ice-200">
             <div className="flex items-center gap-3">
               <span className="inline-flex items-center text-xs font-medium px-2 py-1 rounded-full bg-purple-100 text-purple-700">
                 Custom
               </span>
-              <span className="inline-flex items-center text-sm text-gray-500 h-6">{prompt.industryName || prompt.industry || 'General'}</span>
+              <span className="inline-flex items-center text-sm text-text-muted h-6">{prompt.industryName || prompt.industry || 'General'}</span>
               {prompt.role && prompt.role !== 'General' && (
                 <>
-                  <span className="inline-flex items-center text-gray-300 h-6">•</span>
-                  <span className="inline-flex items-center text-sm text-gray-500 h-6">{prompt.role}</span>
+                  <span className="inline-flex items-center text-ice-300 h-6">•</span>
+                  <span className="inline-flex items-center text-sm text-text-muted h-6">{prompt.role}</span>
                 </>
               )}
             </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <button onClick={onClose} className="text-ice-400 hover:text-text-body">
               <X className="w-6 h-6" />
             </button>
           </div>
 
           {/* Content */}
           <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">{prompt.title}</h2>
+            <h2 className="text-xl font-bold text-text-heading mb-4">{prompt.title}</h2>
 
             <div className="space-y-4">
               {/* Placeholder inputs */}
               {placeholders.length > 0 && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-sm font-medium text-gray-700 mb-3">
+                <div className="bg-ice-100 rounded-lg p-4">
+                  <h3 className="text-sm font-medium text-text-body mb-3">
                     Populate Placeholders
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {placeholders.map((placeholder) => (
                       <div key={placeholder}>
-                        <label className="block text-xs text-gray-500 mb-1">
+                        <label className="block text-xs text-text-muted mb-1">
                           {placeholder}
                         </label>
                         <input
@@ -586,13 +586,13 @@ function CustomPromptViewModal({
 
               {/* Prompt content */}
               <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-2">
+                <h3 className="text-sm font-medium text-text-body mb-2">
                   {placeholders.length > 0 && Object.keys(placeholderValues).some(k => placeholderValues[k])
                     ? 'Populated Prompt'
                     : 'Prompt Content'}
                 </h3>
-                <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                  <pre className="text-gray-100 text-sm whitespace-pre-wrap font-mono">
+                <div className="bg-primary-800 rounded-lg p-4 overflow-x-auto">
+                  <pre className="text-ice-100 text-sm whitespace-pre-wrap font-mono">
                     {placeholders.length > 0 && Object.keys(placeholderValues).some(k => placeholderValues[k])
                       ? populatedContent
                       : prompt.content}
@@ -603,12 +603,12 @@ function CustomPromptViewModal({
               {/* Keywords */}
               {prompt.keywords && prompt.keywords.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Keywords</h3>
+                  <h3 className="text-sm font-medium text-text-body mb-2">Keywords</h3>
                   <div className="flex flex-wrap gap-2">
                     {prompt.keywords.map((keyword) => (
                       <span
                         key={keyword}
-                        className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full"
+                        className="text-xs bg-ice-100 text-text-muted px-2 py-1 rounded-full"
                       >
                         {keyword}
                       </span>
@@ -620,7 +620,7 @@ function CustomPromptViewModal({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between p-4 border-t bg-gray-50">
+          <div className="flex items-center justify-between p-4 border-t border-ice-200 bg-ice-50">
             <button onClick={onEdit} className="btn-secondary flex items-center gap-2">
               <Pencil className="w-5 h-5" />
               Edit Prompt

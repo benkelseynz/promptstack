@@ -84,7 +84,7 @@ export default function PromptModal({
       <div className="relative min-h-full flex items-center justify-center p-4">
         <div className="relative bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex items-center justify-between p-4 border-b border-ice-200">
             <div className="flex items-center gap-3">
               <span
                 className={`inline-flex items-center text-xs font-medium px-2 py-1 rounded-full ${
@@ -92,22 +92,22 @@ export default function PromptModal({
                     ? 'bg-purple-100 text-purple-700'
                     : prompt.access === 'premium'
                     ? 'bg-amber-100 text-amber-700'
-                    : 'bg-green-100 text-green-700'
+                    : 'bg-emerald-100 text-emerald-700'
                 }`}
               >
                 {(prompt as any).isCustom ? 'Custom' : prompt.access === 'premium' ? 'Premium' : 'Free'}
               </span>
-              <span className="inline-flex items-center text-sm text-gray-500 h-6">{prompt.industryName}</span>
+              <span className="inline-flex items-center text-sm text-text-muted h-6">{prompt.industryName}</span>
               {prompt.role && (
                 <>
-                  <span className="inline-flex items-center text-gray-300 h-6">•</span>
-                  <span className="inline-flex items-center text-sm text-gray-500 h-6">{prompt.role}</span>
+                  <span className="inline-flex items-center text-ice-300 h-6">•</span>
+                  <span className="inline-flex items-center text-sm text-text-muted h-6">{prompt.role}</span>
                 </>
               )}
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-ice-400 hover:text-text-body"
             >
               <X className="w-6 h-6" />
             </button>
@@ -115,7 +115,7 @@ export default function PromptModal({
 
           {/* Content */}
           <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">{prompt.title}</h2>
+            <h2 className="text-xl font-bold text-text-heading mb-4">{prompt.title}</h2>
 
             {prompt.isLocked ? (
               /* Locked Premium Prompt */
@@ -131,17 +131,17 @@ export default function PromptModal({
                   </p>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Preview</h3>
-                  <p className="text-gray-600 italic">{prompt.preview}</p>
+                <div className="bg-ice-100 rounded-lg p-4">
+                  <h3 className="text-sm font-medium text-text-body mb-2">Preview</h3>
+                  <p className="text-text-muted italic">{prompt.preview}</p>
                 </div>
 
                 <div className="bg-primary-50 border border-primary-200 rounded-lg p-6 text-center">
                   <Sparkles className="w-8 h-8 text-primary-600 mx-auto mb-3" />
-                  <h3 className="font-semibold text-gray-900 mb-2">
+                  <h3 className="font-semibold text-text-heading mb-2">
                     Unlock Premium Prompts
                   </h3>
-                  <p className="text-gray-600 text-sm mb-4">
+                  <p className="text-text-body text-sm mb-4">
                     Get access to all premium prompts, advanced features, and priority support.
                   </p>
                   <Link
@@ -157,14 +157,14 @@ export default function PromptModal({
               <div className="space-y-4">
                 {/* Placeholder inputs */}
                 {placeholders.length > 0 && (
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-sm font-medium text-gray-700 mb-3">
+                  <div className="bg-ice-100 rounded-lg p-4">
+                    <h3 className="text-sm font-medium text-text-body mb-3">
                       Populate Placeholders
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {placeholders.map((placeholder) => (
                         <div key={placeholder}>
-                          <label className="block text-xs text-gray-500 mb-1">
+                          <label className="block text-xs text-text-muted mb-1">
                             {placeholder}
                           </label>
                           <input
@@ -187,13 +187,13 @@ export default function PromptModal({
 
                 {/* Prompt content */}
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">
+                  <h3 className="text-sm font-medium text-text-body mb-2">
                     {placeholders.length > 0 && Object.keys(placeholderValues).some(k => placeholderValues[k])
                       ? 'Populated Prompt'
                       : 'Prompt Content'}
                   </h3>
-                  <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                    <pre className="text-gray-100 text-sm whitespace-pre-wrap font-mono">
+                  <div className="bg-primary-800 rounded-lg p-4 overflow-x-auto">
+                    <pre className="text-ice-100 text-sm whitespace-pre-wrap font-mono">
                       {placeholders.length > 0 && Object.keys(placeholderValues).some(k => placeholderValues[k])
                         ? populatedContent
                         : prompt.content}
@@ -204,12 +204,12 @@ export default function PromptModal({
                 {/* Keywords */}
                 {prompt.keywords && prompt.keywords.length > 0 && (
                   <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">Keywords</h3>
+                    <h3 className="text-sm font-medium text-text-body mb-2">Keywords</h3>
                     <div className="flex flex-wrap gap-2">
                       {prompt.keywords.map((keyword) => (
                         <span
                           key={keyword}
-                          className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full"
+                          className="text-xs bg-ice-100 text-text-muted px-2 py-1 rounded-full"
                         >
                           {keyword}
                         </span>
@@ -222,7 +222,7 @@ export default function PromptModal({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between p-4 border-t bg-gray-50">
+          <div className="flex items-center justify-between p-4 border-t border-ice-200 bg-ice-50">
             <button
               onClick={onSave}
               className="btn-secondary flex items-center gap-2"

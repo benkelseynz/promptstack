@@ -66,7 +66,7 @@ export default function DashboardLayout({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-snow-soft">
         <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
       </div>
     );
@@ -77,23 +77,23 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-snow-soft flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 fixed h-full overflow-y-auto">
-        <div className="p-4 border-b border-gray-100">
+      <aside className="w-64 bg-white border-r border-ice-200 fixed h-full overflow-y-auto">
+        <div className="p-4 border-b border-ice-200">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-9 h-9 bg-primary-600 rounded-lg flex items-center justify-center">
+            <div className="w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-lg text-gray-900">PromptStack</span>
+            <span className="font-bold text-lg text-text-heading">PromptStack</span>
           </Link>
         </div>
 
         <nav className="p-4 space-y-1">
           {navigation.map((item) => {
-            const isActive = pathname === item.href || 
+            const isActive = pathname === item.href ||
               (item.href === '/dashboard' && pathname === '/dashboard');
-            
+
             return (
               <Link
                 key={item.name}
@@ -103,7 +103,7 @@ export default function DashboardLayout({
                 <item.icon className="w-5 h-5" />
                 <span className="flex-1">{item.name}</span>
                 {item.comingSoon && (
-                  <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                  <span className="text-xs bg-ice-100 text-text-muted px-2 py-0.5 rounded-full">
                     Soon
                   </span>
                 )}
@@ -112,18 +112,18 @@ export default function DashboardLayout({
           })}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-100 bg-white">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-ice-200 bg-white">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-primary-50 rounded-full flex items-center justify-center">
               <span className="text-primary-700 font-medium">
                 {user.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
+              <p className="text-sm font-medium text-text-heading truncate">
                 {user.name || 'User'}
               </p>
-              <p className="text-xs text-gray-500 truncate">{user.email}</p>
+              <p className="text-xs text-text-muted truncate">{user.email}</p>
             </div>
           </div>
           <button
@@ -137,10 +137,16 @@ export default function DashboardLayout({
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 ml-64">
+      <main className="flex-1 ml-64 relative overflow-hidden">
+        {/* Background gradient blobs for glassmorphism effect */}
+        <div className="gradient-blob gradient-blob-1" />
+        <div className="gradient-blob gradient-blob-2" />
+        <div className="gradient-blob gradient-blob-4" />
+        <div className="gradient-blob gradient-blob-5" />
+
         {/* Email verification banner */}
         {!user.emailVerified && (
-          <div className="bg-amber-50 border-b border-amber-200 px-4 py-3">
+          <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 relative z-10">
             <div className="flex items-center justify-between max-w-7xl mx-auto">
               <div className="flex items-center gap-2 text-amber-800">
                 <AlertCircle className="w-5 h-5" />
@@ -169,7 +175,7 @@ export default function DashboardLayout({
           </div>
         )}
 
-        <div className="p-6 lg:p-8">{children}</div>
+        <div className="p-6 lg:p-8 relative z-10">{children}</div>
       </main>
     </div>
   );

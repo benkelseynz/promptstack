@@ -252,13 +252,13 @@ export default function DashboardPage() {
     <div>
       {/* Welcome banner */}
       {isWelcome && (
-        <div className="bg-primary-50 border border-primary-200 rounded-xl p-4 mb-6 flex items-center gap-3">
+        <div className="bg-ice-100 border border-ice-300 rounded-xl p-4 mb-6 flex items-center gap-3">
           <Sparkles className="w-6 h-6 text-primary-600" />
           <div>
-            <p className="font-medium text-primary-900">
+            <p className="font-medium text-text-heading">
               Kia ora! Welcome to PromptStack
             </p>
-            <p className="text-sm text-primary-700">
+            <p className="text-sm text-text-body">
               Check your email to verify your account and unlock all features.
             </p>
           </div>
@@ -267,8 +267,8 @@ export default function DashboardPage() {
 
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Prompt Library</h1>
-        <p className="text-gray-600">
+        <h1 className="text-2xl font-bold text-text-heading">Prompt Library</h1>
+        <p className="text-text-body">
           Browse {total} curated AI prompts for New Zealand professionals
         </p>
       </div>
@@ -277,7 +277,7 @@ export default function DashboardPage() {
       <div className="mb-6 space-y-4">
         <div className="flex gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
             <input
               type="text"
               placeholder="Search prompts by title, keywords, or role..."
@@ -309,7 +309,7 @@ export default function DashboardPage() {
         {showFilters && (
           <div className="card">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-medium text-gray-900">Filter Prompts</h3>
+              <h3 className="font-medium text-text-heading">Filter Prompts</h3>
               {hasActiveFilters && (
                 <button
                   onClick={clearFilters}
@@ -322,7 +322,7 @@ export default function DashboardPage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-text-body mb-1">
                   Industry
                 </label>
                 <select
@@ -342,7 +342,7 @@ export default function DashboardPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-text-body mb-1">
                   Role
                 </label>
                 <select
@@ -362,7 +362,7 @@ export default function DashboardPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-text-body mb-1">
                   Access Level
                 </label>
                 <select
@@ -422,7 +422,7 @@ export default function DashboardPage() {
               >
                 Previous
               </button>
-              <span className="text-gray-600 px-4">
+              <span className="text-text-body px-4">
                 Page {page} of {totalPages}
               </span>
               <button
@@ -463,8 +463,8 @@ function PromptCard({
 }) {
   return (
     <div
-      className={`card cursor-pointer hover:shadow-md transition-shadow relative ${
-        prompt.isLocked ? 'border-amber-200 bg-amber-50/30' : ''
+      className={`glass-card cursor-pointer relative ${
+        prompt.isLocked ? 'border-amber-200 bg-amber-50/50' : ''
       }`}
       onClick={onClick}
     >
@@ -481,31 +481,31 @@ function PromptCard({
               ? 'bg-purple-100 text-purple-700'
               : prompt.access === 'premium'
               ? 'bg-amber-100 text-amber-700'
-              : 'bg-green-100 text-green-700'
+              : 'bg-emerald-100 text-emerald-700'
           }`}
         >
           {(prompt as any).isCustom ? 'Custom' : prompt.access === 'premium' ? 'Premium' : 'Free'}
         </span>
-        <span className="text-xs text-gray-500">{prompt.industryName}</span>
+        <span className="text-xs text-text-muted">{prompt.industryName}</span>
       </div>
 
-      <h3 className="font-semibold text-gray-900 mb-2 pr-8">{prompt.title}</h3>
-      
-      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+      <h3 className="font-semibold text-text-heading mb-2 pr-8">{prompt.title}</h3>
+
+      <p className="text-sm text-text-body mb-3 line-clamp-2">
         {prompt.preview}
       </p>
 
       {prompt.role && (
-        <p className="text-xs text-gray-500 mb-3">Role: {prompt.role}</p>
+        <p className="text-xs text-text-muted mb-3">Role: {prompt.role}</p>
       )}
 
-      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+      <div className="flex items-center justify-between pt-3 border-t border-ice-200">
         <button
           onClick={(e) => {
             e.stopPropagation();
             onSave();
           }}
-          className="text-gray-400 hover:text-primary-600 transition-colors"
+          className="text-text-muted hover:text-primary-600 transition-colors"
           title={isSaved ? 'Remove from saved' : 'Save prompt'}
         >
           {isSaved ? (
