@@ -8,61 +8,65 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Cosmic galaxy color palette - deep, authentic, mesmerizing
+        // Winter Ice / Alpine Minimal palette - premium, calm, high-contrast
         primary: {
-          50: '#eef2ff',
-          100: '#e0e7ff',
-          200: '#c7d2fe',
-          300: '#a5b4fc',
-          400: '#818cf8',
-          500: '#6366f1',  // Rich indigo - the heart of the galaxy
-          600: '#4f46e5',
-          700: '#4338ca',
-          800: '#3730a3',
-          900: '#312e81',
-          950: '#1e1b4b',  // Deep cosmic night
+          50: '#F9FBFD',   // snow - lightest background
+          100: '#F6F5FA',  // frost - secondary background
+          200: '#E0EEF7',  // ice-200 - soft surface/cards
+          300: '#D5E8F2',  // ice-300 - borders/dividers
+          400: '#B6CFE8',  // ice-400 - muted panels
+          500: '#5483BA',  // steel-400 - UI emphasis
+          600: '#4FA3B8',  // arctic teal - CTA accent
+          700: '#2D5A85',  // glacier-700 - structure
+          800: '#004681',  // alpine-800 - primary anchor navy
+          900: '#003366',  // deeper alpine
+          950: '#002244',  // deepest alpine
         },
-        // Aurora accent - ethereal teal-cyan glow
+        // CTA Accent - muted arctic teal for primary actions
         accent: {
-          50: '#ecfeff',
-          100: '#cffafe',
-          200: '#a5f3fc',
-          300: '#67e8f9',
-          400: '#22d3ee',
-          500: '#06b6d4',
-          600: '#0891b2',
-          700: '#0e7490',
-          800: '#155e75',
-          900: '#164e63',
+          50: '#F0F9FB',
+          100: '#E1F3F7',
+          200: '#C3E7EF',
+          300: '#9DD8E5',
+          400: '#6FC4D6',
+          500: '#4FA3B8',  // primary CTA - muted arctic teal
+          600: '#3D8CA0',
+          700: '#2E6B7A',
+          800: '#235560',
+          900: '#1A4049',
         },
-        // Nebula - purple accent for highlights
+        // Periwinkle - optional restrained accent
         nebula: {
-          50: '#faf5ff',
-          100: '#f3e8ff',
-          200: '#e9d5ff',
-          300: '#d8b4fe',
-          400: '#c084fc',
-          500: '#a855f7',
-          600: '#9333ea',
-          700: '#7c3aed',
-          800: '#6b21a8',
-          900: '#581c87',
+          50: '#F7F9FC',
+          100: '#EEF2F9',
+          200: '#C7D3E8',  // periwinkle-200
+          300: '#B5C5DE',
+          400: '#9BA9D0',  // periwinkle-400
+          500: '#7B8DBF',
+          600: '#6175AB',
+          700: '#4D5E8E',
+          800: '#3D4A6F',
+          900: '#2E3851',
         },
-        // Deep space backgrounds
+        // Foundation - ice and snow backgrounds
         cosmos: {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          800: '#1e293b',
-          900: '#0f172a',
-          950: '#020617',
+          50: '#F9FBFD',   // snow
+          100: '#F6F5FA',  // frost
+          200: '#E0EEF7',  // ice-200
+          300: '#D5E8F2',  // ice-300
+          400: '#B6CFE8',  // ice-400
+          800: '#2D5A85',  // glacier for dark elements
+          900: '#004681',  // alpine for darkest elements
+          950: '#002244',  // deepest alpine
         },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       backgroundImage: {
-        'galaxy-gradient': 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%)',
-        'aurora-glow': 'radial-gradient(ellipse at top, rgba(99, 102, 241, 0.15) 0%, transparent 50%)',
+        'winter-gradient': 'linear-gradient(180deg, #F9FBFD 0%, #E0EEF7 100%)',
+        'hero-gradient': 'linear-gradient(135deg, #F6F5FA 0%, #D5E8F2 40%, #9BA9D0 100%)',
+        'frost-glow': 'radial-gradient(ellipse at top, rgba(84, 131, 186, 0.08) 0%, transparent 50%)',
       },
     },
   },

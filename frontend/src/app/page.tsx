@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import type { PricingConfig } from '@/types';
 import { ArrowRight, Sparkles, Shield, Zap, Users, Check, X, ChevronDown, ChevronUp, Loader2, MessageSquare } from 'lucide-react';
+import MountainParallax from '@/components/MountainParallax';
 
 export default function LandingPage() {
   const { user } = useAuth();
@@ -30,7 +31,11 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="snap-y snap-proximity overflow-y-auto h-screen">
+    <>
+      {/* Fixed mountain parallax background - spans entire page */}
+      <MountainParallax />
+
+      <div className="relative z-10">
       {/* Header */}
       <header className="border-b border-primary-100 bg-white/90 backdrop-blur-sm fixed top-0 left-0 right-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -67,15 +72,9 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Hero - Full screen, expanded layout */}
-      <section className="min-h-screen flex flex-col justify-center snap-start bg-gradient-to-b from-primary-50/50 via-white to-white pt-16 relative overflow-hidden">
-        {/* Subtle cosmic glow effects */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-1/4 w-[600px] h-[600px] bg-primary-200/30 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-1/4 w-[400px] h-[400px] bg-nebula-200/20 rounded-full blur-3xl"></div>
-        </div>
-
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 py-20">
+      {/* Hero */}
+      <section className="pt-32 pb-12 relative overflow-hidden">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 py-12 sm:py-20">
           <div className="inline-flex items-center gap-2 bg-primary-100/80 text-primary-700 px-5 py-2.5 rounded-full text-sm font-medium mb-10 backdrop-blur-sm">
             <span>🥝</span>
             <span>Built by Kiwis, for Kiwis</span>
@@ -83,7 +82,7 @@ export default function LandingPage() {
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 mb-8 leading-tight tracking-tight">
             Supercharge Your Work with
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary-600 via-primary-500 to-nebula-500">
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary-800 via-primary-600 to-accent-600">
               Premium AI Prompts
             </span>
           </h1>
@@ -108,31 +107,26 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          <p className="text-gray-500">
+          <p className="text-primary-800">
             No credit card required. Free tier includes access to 50+ prompts.
           </p>
         </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <ChevronDown className="w-6 h-6 text-gray-400" />
-        </div>
       </section>
 
-      {/* Features - Full screen */}
-      <section id="features" className="min-h-screen flex items-center snap-start bg-white py-24">
+      {/* Features */}
+      <section id="features" className="py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+          <div className="text-center mb-10">
+            <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
               Everything You Need to Work Smarter
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-primary-800 max-w-2xl mx-auto">
               Our platform is designed specifically for New Zealand business professionals
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-10 mb-20">
-            <div className="card hover:shadow-lg transition-shadow p-8">
+          <div className="grid md:grid-cols-3 gap-6 mb-10">
+            <div className="glass-card p-8">
               <div className="w-14 h-14 bg-gradient-to-br from-primary-100 to-primary-200 rounded-2xl flex items-center justify-center mb-6">
                 <Zap className="w-7 h-7 text-primary-600" />
               </div>
@@ -145,7 +139,7 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="card hover:shadow-lg transition-shadow p-8">
+            <div className="glass-card p-8">
               <div className="w-14 h-14 bg-gradient-to-br from-accent-100 to-accent-200 rounded-2xl flex items-center justify-center mb-6">
                 <MessageSquare className="w-7 h-7 text-accent-600" />
               </div>
@@ -158,9 +152,9 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="card hover:shadow-lg transition-shadow p-8">
+            <div className="glass-card p-8">
               <div className="w-14 h-14 bg-gradient-to-br from-nebula-100 to-nebula-200 rounded-2xl flex items-center justify-center mb-6">
-                <Shield className="w-7 h-7 text-nebula-600" />
+                <Shield className="w-7 h-7 text-primary-700" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 Save and Organise
@@ -173,7 +167,7 @@ export default function LandingPage() {
           </div>
 
           {/* Coming Soon Features */}
-          <div className="border border-primary-100 rounded-2xl p-10 bg-gradient-to-br from-primary-50/50 to-white">
+          <div className="glass-card p-10">
             <div className="flex items-center gap-2 mb-6">
               <Users className="w-5 h-5 text-primary-400" />
               <span className="text-sm font-medium text-primary-600 uppercase tracking-wide">
@@ -204,61 +198,44 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Quote Section - Full screen, expanded, cosmic theme */}
-      <section className="min-h-screen flex items-center justify-center snap-start relative overflow-hidden">
-        {/* Deep cosmic background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-cosmos-950 via-primary-950 to-cosmos-900"></div>
+      {/* Quote Section - Card style within flow */}
+      <section className="py-12 sm:py-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Quote Card - Dark Glassmorphism */}
+          <div className="glass-card-dark p-8 sm:p-12 lg:p-16 text-center">
+            <blockquote className="mb-12">
+              <p className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold leading-relaxed tracking-tight">
+                &ldquo;In a world where the cost of answers is approaching zero,{' '}
+                <span className="text-primary-300">
+                  the value of the question becomes everything.
+                </span>&rdquo;
+              </p>
+            </blockquote>
 
-        {/* Animated cosmic elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 left-1/6 w-[500px] h-[500px] bg-primary-500/20 rounded-full blur-[100px] animate-pulse"></div>
-          <div className="absolute bottom-1/4 right-1/6 w-[600px] h-[600px] bg-nebula-500/15 rounded-full blur-[120px]"></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary-600/10 rounded-full blur-[150px]"></div>
-        </div>
-
-        {/* Star-like particles effect */}
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-[10%] left-[15%] w-1 h-1 bg-white rounded-full"></div>
-          <div className="absolute top-[20%] right-[25%] w-1.5 h-1.5 bg-white rounded-full"></div>
-          <div className="absolute top-[70%] left-[10%] w-1 h-1 bg-white rounded-full"></div>
-          <div className="absolute top-[60%] right-[15%] w-1 h-1 bg-white rounded-full"></div>
-          <div className="absolute top-[30%] left-[70%] w-1.5 h-1.5 bg-white rounded-full"></div>
-          <div className="absolute top-[80%] right-[30%] w-1 h-1 bg-white rounded-full"></div>
-        </div>
-
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 py-20">
-          <blockquote className="mb-16">
-            <p className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light text-white leading-relaxed tracking-tight">
-              &ldquo;In a world where the cost of answers is approaching zero,{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-accent-400 to-nebula-400 font-medium">
-                the value of the question becomes everything.
-              </span>&rdquo;
+            <p className="text-lg sm:text-xl text-primary-200 mb-12 max-w-2xl mx-auto leading-relaxed">
+              This is why we built PromptStack &mdash; to give you the toolkit for asking better questions.
             </p>
-          </blockquote>
 
-          <p className="text-xl sm:text-2xl text-gray-300 mb-16 max-w-3xl mx-auto leading-relaxed">
-            This is why we built PromptStack &mdash; to give you the toolkit for asking better questions.
-          </p>
-
-          <div className="flex flex-wrap justify-center gap-12 sm:gap-20">
-            <div className="text-center">
-              <div className="text-5xl sm:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-primary-300 to-primary-500">500+</div>
-              <div className="text-gray-400 mt-2">Curated Prompts</div>
-            </div>
-            <div className="text-center">
-              <div className="text-5xl sm:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-accent-300 to-accent-500">10+</div>
-              <div className="text-gray-400 mt-2">Industries</div>
-            </div>
-            <div className="text-center">
-              <div className="text-5xl sm:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-nebula-300 to-nebula-500">100%</div>
-              <div className="text-gray-400 mt-2">NZ Focused</div>
+            <div className="flex flex-wrap justify-center gap-8 sm:gap-16">
+              <div className="text-center">
+                <div className="text-4xl sm:text-5xl font-bold text-accent-400">500+</div>
+                <div className="text-primary-300 mt-2 text-sm sm:text-base uppercase tracking-wider">Curated Prompts</div>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl sm:text-5xl font-bold text-accent-400">10+</div>
+                <div className="text-primary-300 mt-2 text-sm sm:text-base uppercase tracking-wider">Industries</div>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl sm:text-5xl font-bold text-accent-400">100%</div>
+                <div className="text-primary-300 mt-2 text-sm sm:text-base uppercase tracking-wider">NZ Focused</div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Pricing + CTA - Combined section */}
-      <section id="pricing" className="min-h-screen flex flex-col justify-center snap-start bg-gradient-to-b from-white to-gray-50 py-20">
+      <section id="pricing" className="py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <div className="text-center mb-12">
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
@@ -299,7 +276,7 @@ export default function LandingPage() {
               </div>
 
               {/* Pricing cards */}
-              <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-20">
+              <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-16">
                 {pricing.tiers.map((tier) => {
                   const monthlyPrice = tier.monthlyPrice;
                   const annualPrice = Math.round(monthlyPrice * 12 * (1 - pricing.annualDiscount / 100));
@@ -313,10 +290,10 @@ export default function LandingPage() {
                   return (
                     <div
                       key={tier.id}
-                      className={`card relative p-8 ${
+                      className={`glass-card relative p-8 ${
                         tier.highlighted
-                          ? 'ring-2 ring-primary-500 shadow-xl shadow-primary-500/10'
-                          : 'hover:shadow-lg transition-shadow'
+                          ? 'ring-2 ring-accent-500 scale-105'
+                          : ''
                       }`}
                     >
                       {tier.badge && (
@@ -407,7 +384,7 @@ export default function LandingPage() {
               </div>
 
               {/* Refund policy */}
-              <p className="text-center text-gray-500 text-sm mb-16">
+              <p className="text-center text-gray-500 text-sm mb-12">
                 {pricing.refundPolicy}
               </p>
             </>
@@ -418,7 +395,7 @@ export default function LandingPage() {
           )}
 
           {/* CTA integrated into pricing section */}
-          <div className="text-center pt-8 border-t border-gray-200">
+          <div className="glass-card text-center p-10 mt-10" style={{ background: 'rgba(255, 255, 255, 0.85)' }}>
             <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
               Ready to Transform Your Workflow?
             </h3>
@@ -435,9 +412,9 @@ export default function LandingPage() {
         </div>
 
         {/* Footer integrated */}
-        <footer className="mt-auto pt-16">
+        <footer className="mt-10 pt-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="border-t border-gray-200 py-8">
+            <div className="border-t border-primary-200/50 py-8">
               <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center">
@@ -458,6 +435,7 @@ export default function LandingPage() {
           </div>
         </footer>
       </section>
-    </div>
+      </div>
+    </>
   );
 }
