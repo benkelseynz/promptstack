@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useState } from 'react';
+import ProfileReminder from '@/components/ProfileReminder';
 
 const navigation = [
   { name: 'Prompt Library', href: '/dashboard', icon: Library },
@@ -169,7 +170,14 @@ export default function DashboardLayout({
           </div>
         )}
 
-        <div className="p-6 lg:p-8">{children}</div>
+        <div className="p-6 lg:p-8">
+          {/* Profile reminder for new users or incomplete profiles */}
+          {pathname === '/dashboard' && <ProfileReminder variant="welcome" />}
+          {pathname !== '/dashboard' && pathname !== '/dashboard/settings' && (
+            <ProfileReminder variant="banner" />
+          )}
+          {children}
+        </div>
       </main>
     </div>
   );

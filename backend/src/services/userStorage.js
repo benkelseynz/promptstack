@@ -16,6 +16,71 @@ const BCRYPT_ROUNDS = 12;
 // Email to ID mapping file
 const EMAIL_INDEX_PATH = path.join(USERS_DIR, '_email_index.json');
 
+// Default profile structure
+// NOTE: A future "Decision-Making Framework" section will be added as Section 7
+// with industry-specific dynamic questions. The structure below accommodates
+// adding new sections without breaking existing profiles.
+function getDefaultProfile() {
+  return {
+    completed: false,
+    completedAt: null,
+    sectionsCompleted: [],
+
+    // SECTION 1: Your Role & Responsibilities
+    role: {
+      title: '',
+      company: '',
+      companyDescription: '',
+      industry: '',
+      customIndustry: '',
+      primaryResponsibilities: '',
+      timeAllocation: '',
+      keyStakeholders: ''
+    },
+
+    // SECTION 2: Communication Style
+    communication: {
+      phrasesToAvoid: '',
+      formalityLevel: '',
+      tonePreference: '',
+      petPeeves: ''
+    },
+
+    // SECTION 3: Writing Style
+    writingStyle: {
+      emailStyle: '',
+      reportStyle: '',
+      generalNotes: ''
+    },
+
+    // SECTION 4: Working Style & Workflow
+    workingStyle: {
+      informationPreference: [],
+      informationPreferenceNotes: '',
+      analysisDepth: '',
+      decisionMakingStyle: ''
+    },
+
+    // SECTION 5: Output Formatting
+    formatting: {
+      structurePreference: '',
+      structurePreferenceNotes: '',
+      preferTables: '',
+      preferBullets: '',
+      preferCharts: '',
+      specificRequirements: ''
+    },
+
+    // SECTION 6: Personal Context
+    personal: {
+      background: '',
+      frameworks: '',
+      additionalContext: '',
+      greatCollaboration: ''
+    }
+  };
+}
+
 // Load email index
 async function loadEmailIndex() {
   const index = await readJsonFile(EMAIL_INDEX_PATH);
@@ -50,7 +115,8 @@ async function createUser({ email, password, name }) {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     customPrompts: [],
-    savedPrompts: []
+    savedPrompts: [],
+    profile: getDefaultProfile()
   };
 
   // Save user file
@@ -224,7 +290,7 @@ async function saveLibraryPrompt(userId, promptId) {
 // Remove saved library prompt
 async function removeSavedPrompt(userId, promptId) {
   const userData = await getUserById(userId);
-  
+
   if (!userData) {
     return null;
   }
@@ -236,6 +302,135 @@ async function removeSavedPrompt(userId, promptId) {
   await atomicWrite(userFilePath, userData);
 
   return userData.savedPrompts;
+}
+
+// Section names for validation
+const PROFILE_SECTIONS = ['role', 'communication', 'writingStyle', 'workingStyle', 'formatting', 'personal'];
+
+// Required fields for core sections (1-3) to consider profile "completed"
+const CORE_SECTION_REQUIRED_FIELDS = {
+  role: ['title', 'company', 'industry', 'primaryResponsibilities'],
+  communication: ['formalityLevel'],
+  writingStyle: ['emailStyle']
+};
+
+// Get user profile
+async function getUserProfile(userId) {
+  const userData = await getUserById(userId);
+
+  if (!userData) {
+    return null;
+  }
+
+  // Ensure profile exists (for existing users who don't have one)
+  if (!userData.profile) {
+    userData.profile = getDefaultProfile();
+    const userFilePath = getUserFilePath(userId);
+    await atomicWrite(userFilePath, userData);
+  }
+
+  return userData.profile;
+}
+
+// Update a specific profile section
+async function updateUserProfile(userId, section, data) {
+  if (!PROFILE_SECTIONS.includes(section)) {
+    return { error: 'Invalid section' };
+  }
+
+  const userData = await getUserById(userId);
+
+  if (!userData) {
+    return { error: 'User not found' };
+  }
+
+  // Ensure profile exists
+  if (!userData.profile) {
+    userData.profile = getDefaultProfile();
+  }
+
+  // Update the specific section
+  userData.profile[section] = {
+    ...userData.profile[section],
+    ...data
+  };
+
+  // Track completed sections
+  if (!userData.profile.sectionsCompleted.includes(section)) {
+    userData.profile.sectionsCompleted.push(section);
+  }
+
+  // Check if core sections (1-3) are complete
+  const coreSectionsComplete = ['role', 'communication', 'writingStyle'].every(sec => {
+    if (!userData.profile.sectionsCompleted.includes(sec)) return false;
+
+    const requiredFields = CORE_SECTION_REQUIRED_FIELDS[sec] || [];
+    return requiredFields.every(field => {
+      const value = userData.profile[sec][field];
+      return value && value.toString().trim().length > 0;
+    });
+  });
+
+  if (coreSectionsComplete && !userData.profile.completed) {
+    userData.profile.completed = true;
+    userData.profile.completedAt = new Date().toISOString();
+  }
+
+  userData.updatedAt = new Date().toISOString();
+
+  const userFilePath = getUserFilePath(userId);
+  await atomicWrite(userFilePath, userData);
+
+  return { profile: userData.profile };
+}
+
+// Get profile completion status
+async function getProfileCompletionStatus(userId) {
+  const userData = await getUserById(userId);
+
+  if (!userData) {
+    return null;
+  }
+
+  // Ensure profile exists
+  if (!userData.profile) {
+    return {
+      completed: false,
+      completedAt: null,
+      sectionsCompleted: [],
+      sections: PROFILE_SECTIONS.map(section => ({
+        name: section,
+        completed: false,
+        isCore: ['role', 'communication', 'writingStyle'].includes(section)
+      })),
+      completionPercentage: 0
+    };
+  }
+
+  const profile = userData.profile;
+
+  // Calculate completion status for each section
+  const sections = PROFILE_SECTIONS.map(section => {
+    const isCore = ['role', 'communication', 'writingStyle'].includes(section);
+    const isCompleted = profile.sectionsCompleted.includes(section);
+
+    return {
+      name: section,
+      completed: isCompleted,
+      isCore
+    };
+  });
+
+  const completedCount = sections.filter(s => s.completed).length;
+  const completionPercentage = Math.round((completedCount / PROFILE_SECTIONS.length) * 100);
+
+  return {
+    completed: profile.completed,
+    completedAt: profile.completedAt,
+    sectionsCompleted: profile.sectionsCompleted,
+    sections,
+    completionPercentage
+  };
 }
 
 module.exports = {
@@ -251,5 +446,10 @@ module.exports = {
   deleteCustomPrompt,
   getUserCustomPrompts,
   saveLibraryPrompt,
-  removeSavedPrompt
+  removeSavedPrompt,
+  getUserProfile,
+  updateUserProfile,
+  getProfileCompletionStatus,
+  getDefaultProfile,
+  PROFILE_SECTIONS
 };

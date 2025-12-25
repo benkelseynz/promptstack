@@ -2,21 +2,26 @@ const express = require('express');
 const router = express.Router();
 
 const { authenticate, requireVerified } = require('../middleware/auth');
-const { 
+const {
   getUserCustomPrompts,
   addCustomPrompt,
   updateCustomPrompt,
   deleteCustomPrompt,
   saveLibraryPrompt,
   removeSavedPrompt,
-  getUserById
+  getUserById,
+  getUserProfile,
+  updateUserProfile,
+  getProfileCompletionStatus
 } = require('../services/userStorage');
 const { getPromptById, applyPremiumGating } = require('../services/searchIndex');
-const { 
-  validate, 
-  createPromptSchema, 
+const {
+  validate,
+  createPromptSchema,
   updatePromptSchema,
-  idParamSchema 
+  idParamSchema,
+  profileSectionParamSchema,
+  validateProfileSection
 } = require('../schemas/validation');
 const { AppError } = require('../middleware/errorHandler');
 
@@ -149,9 +154,9 @@ router.post('/saved/:id', async (req, res, next) => {
 router.delete('/saved/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
-    
+
     const savedPrompts = await removeSavedPrompt(req.user.id, id);
-    
+
     res.json({
       message: 'Prompt removed from saved',
       savedCount: savedPrompts.length
@@ -160,5 +165,65 @@ router.delete('/saved/:id', async (req, res, next) => {
     next(error);
   }
 });
+
+// =====================
+// Profile Routes
+// =====================
+
+// GET /api/user/profile - Get full user profile
+router.get('/profile', async (req, res, next) => {
+  try {
+    const profile = await getUserProfile(req.user.id);
+
+    if (!profile) {
+      throw new AppError('Profile not found', 404);
+    }
+
+    res.json({ profile });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/user/profile/status - Get profile completion status
+router.get('/profile/status', async (req, res, next) => {
+  try {
+    const status = await getProfileCompletionStatus(req.user.id);
+
+    if (!status) {
+      throw new AppError('Profile not found', 404);
+    }
+
+    res.json(status);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// PUT /api/user/profile/:section - Update a specific profile section
+router.put(
+  '/profile/:section',
+  validate(profileSectionParamSchema, 'params'),
+  validateProfileSection,
+  async (req, res, next) => {
+    try {
+      const { section } = req.params;
+      const data = req.body;
+
+      const result = await updateUserProfile(req.user.id, section, data);
+
+      if (result.error) {
+        throw new AppError(result.error, 400);
+      }
+
+      res.json({
+        message: `${section} section updated successfully`,
+        profile: result.profile
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 module.exports = router;

@@ -98,3 +98,77 @@ export interface ApiError {
   error: string;
   details?: { field: string; message: string }[];
 }
+
+// Profile Types
+export interface ProfileRole {
+  title: string;
+  company: string;
+  companyDescription: string;
+  industry: string;
+  customIndustry: string;
+  primaryResponsibilities: string;
+  timeAllocation: string;
+  keyStakeholders: string;
+}
+
+export interface ProfileCommunication {
+  phrasesToAvoid: string;
+  formalityLevel: string;
+  tonePreference: string;
+  petPeeves: string;
+}
+
+export interface ProfileWritingStyle {
+  emailStyle: string;
+  reportStyle: string;
+  generalNotes: string;
+}
+
+export interface ProfileWorkingStyle {
+  informationPreference: string[];
+  informationPreferenceNotes: string;
+  analysisDepth: string;
+  decisionMakingStyle: string;
+}
+
+export interface ProfileFormatting {
+  structurePreference: string;
+  structurePreferenceNotes: string;
+  preferTables: string;
+  preferBullets: string;
+  preferCharts: string;
+  specificRequirements: string;
+}
+
+export interface ProfilePersonal {
+  background: string;
+  frameworks: string;
+  additionalContext: string;
+  greatCollaboration: string;
+}
+
+export interface UserProfile {
+  completed: boolean;
+  completedAt: string | null;
+  sectionsCompleted: string[];
+  role: ProfileRole;
+  communication: ProfileCommunication;
+  writingStyle: ProfileWritingStyle;
+  workingStyle: ProfileWorkingStyle;
+  formatting: ProfileFormatting;
+  personal: ProfilePersonal;
+}
+
+export interface ProfileSection {
+  name: string;
+  completed: boolean;
+  isCore: boolean;
+}
+
+export interface ProfileStatus {
+  completed: boolean;
+  completedAt: string | null;
+  sectionsCompleted: string[];
+  sections: ProfileSection[];
+  completionPercentage: number;
+}

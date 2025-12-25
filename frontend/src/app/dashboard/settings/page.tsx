@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
+import ProfileQuestionnaire from '@/components/ProfileQuestionnaire';
 import {
   User,
   Mail,
@@ -11,12 +12,16 @@ import {
   Loader2,
   Check,
   AlertCircle,
+  UserCog,
+  ChevronRight,
 } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { user, refreshUser } = useAuth();
+  const { user, profileStatus, refreshUser, refreshProfileStatus } = useAuth();
   const [resendLoading, setResendLoading] = useState(false);
   const [resendMessage, setResendMessage] = useState('');
+  const [showQuestionnaire, setShowQuestionnaire] = useState(false);
+  const [editingSection, setEditingSection] = useState<number | null>(null);
 
   const handleResendVerification = async () => {
     if (!user?.email) return;
@@ -121,6 +126,139 @@ export default function SettingsPage() {
           </div>
         </div>
       </section>
+
+      {/* Profile Personalization Section */}
+      <section className="card mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <UserCog className="w-5 h-5 text-gray-600" />
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Profile Personalization</h2>
+              <p className="text-sm text-gray-500">
+                Customize how PromptStack generates prompts for you
+              </p>
+            </div>
+          </div>
+          {profileStatus && (
+            <div className="text-right">
+              <span
+                className={`text-sm font-medium ${
+                  profileStatus.completed ? 'text-green-600' : 'text-amber-600'
+                }`}
+              >
+                {profileStatus.completionPercentage}% Complete
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Progress bar */}
+        {profileStatus && (
+          <div className="mb-4">
+            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-all duration-300 ${
+                  profileStatus.completed ? 'bg-green-500' : 'bg-primary-600'
+                }`}
+                style={{ width: `${profileStatus.completionPercentage}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Section list */}
+        <div className="space-y-2">
+          {[
+            { id: 'role', name: 'Your Role & Responsibilities', index: 0 },
+            { id: 'communication', name: 'Communication Style', index: 1 },
+            { id: 'writingStyle', name: 'Writing Style', index: 2 },
+            { id: 'workingStyle', name: 'Working Style & Workflow', index: 3 },
+            { id: 'formatting', name: 'Output Formatting', index: 4 },
+            { id: 'personal', name: 'Personal Context', index: 5 },
+          ].map((section) => {
+            const isCompleted = profileStatus?.sectionsCompleted.includes(section.id);
+            const isCore = ['role', 'communication', 'writingStyle'].includes(section.id);
+
+            return (
+              <button
+                key={section.id}
+                onClick={() => {
+                  setEditingSection(section.index);
+                  setShowQuestionnaire(true);
+                }}
+                className="w-full flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-primary-50/50 transition-colors text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                      isCompleted
+                        ? 'bg-green-100 text-green-600'
+                        : 'bg-gray-100 text-gray-400'
+                    }`}
+                  >
+                    {isCompleted ? (
+                      <Check className="w-3 h-3" />
+                    ) : (
+                      <span className="w-2 h-2 bg-current rounded-full" />
+                    )}
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-900">{section.name}</span>
+                    {isCore && !isCompleted && (
+                      <span className="ml-2 text-xs text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+                        Core
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Action buttons */}
+        <div className="mt-4 pt-4 border-t border-gray-100 flex gap-3">
+          {!profileStatus?.completed ? (
+            <button
+              onClick={() => {
+                setEditingSection(null);
+                setShowQuestionnaire(true);
+              }}
+              className="btn-primary"
+            >
+              {profileStatus?.sectionsCompleted.length === 0
+                ? 'Start Profile Setup'
+                : 'Continue Setup'}
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                setEditingSection(0);
+                setShowQuestionnaire(true);
+              }}
+              className="btn-secondary"
+            >
+              Edit Profile
+            </button>
+          )}
+        </div>
+      </section>
+
+      {/* Questionnaire Modal */}
+      {showQuestionnaire && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <ProfileQuestionnaire
+            isModal
+            onComplete={() => {
+              setShowQuestionnaire(false);
+              refreshProfileStatus();
+            }}
+            onClose={() => setShowQuestionnaire(false)}
+            initialSection={editingSection ?? (profileStatus?.sectionsCompleted.length || 0)}
+          />
+        </div>
+      )}
 
       {/* Email Verification Section */}
       {!user?.emailVerified && (

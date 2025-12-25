@@ -2,12 +2,13 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 
-const { 
-  createUser, 
-  getUserByEmail, 
-  verifyPassword, 
+const {
+  createUser,
+  getUserByEmail,
+  verifyPassword,
   markEmailVerified,
-  getSafeUserData
+  getSafeUserData,
+  getProfileCompletionStatus
 } = require('../services/userStorage');
 const { 
   createVerificationToken, 
@@ -185,10 +186,23 @@ router.post('/resend-verification', resendRateLimiter, validate(resendVerificati
 });
 
 // GET /api/auth/me
-router.get('/me', authenticate, async (req, res) => {
-  res.json({
-    user: req.user
-  });
+router.get('/me', authenticate, async (req, res, next) => {
+  try {
+    const profileStatus = await getProfileCompletionStatus(req.user.id);
+
+    res.json({
+      user: req.user,
+      profileStatus: profileStatus || {
+        completed: false,
+        completedAt: null,
+        sectionsCompleted: [],
+        sections: [],
+        completionPercentage: 0
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 module.exports = router;

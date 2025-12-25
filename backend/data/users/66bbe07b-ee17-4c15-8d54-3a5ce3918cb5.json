@@ -6,7 +6,7 @@
   "emailVerified": true,
   "tier": "free",
   "createdAt": "2025-12-21T08:14:27.229Z",
-  "updatedAt": "2025-12-21T08:15:22.307Z",
+  "updatedAt": "2025-12-25T20:00:03.159Z",
   "customPrompts": [
     {
       "id": "c231a4c4-c613-4b1a-b208-e2732683f01b",
@@ -25,5 +25,62 @@
       "role": "Financial Analyst"
     }
   ],
-  "savedPrompts": []
+  "savedPrompts": [],
+  "profile": {
+    "completed": true,
+    "completedAt": "2025-12-25T19:57:44.435Z",
+    "sectionsCompleted": [
+      "role",
+      "communication",
+      "writingStyle",
+      "workingStyle",
+      "formatting",
+      "personal"
+    ],
+    "role": {
+      "title": "Investment Analyst",
+      "company": "Rangatira Investments",
+      "companyDescription": "Rangatira is an evergreen private equity fund. The fund invests in New Zealand businesses through majority or minority stakes. , alongside selective holdings in listed equities, property and venture funds. Rangatira currently has c. NZ$400m+ of assets under management.",
+      "industry": "Finance & Banking",
+      "customIndustry": "",
+      "primaryResponsibilities": "Primary responsibilities include deal sourcing and origination, initial due diligence and screening, as well as comprehensive financial due diligence and financial modelling and valuation. He also helps out at portfolio companies with valuation modelling for bolt-on acquisitions or forecasting.",
+      "timeAllocation": "Around three days of my week is spent on deal sourcing, origination, looking through IMs, performing industry analysis, looking at the competition in a particular market that a company operates in, and then performing DD and building financial models. The other two days are spent helping around with portfolio companies and performing administrative tasks within the firm, helping out with board papers, and looking at opportunities and investment report sections of those.",
+      "keyStakeholders": "Executives"
+    },
+    "communication": {
+      "phrasesToAvoid": "I don't like jargon without explanation. Do not use em dashes. Do not use buzzwords or common AI-generated words. No corporate speak or consulting-esque stuff. Do not use colourful language.",
+      "formalityLevel": "balanced",
+      "tonePreference": "Professional but conversational, clear, and direct. I prefer straightforward language and short paragraphs over bullet points.",
+      "petPeeves": "I don’t like corporate speak or consulting-style writing, and I’d rather people be candid and acknowledge uncertainty than overstate things."
+    },
+    "writingStyle": {
+      "emailStyle": "Start with a simple, direct greeting (usually just \"Hi [Name],\" or \"Morning [Name],\"). Jump straight into content without preamble. No \"I hope this email finds you well\" or similar padding.\nProfessional but conversational. Strike a balance between casual friendliness and business efficiency. Use contractions naturally (I'll, I've, you'd) and write like you're speaking to a colleague you know well but still respect.\nKeep paragraphs short—typically 1-3 sentences. Use line breaks generously to create visual breathing room. For complex information, use bullet points or numbered lists, but integrate them naturally rather than forcing structure where it's not needed.\nMix short, punchy sentences with longer explanatory ones. Favor clarity over formality. Use straightforward language. Avoid corporate jargon or unnecessarily formal constructions.\nEnd with simple sign-offs: \"Cheers,\" or \"Thanks,\" on their own line. Sometimes add a brief forward-looking statement before closing (\"Will keep you updated,\" \"Feel free to give me a buzz if you have any questions\").\nUse \"just\" for softening requests (\"Just thought I'd follow up\"). Reference attachments or actions casually (\"Please see attached\"). Express politeness through brevity and directness rather than elaborate courtesy phrases.",
+      "reportStyle": "Be candid and direct without being overly formal. Acknowledge uncertainties honestly. Use light colloquialisms sparingly. Be self-aware about perspective. Use “we” for the organisation, occasional “I” for personal views.\nWhen discussing risks or challenges, be matter-of-fact rather than alarmist. Present issues alongside mitigation strategies.\nPresent multiple perspectives and acknowledge complexity. Use parenthetical comparisons frequently.\nWrite accessibly despite technical content. Use shorter paragraphs (2-4 sentences typically), each advancing one idea. Favour active voice and concrete examples over abstraction.\nUse numbered sections (1.1, 1.2) for formal proposals. Build from strategic observations to tactical details to recommendations.\nMake the paper heavily narrative-driven – points should flow in a logical order. Reserve bullets strictly for discrete lists (portfolio updates, action items, changes being implemented) - never for analysis or arguments.\nExpress opinions, but avoid hyperbolic language (e.g. “very significant,” “massive issue”) that could cause the board to overreact. Aim for a sober, balanced tone: do not underplay risks or opportunities, but also avoid blandness or misleading omissions.\nMaintain a middle-ground register between overly formal and overly informal, appropriate for a board setting and consistent across the paper.",
+      "generalNotes": "I prefer plain English over jargon, and I generally prefer complete paragraphs and sentences over lots of bullets."
+    },
+    "workingStyle": {
+      "informationPreference": [
+        "Context before conclusion",
+        "Data-driven with numbers",
+        "Narrative storytelling"
+      ],
+      "informationPreferenceNotes": "I prefer a narrative explanation with data embedded, as long as it’s verifiable and not hallucinated. If something isn’t known, I’d rather it be flagged as uncertain than made up.",
+      "analysisDepth": "balanced",
+      "decisionMakingStyle": "I don’t have a single fixed framework. I’m fairly open-minded and value having multiple views and mindsets rather than one rigid methodology."
+    },
+    "formatting": {
+      "structurePreference": "paragraphs",
+      "structurePreferenceNotes": "",
+      "preferTables": "sometimes",
+      "preferBullets": "sometimes",
+      "preferCharts": "sometimes",
+      "specificRequirements": "Use NZ date format (DD/MM/YYYY). Use financial figures in $m (not $000s). Use Oxford commas. Round percentages to one decimal place. Use NZ spelling. Include sources/citations for data points, and don’t use “NZD” unless comparing currencies."
+    },
+    "personal": {
+      "background": "I previously worked in the Deloitte Transactions (Corporate Finance) team, doing M&A advisory, valuations, and financial due diligence.",
+      "frameworks": "I don’t really have a set framework. I prefer staying open and drawing on multiple views and mindsets.",
+      "additionalContext": "",
+      "greatCollaboration": "It feels best when it’s collaborative and honest, shows its thinking transparently, challenges my assumptions constructively, and asks questions when unsure rather than wasting time with confident nonsense. I’m fine with blunt feedback if it’s accurate."
+    }
+  }
 }

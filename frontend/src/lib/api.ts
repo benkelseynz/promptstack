@@ -8,6 +8,14 @@ import type {
   FilterOptions,
   SearchQuery,
   PaginatedResponse,
+  UserProfile,
+  ProfileStatus,
+  ProfileRole,
+  ProfileCommunication,
+  ProfileWritingStyle,
+  ProfileWorkingStyle,
+  ProfileFormatting,
+  ProfilePersonal,
 } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -89,7 +97,7 @@ class ApiClient {
   }
 
   async getMe() {
-    return this.request<{ user: User }>('/api/auth/me');
+    return this.request<{ user: User; profileStatus: ProfileStatus }>('/api/auth/me');
   }
 
   async verifyEmail(token: string) {
@@ -186,6 +194,52 @@ class ApiClient {
     return this.request<{ message: string; savedCount: number }>(
       `/api/user/saved/${id}`,
       { method: 'DELETE' }
+    );
+  }
+
+  // Profile endpoints
+  async getProfile() {
+    return this.request<{ profile: UserProfile }>('/api/user/profile');
+  }
+
+  async getProfileStatus() {
+    return this.request<ProfileStatus>('/api/user/profile/status');
+  }
+
+  async updateProfileSection(
+    section: 'role',
+    data: Partial<ProfileRole>
+  ): Promise<{ message: string; profile: UserProfile }>;
+  async updateProfileSection(
+    section: 'communication',
+    data: Partial<ProfileCommunication>
+  ): Promise<{ message: string; profile: UserProfile }>;
+  async updateProfileSection(
+    section: 'writingStyle',
+    data: Partial<ProfileWritingStyle>
+  ): Promise<{ message: string; profile: UserProfile }>;
+  async updateProfileSection(
+    section: 'workingStyle',
+    data: Partial<ProfileWorkingStyle>
+  ): Promise<{ message: string; profile: UserProfile }>;
+  async updateProfileSection(
+    section: 'formatting',
+    data: Partial<ProfileFormatting>
+  ): Promise<{ message: string; profile: UserProfile }>;
+  async updateProfileSection(
+    section: 'personal',
+    data: Partial<ProfilePersonal>
+  ): Promise<{ message: string; profile: UserProfile }>;
+  async updateProfileSection(
+    section: string,
+    data: Record<string, unknown>
+  ): Promise<{ message: string; profile: UserProfile }> {
+    return this.request<{ message: string; profile: UserProfile }>(
+      `/api/user/profile/${section}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }
     );
   }
 
