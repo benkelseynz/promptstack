@@ -21,15 +21,15 @@
       "static/chunks/main-app.js",
       "static/chunks/app/dashboard/layout.js"
     ],
-    "/dashboard/settings/page": [
+    "/dashboard/questions/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/dashboard/settings/page.js"
+      "static/chunks/app/dashboard/questions/page.js"
     ],
-    "/dashboard/saved/page": [
+    "/dashboard/upgrade/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/dashboard/saved/page.js"
+      "static/chunks/app/dashboard/upgrade/page.js"
     ]
   }
 }

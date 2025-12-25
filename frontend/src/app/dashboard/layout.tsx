@@ -16,6 +16,7 @@ import {
   Loader2,
   AlertCircle,
   Mail,
+  HelpCircle,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useState } from 'react';
@@ -23,6 +24,7 @@ import ProfileReminder from '@/components/ProfileReminder';
 
 const navigation = [
   { name: 'Prompt Library', href: '/dashboard', icon: Library },
+  { name: 'Questions', href: '/dashboard/questions', icon: HelpCircle },
   { name: 'My Saved Prompts', href: '/dashboard/saved', icon: Bookmark },
   { name: 'Upgrade', href: '/dashboard/upgrade', icon: CreditCard },
   { name: 'Prompt Builder', href: '/dashboard/builder', icon: Wand2, comingSoon: true },

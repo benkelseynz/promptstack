@@ -16,6 +16,8 @@ import type {
   ProfileWorkingStyle,
   ProfileFormatting,
   ProfilePersonal,
+  Question,
+  QuestionCategory,
 } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -246,6 +248,23 @@ class ApiClient {
   // Config endpoints
   async getPricing() {
     return this.request<PricingConfig>('/api/config/pricing');
+  }
+
+  // Questions endpoints
+  async getQuestions(params?: { category?: string; q?: string; access?: 'free' | 'premium' | 'all' }) {
+    const searchParams = new URLSearchParams();
+    if (params?.category) searchParams.set('category', params.category);
+    if (params?.q) searchParams.set('q', params.q);
+    if (params?.access) searchParams.set('access', params.access);
+
+    const queryString = searchParams.toString();
+    return this.request<{ categories: QuestionCategory[]; questions: Question[]; total: number }>(
+      `/api/questions${queryString ? `?${queryString}` : ''}`
+    );
+  }
+
+  async getQuestion(id: string) {
+    return this.request<{ question: Question }>(`/api/questions/${id}`);
   }
 }
 

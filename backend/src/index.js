@@ -10,6 +10,7 @@ const authRoutes = require('./routes/auth');
 const libraryRoutes = require('./routes/library');
 const userRoutes = require('./routes/user');
 const configRoutes = require('./routes/config');
+const questionsRoutes = require('./routes/questions');
 const { globalRateLimiter } = require('./middleware/rateLimiter');
 const { errorHandler } = require('./middleware/errorHandler');
 const { initSearchIndex, watchForChanges } = require('./services/searchIndex');
@@ -37,6 +38,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/library', libraryRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/config', configRoutes);
+app.use('/api/questions', questionsRoutes);
 
 // Error handling
 app.use(errorHandler);

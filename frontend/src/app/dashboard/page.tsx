@@ -17,6 +17,7 @@ import {
   X,
   Loader2,
   Sparkles,
+  User,
 } from 'lucide-react';
 import PromptModal from '@/components/PromptModal';
 
@@ -55,7 +56,7 @@ function sortByRecentClicks<T extends { id: string }>(prompts: T[]): T[] {
 }
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, profileStatus } = useAuth();
   const searchParams = useSearchParams();
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [industries, setIndustries] = useState<Industry[]>([]);
@@ -408,6 +409,7 @@ export default function DashboardPage() {
                   recordClick(prompt.id);
                   setSelectedPrompt(prompt);
                 }}
+                profileReady={profileStatus?.completed || false}
               />
             ))}
           </div>
@@ -455,12 +457,20 @@ function PromptCard({
   isSaved,
   onSave,
   onClick,
+  profileReady,
 }: {
   prompt: Prompt;
   isSaved: boolean;
   onSave: () => void;
   onClick: () => void;
+  profileReady: boolean;
 }) {
+  // Check if this prompt can be personalised (has contextTags and is not a custom prompt)
+  const isCustomPrompt = (prompt as any).isCustom;
+  const hasContextTags = !isCustomPrompt && prompt.contextTags && prompt.contextTags.length > 0;
+  const canPersonalise = hasContextTags && profileReady;
+  const showProfilePrompt = hasContextTags && !profileReady && !prompt.isLocked;
+
   return (
     <div
       className={`card cursor-pointer hover:shadow-md transition-shadow relative ${
@@ -474,7 +484,7 @@ function PromptCard({
         </div>
       )}
 
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex items-center gap-2 mb-2 flex-wrap">
         <span
           className={`text-xs font-medium px-2 py-1 rounded-full ${
             (prompt as any).isCustom
@@ -486,11 +496,17 @@ function PromptCard({
         >
           {(prompt as any).isCustom ? 'Custom' : prompt.access === 'premium' ? 'Premium' : 'Free'}
         </span>
+        {canPersonalise && (
+          <span className="text-xs font-medium px-2 py-1 rounded-full bg-primary-100 text-primary-700 flex items-center gap-1">
+            <Sparkles className="w-3 h-3" />
+            Personalised
+          </span>
+        )}
         <span className="text-xs text-gray-500">{prompt.industryName}</span>
       </div>
 
       <h3 className="font-semibold text-gray-900 mb-2 pr-8">{prompt.title}</h3>
-      
+
       <p className="text-sm text-gray-600 mb-3 line-clamp-2">
         {prompt.preview}
       </p>
@@ -518,6 +534,11 @@ function PromptCard({
         {prompt.isLocked ? (
           <span className="text-xs text-amber-600 font-medium">
             Upgrade to unlock
+          </span>
+        ) : showProfilePrompt ? (
+          <span className="text-xs text-gray-500 flex items-center gap-1">
+            <User className="w-3 h-3" />
+            Complete profile to personalise
           </span>
         ) : (
           <span className="text-xs text-primary-600 font-medium">

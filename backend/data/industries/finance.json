@@ -12,7 +12,8 @@
       "access": "free",
       "role": "Financial Analyst",
       "category": "Analysis",
-      "keywords": ["financial", "analysis", "report", "metrics", "performance", "NZ"]
+      "keywords": ["financial", "analysis", "report", "metrics", "performance", "NZ"],
+      "contextTags": ["role", "company"]
     },
     {
       "id": "fin-002",
@@ -21,7 +22,8 @@
       "access": "premium",
       "role": "Investment Advisor",
       "category": "Advisory",
-      "keywords": ["investment", "portfolio", "review", "KiwiSaver", "PIE", "NZ"]
+      "keywords": ["investment", "portfolio", "review", "KiwiSaver", "PIE", "NZ"],
+      "contextTags": ["role", "company", "report_style"]
     },
     {
       "id": "fin-003",
@@ -30,7 +32,8 @@
       "access": "free",
       "role": "Accountant",
       "category": "Compliance",
-      "keywords": ["GST", "tax", "IRD", "compliance", "return", "NZ"]
+      "keywords": ["GST", "tax", "IRD", "compliance", "return", "NZ"],
+      "contextTags": ["role"]
     },
     {
       "id": "fin-004",
@@ -39,7 +42,8 @@
       "access": "premium",
       "role": "CFO",
       "category": "Planning",
-      "keywords": ["cash flow", "forecast", "projection", "planning", "treasury"]
+      "keywords": ["cash flow", "forecast", "projection", "planning", "treasury"],
+      "contextTags": ["role", "company", "report_style"]
     },
     {
       "id": "fin-005",
@@ -48,7 +52,8 @@
       "access": "premium",
       "role": "Risk Manager",
       "category": "Analysis",
-      "keywords": ["credit", "risk", "assessment", "lending", "due diligence"]
+      "keywords": ["credit", "risk", "assessment", "lending", "due diligence"],
+      "contextTags": ["role", "company"]
     },
     {
       "id": "fin-006",
@@ -57,7 +62,8 @@
       "access": "premium",
       "role": "CFO",
       "category": "Reporting",
-      "keywords": ["board", "presentation", "executive", "financial", "reporting"]
+      "keywords": ["board", "presentation", "executive", "financial", "reporting"],
+      "contextTags": ["report_style", "role", "company", "tone"]
     }
   ]
 }

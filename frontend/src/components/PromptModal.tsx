@@ -3,6 +3,13 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import type { Prompt } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
+import { api } from '@/lib/api';
+import {
+  buildContextString,
+  hasApplicableContext,
+  isProfileReadyForPersonalisation,
+} from '@/lib/profileContext';
 import {
   X,
   Lock,
@@ -12,6 +19,7 @@ import {
   BookmarkCheck,
   Sparkles,
   ArrowRight,
+  User,
 } from 'lucide-react';
 
 interface PromptModalProps {
@@ -27,9 +35,40 @@ export default function PromptModal({
   onSave,
   onClose,
 }: PromptModalProps) {
+  const { profileStatus } = useAuth();
   const [copied, setCopied] = useState(false);
   const [placeholderValues, setPlaceholderValues] = useState<Record<string, string>>({});
   const [populatedContent, setPopulatedContent] = useState('');
+  const [profile, setProfile] = useState<import('@/types').UserProfile | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+
+  // Check if this prompt can be personalised
+  const isCustomPrompt = (prompt as any).isCustom;
+  const hasContextTags = !isCustomPrompt && prompt.contextTags && prompt.contextTags.length > 0;
+  const profileReady = profileStatus?.completed || false;
+  const canPersonalise = hasContextTags && profileReady;
+
+  // Load full profile when needed for context injection
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!canPersonalise || profile) return;
+
+      setLoadingProfile(true);
+      try {
+        const { profile: fetchedProfile } = await api.getProfile();
+        setProfile(fetchedProfile);
+      } catch {
+        // Failed to load profile, personalisation won't work
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+
+    loadProfile();
+  }, [canPersonalise, profile]);
+
+  // Check if we should inject context
+  const willInjectContext = canPersonalise && profile && hasApplicableContext(prompt.contextTags, profile);
 
   // Extract placeholders from content if not pre-populated by backend
   const extractPlaceholders = (content: string) => {
@@ -60,22 +99,24 @@ export default function PromptModal({
 
   const handleCopy = async () => {
     if (prompt.isLocked) return;
-    
-    const textToCopy = placeholders.length > 0 && Object.keys(placeholderValues).length > 0
+
+    let textToCopy = placeholders.length > 0 && Object.keys(placeholderValues).length > 0
       ? populatedContent
       : prompt.content || '';
-    
+
+    // Append personalised context if available
+    if (willInjectContext && profile && prompt.contextTags) {
+      const contextString = buildContextString(profile, prompt.contextTags);
+      if (contextString) {
+        textToCopy = textToCopy + contextString;
+      }
+    }
+
     await navigator.clipboard.writeText(textToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handlePopulateAndCopy = async () => {
-    if (prompt.isLocked) return;
-    await navigator.clipboard.writeText(populatedContent);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -240,48 +281,34 @@ export default function PromptModal({
               )}
             </button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col items-end gap-1">
               {prompt.isLocked ? (
                 <Link href="/dashboard/upgrade" className="btn-primary">
                   Upgrade to Copy
                 </Link>
               ) : (
-                <>
-                  {placeholders.length > 0 && Object.keys(placeholderValues).some(k => placeholderValues[k]) && (
-                    <button
-                      onClick={handlePopulateAndCopy}
-                      className="btn-secondary flex items-center gap-2"
-                    >
-                      {copied ? (
-                        <>
-                          <Check className="w-5 h-5 text-green-600" />
-                          Copied!
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-5 h-5" />
-                          Copy Populated
-                        </>
-                      )}
-                    </button>
+                <button
+                  onClick={handleCopy}
+                  className="btn-primary flex items-center gap-2"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-5 h-5" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-5 h-5" />
+                      Copy Prompt
+                    </>
                   )}
-                  <button
-                    onClick={handleCopy}
-                    className="btn-primary flex items-center gap-2"
-                  >
-                    {copied ? (
-                      <>
-                        <Check className="w-5 h-5" />
-                        Copied!
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-5 h-5" />
-                        Copy Prompt
-                      </>
-                    )}
-                  </button>
-                </>
+                </button>
+              )}
+              {willInjectContext && !prompt.isLocked && (
+                <span className="text-xs text-gray-500 flex items-center gap-1">
+                  <User className="w-3 h-3" />
+                  Your profile info will be included
+                </span>
               )}
             </div>
           </div>

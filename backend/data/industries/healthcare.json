@@ -12,7 +12,8 @@
       "access": "free",
       "role": "Practice Manager",
       "category": "Communication",
-      "keywords": ["patient", "communication", "healthcare", "medical", "NZ"]
+      "keywords": ["patient", "communication", "healthcare", "medical", "NZ"],
+      "contextTags": ["email_style", "tone", "role", "company"]
     },
     {
       "id": "health-002",
@@ -21,7 +22,8 @@
       "access": "premium",
       "role": "Clinical Lead",
       "category": "Compliance",
-      "keywords": ["policy", "clinical", "compliance", "HDSS", "healthcare"]
+      "keywords": ["policy", "clinical", "compliance", "HDSS", "healthcare"],
+      "contextTags": ["report_style", "role", "company"]
     },
     {
       "id": "health-003",
@@ -30,7 +32,8 @@
       "access": "premium",
       "role": "Practice Manager",
       "category": "Administration",
-      "keywords": ["roster", "staffing", "scheduling", "workforce", "planning"]
+      "keywords": ["roster", "staffing", "scheduling", "workforce", "planning"],
+      "contextTags": ["role", "company"]
     },
     {
       "id": "health-004",
@@ -39,7 +42,8 @@
       "access": "premium",
       "role": "Quality Manager",
       "category": "Quality",
-      "keywords": ["quality improvement", "QI", "PDSA", "healthcare", "safety"]
+      "keywords": ["quality improvement", "QI", "PDSA", "healthcare", "safety"],
+      "contextTags": ["report_style", "role", "company"]
     },
     {
       "id": "health-005",
@@ -48,7 +52,8 @@
       "access": "free",
       "role": "Health Administrator",
       "category": "Planning",
-      "keywords": ["funding", "application", "Te Whatu Ora", "healthcare", "proposal"]
+      "keywords": ["funding", "application", "Te Whatu Ora", "healthcare", "proposal"],
+      "contextTags": ["report_style", "role", "company"]
     }
   ]
 }

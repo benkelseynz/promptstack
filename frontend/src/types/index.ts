@@ -20,6 +20,7 @@ export interface Prompt {
   keywords: string[];
   placeholders?: string[];
   isLocked: boolean;
+  contextTags?: string[];
 }
 
 export interface CustomPrompt {
@@ -171,4 +172,22 @@ export interface ProfileStatus {
   sectionsCompleted: string[];
   sections: ProfileSection[];
   completionPercentage: number;
+}
+
+// Questions Library Types
+export interface QuestionCategory {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+}
+
+export interface Question {
+  id: string;
+  question: string;
+  category: string;
+  context: string;
+  tags: string[];
+  access: 'free' | 'premium';
+  isLocked?: boolean;
 }

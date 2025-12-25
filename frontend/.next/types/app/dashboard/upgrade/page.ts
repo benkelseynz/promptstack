@@ -1,8 +1,8 @@
-// File: /Users/benkelseynz/Desktop/promptstack/frontend/src/app/dashboard/saved/page.tsx
-import * as entry from '../../../../../src/app/dashboard/saved/page.js'
+// File: /Users/benkelseynz/Desktop/promptstack/frontend/src/app/dashboard/upgrade/page.tsx
+import * as entry from '../../../../../src/app/dashboard/upgrade/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
-type TEntry = typeof import('../../../../../src/app/dashboard/saved/page.js')
+type TEntry = typeof import('../../../../../src/app/dashboard/upgrade/page.js')
 
 // Check that the entry is a valid entry
 checkFields<Diff<{

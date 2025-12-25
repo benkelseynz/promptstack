@@ -1,0 +1,238 @@
+{
+  "name": "Follow-Up Questions",
+  "description": "Questions to ask AI after receiving an output to deepen understanding and improve quality",
+  "categories": [
+    {
+      "id": "deepen",
+      "name": "Deepen Understanding",
+      "description": "Questions that help you understand the reasoning and implications",
+      "icon": "layers"
+    },
+    {
+      "id": "challenge",
+      "name": "Challenge & Improve",
+      "description": "Questions that pressure-test outputs and surface weaknesses",
+      "icon": "target"
+    },
+    {
+      "id": "expand",
+      "name": "Expand Thinking",
+      "description": "Questions that reveal adjacent ideas and opportunities",
+      "icon": "sparkles"
+    },
+    {
+      "id": "quality",
+      "name": "Quality Check",
+      "description": "Questions that verify completeness and accuracy",
+      "icon": "check-circle"
+    },
+    {
+      "id": "practical",
+      "name": "Make It Practical",
+      "description": "Questions that move from analysis to action",
+      "icon": "play"
+    }
+  ],
+  "questions": [
+    {
+      "id": "q-assumptions-1",
+      "question": "What assumptions are embedded in this response that I should be aware of?",
+      "category": "challenge",
+      "context": "Use after receiving any analysis or recommendation",
+      "tags": ["assumptions", "critical-thinking", "analysis"],
+      "access": "free"
+    },
+    {
+      "id": "q-alternatives-1",
+      "question": "What are three alternative approaches you considered but didn't recommend, and why did you reject them?",
+      "category": "expand",
+      "context": "Use after receiving a recommendation or solution",
+      "tags": ["alternatives", "options", "decision-making"],
+      "access": "free"
+    },
+    {
+      "id": "q-critic-1",
+      "question": "If someone wanted to argue against this, what would be their strongest points?",
+      "category": "challenge",
+      "context": "Use to stress-test any argument or proposal",
+      "tags": ["devil-advocate", "critique", "robustness"],
+      "access": "premium"
+    },
+    {
+      "id": "q-missing-1",
+      "question": "What important considerations or information might be missing from this analysis?",
+      "category": "quality",
+      "context": "Use after any comprehensive analysis",
+      "tags": ["gaps", "completeness", "blind-spots"],
+      "access": "free"
+    },
+    {
+      "id": "q-stakeholder-1",
+      "question": "How might different stakeholders (e.g., customers, employees, investors, regulators) view this differently?",
+      "category": "expand",
+      "context": "Use for business decisions or strategies",
+      "tags": ["stakeholders", "perspectives", "impact"],
+      "access": "premium"
+    },
+    {
+      "id": "q-simplify-1",
+      "question": "Can you explain this to me as if I needed to present it to someone with no background in this area?",
+      "category": "deepen",
+      "context": "Use when you need to communicate findings to others",
+      "tags": ["simplify", "communication", "clarity"],
+      "access": "free"
+    },
+    {
+      "id": "q-evidence-1",
+      "question": "What evidence or data would most strengthen or weaken this conclusion?",
+      "category": "quality",
+      "context": "Use to understand the robustness of conclusions",
+      "tags": ["evidence", "data", "validation"],
+      "access": "premium"
+    },
+    {
+      "id": "q-nextsteps-1",
+      "question": "Based on this, what are the three most important next steps I should take, in order of priority?",
+      "category": "practical",
+      "context": "Use to move from analysis to action",
+      "tags": ["action", "priorities", "implementation"],
+      "access": "free"
+    },
+    {
+      "id": "q-risks-1",
+      "question": "What could go wrong with this approach, and how would I know early if it's not working?",
+      "category": "challenge",
+      "context": "Use before implementing any plan or strategy",
+      "tags": ["risks", "warning-signs", "contingency"],
+      "access": "premium"
+    },
+    {
+      "id": "q-deeper-1",
+      "question": "What's the underlying principle or pattern here that I could apply to similar situations?",
+      "category": "deepen",
+      "context": "Use to extract transferable insights",
+      "tags": ["principles", "patterns", "learning"],
+      "access": "premium"
+    },
+    {
+      "id": "q-confidence-1",
+      "question": "On a scale of 1-10, how confident are you in this response, and what would increase your confidence?",
+      "category": "quality",
+      "context": "Use to gauge reliability of AI output",
+      "tags": ["confidence", "uncertainty", "reliability"],
+      "access": "free"
+    },
+    {
+      "id": "q-second-order-1",
+      "question": "What are the second-order effects of this? What might happen as a consequence of the consequences?",
+      "category": "expand",
+      "context": "Use for strategic decisions with long-term implications",
+      "tags": ["second-order", "consequences", "long-term"],
+      "access": "premium"
+    },
+    {
+      "id": "q-timeline-1",
+      "question": "What would a realistic timeline look like for implementing this, and what are the key milestones?",
+      "category": "practical",
+      "context": "Use to create actionable implementation plans",
+      "tags": ["timeline", "milestones", "planning"],
+      "access": "premium"
+    },
+    {
+      "id": "q-counterintuitive-1",
+      "question": "Is there anything counterintuitive about this situation that most people might miss?",
+      "category": "deepen",
+      "context": "Use to uncover non-obvious insights",
+      "tags": ["counterintuitive", "insights", "hidden"],
+      "access": "premium"
+    },
+    {
+      "id": "q-quantify-1",
+      "question": "Can you help me quantify this? What metrics or numbers would help me understand the magnitude?",
+      "category": "practical",
+      "context": "Use when you need concrete figures for decision-making",
+      "tags": ["quantify", "metrics", "numbers"],
+      "access": "free"
+    },
+    {
+      "id": "q-tradeoffs-1",
+      "question": "What are the key trade-offs involved in this decision, and what am I giving up with each option?",
+      "category": "challenge",
+      "context": "Use when weighing complex decisions",
+      "tags": ["trade-offs", "decisions", "opportunity-cost"],
+      "access": "free"
+    },
+    {
+      "id": "q-analogies-1",
+      "question": "What analogies or examples from other industries or domains might help me think about this differently?",
+      "category": "expand",
+      "context": "Use to gain fresh perspectives on familiar problems",
+      "tags": ["analogies", "examples", "cross-domain"],
+      "access": "premium"
+    },
+    {
+      "id": "q-bias-1",
+      "question": "What cognitive biases might be influencing this analysis or recommendation?",
+      "category": "quality",
+      "context": "Use to check for systematic thinking errors",
+      "tags": ["bias", "cognitive", "objectivity"],
+      "access": "premium"
+    },
+    {
+      "id": "q-edge-cases-1",
+      "question": "What edge cases or unusual scenarios might cause this to fail or behave differently?",
+      "category": "challenge",
+      "context": "Use when evaluating solutions or plans",
+      "tags": ["edge-cases", "exceptions", "stress-test"],
+      "access": "premium"
+    },
+    {
+      "id": "q-resources-1",
+      "question": "What resources, skills, or capabilities would I need to execute this effectively?",
+      "category": "practical",
+      "context": "Use before committing to a course of action",
+      "tags": ["resources", "capabilities", "requirements"],
+      "access": "free"
+    },
+    {
+      "id": "q-why-1",
+      "question": "Can you explain the 'why' behind this recommendation? What's the core logic driving it?",
+      "category": "deepen",
+      "context": "Use when you want to understand reasoning, not just conclusions",
+      "tags": ["reasoning", "logic", "understanding"],
+      "access": "free"
+    },
+    {
+      "id": "q-precedent-1",
+      "question": "Are there historical examples or case studies where this approach succeeded or failed?",
+      "category": "expand",
+      "context": "Use to learn from past experiences",
+      "tags": ["history", "case-studies", "precedent"],
+      "access": "premium"
+    },
+    {
+      "id": "q-dependencies-1",
+      "question": "What dependencies or prerequisites need to be in place for this to work?",
+      "category": "quality",
+      "context": "Use to identify potential blockers before starting",
+      "tags": ["dependencies", "prerequisites", "blockers"],
+      "access": "free"
+    },
+    {
+      "id": "q-reversible-1",
+      "question": "Is this decision reversible? If things don't work out, how easily can I change course?",
+      "category": "practical",
+      "context": "Use to assess flexibility and commitment level",
+      "tags": ["reversibility", "flexibility", "commitment"],
+      "access": "premium"
+    },
+    {
+      "id": "q-experts-1",
+      "question": "What would experts in this field likely disagree about, and where is there genuine uncertainty?",
+      "category": "deepen",
+      "context": "Use to understand the limits of current knowledge",
+      "tags": ["experts", "disagreement", "uncertainty"],
+      "access": "premium"
+    }
+  ]
+}

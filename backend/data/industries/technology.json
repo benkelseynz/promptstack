@@ -12,7 +12,8 @@
       "access": "free",
       "role": "Software Developer",
       "category": "Development",
-      "keywords": ["code review", "development", "programming", "quality", "feedback"]
+      "keywords": ["code review", "development", "programming", "quality", "feedback"],
+      "contextTags": ["role", "tone"]
     },
     {
       "id": "tech-002",
@@ -21,7 +22,8 @@
       "access": "premium",
       "role": "Product Manager",
       "category": "Product",
-      "keywords": ["PRD", "requirements", "product", "feature", "specification"]
+      "keywords": ["PRD", "requirements", "product", "feature", "specification"],
+      "contextTags": ["report_style", "role", "company"]
     },
     {
       "id": "tech-003",
@@ -30,7 +32,8 @@
       "access": "free",
       "role": "Software Developer",
       "category": "Documentation",
-      "keywords": ["API", "documentation", "REST", "developer", "reference"]
+      "keywords": ["API", "documentation", "REST", "developer", "reference"],
+      "contextTags": ["role"]
     },
     {
       "id": "tech-004",
@@ -39,7 +42,8 @@
       "access": "premium",
       "role": "Tech Lead",
       "category": "Architecture",
-      "keywords": ["architecture", "system design", "scalability", "cloud", "infrastructure"]
+      "keywords": ["architecture", "system design", "scalability", "cloud", "infrastructure"],
+      "contextTags": ["role", "company"]
     },
     {
       "id": "tech-005",
@@ -48,7 +52,8 @@
       "access": "premium",
       "role": "DevOps Engineer",
       "category": "Documentation",
-      "keywords": ["incident", "post-mortem", "RCA", "outage", "SRE"]
+      "keywords": ["incident", "post-mortem", "RCA", "outage", "SRE"],
+      "contextTags": ["report_style", "role", "company"]
     },
     {
       "id": "tech-006",
@@ -57,7 +62,8 @@
       "access": "premium",
       "role": "Tech Lead",
       "category": "Development",
-      "keywords": ["technical debt", "refactoring", "code quality", "maintenance"]
+      "keywords": ["technical debt", "refactoring", "code quality", "maintenance"],
+      "contextTags": ["role", "company", "report_style"]
     }
   ]
 }

@@ -12,7 +12,8 @@
       "access": "free",
       "role": "Content Strategist",
       "category": "Content",
-      "keywords": ["content calendar", "planning", "social media", "schedule", "marketing"]
+      "keywords": ["content calendar", "planning", "social media", "schedule", "marketing"],
+      "contextTags": ["role", "company", "tone"]
     },
     {
       "id": "mkt-002",
@@ -21,7 +22,8 @@
       "access": "premium",
       "role": "Marketing Manager",
       "category": "Campaigns",
-      "keywords": ["campaign", "brief", "marketing", "strategy", "planning"]
+      "keywords": ["campaign", "brief", "marketing", "strategy", "planning"],
+      "contextTags": ["report_style", "role", "company", "tone"]
     },
     {
       "id": "mkt-003",
@@ -30,7 +32,8 @@
       "access": "free",
       "role": "Social Media Manager",
       "category": "Social Media",
-      "keywords": ["social media", "posts", "content", "engagement", "copywriting"]
+      "keywords": ["social media", "posts", "content", "engagement", "copywriting"],
+      "contextTags": ["tone", "role", "company"]
     },
     {
       "id": "mkt-004",
@@ -39,7 +42,8 @@
       "access": "premium",
       "role": "Marketing Manager",
       "category": "Analytics",
-      "keywords": ["report", "analytics", "performance", "ROI", "metrics"]
+      "keywords": ["report", "analytics", "performance", "ROI", "metrics"],
+      "contextTags": ["report_style", "role", "company"]
     },
     {
       "id": "mkt-005",
@@ -48,7 +52,8 @@
       "access": "free",
       "role": "Brand Manager",
       "category": "Content",
-      "keywords": ["press release", "PR", "media", "announcement", "communications"]
+      "keywords": ["press release", "PR", "media", "announcement", "communications"],
+      "contextTags": ["full_style", "role", "company"]
     },
     {
       "id": "mkt-006",
@@ -57,7 +62,8 @@
       "access": "premium",
       "role": "Brand Manager",
       "category": "Strategy",
-      "keywords": ["brand voice", "guidelines", "tone", "messaging", "identity"]
+      "keywords": ["brand voice", "guidelines", "tone", "messaging", "identity"],
+      "contextTags": ["tone", "role", "company"]
     }
   ]
 }

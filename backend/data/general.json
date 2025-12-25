@@ -9,7 +9,8 @@
       "access": "free",
       "role": "General",
       "category": "Communication",
-      "keywords": ["email", "response", "professional", "communication", "business"]
+      "keywords": ["email", "response", "professional", "communication", "business"],
+      "contextTags": ["email_style", "tone", "role"]
     },
     {
       "id": "gen-002",
@@ -18,7 +19,8 @@
       "access": "free",
       "role": "General",
       "category": "Documentation",
-      "keywords": ["meeting", "summary", "minutes", "notes", "documentation"]
+      "keywords": ["meeting", "summary", "minutes", "notes", "documentation"],
+      "contextTags": ["report_style", "role"]
     },
     {
       "id": "gen-003",
@@ -27,7 +29,8 @@
       "access": "premium",
       "role": "Project Manager",
       "category": "Reporting",
-      "keywords": ["project", "status", "report", "executive", "management"]
+      "keywords": ["project", "status", "report", "executive", "management"],
+      "contextTags": ["report_style", "role", "company"]
     },
     {
       "id": "gen-004",
@@ -36,7 +39,8 @@
       "access": "premium",
       "role": "Strategy",
       "category": "Analysis",
-      "keywords": ["swot", "analysis", "strategy", "planning", "business"]
+      "keywords": ["swot", "analysis", "strategy", "planning", "business"],
+      "contextTags": ["role", "company"]
     },
     {
       "id": "gen-005",
@@ -45,7 +49,8 @@
       "access": "free",
       "role": "HR",
       "category": "Recruitment",
-      "keywords": ["interview", "questions", "hiring", "recruitment", "HR"]
+      "keywords": ["interview", "questions", "hiring", "recruitment", "HR"],
+      "contextTags": ["role", "company"]
     },
     {
       "id": "gen-006",
@@ -54,7 +59,8 @@
       "access": "premium",
       "role": "HR",
       "category": "Change Management",
-      "keywords": ["change management", "communication", "organisational", "transformation"]
+      "keywords": ["change management", "communication", "organisational", "transformation"],
+      "contextTags": ["full_style", "role", "company", "tone"]
     }
   ]
 }
