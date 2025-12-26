@@ -266,6 +266,43 @@ class ApiClient {
   async getQuestion(id: string) {
     return this.request<{ question: Question }>(`/api/questions/${id}`);
   }
+
+  // Stripe endpoints
+  async createCheckoutSession(tier: 'professional' | 'enterprise') {
+    return this.request<{ sessionId: string; url: string }>('/api/stripe/create-checkout-session', {
+      method: 'POST',
+      body: JSON.stringify({ tier }),
+    });
+  }
+
+  async getSubscription() {
+    return this.request<{
+      hasSubscription: boolean;
+      tier: string;
+      subscription?: {
+        id: string;
+        status: string;
+        currentPeriodEnd: string;
+        cancelAtPeriodEnd: boolean;
+      };
+    }>('/api/stripe/subscription');
+  }
+
+  async createPortalSession() {
+    return this.request<{ url: string }>('/api/stripe/create-portal-session', {
+      method: 'POST',
+    });
+  }
+
+  async verifyCheckoutSession(sessionId: string) {
+    return this.request<{ success: boolean; message: string; tier: string }>(
+      '/api/stripe/verify-session',
+      {
+        method: 'POST',
+        body: JSON.stringify({ sessionId }),
+      }
+    );
+  }
 }
 
 export const api = new ApiClient();

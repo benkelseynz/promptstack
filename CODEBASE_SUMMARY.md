@@ -71,11 +71,14 @@ This document explains what every file does and which files to edit for common t
 |-----------------------------------------|-----------------------------------------------------------|
 | **Colours/styling**                     | `frontend/src/app/globals.css`, `frontend/tailwind.config.js` |
 | **Landing page content**                | `frontend/src/app/page.tsx`                               |
+| **Mountain parallax background**        | `frontend/src/components/MountainParallax.tsx`            |
 | **Login/signup pages**                  | `frontend/src/app/login/page.tsx`, `frontend/src/app/signup/page.tsx` |
 | **Dashboard layout/sidebar**            | `frontend/src/app/dashboard/layout.tsx`                   |
 | **Prompt library page**                 | `frontend/src/app/dashboard/page.tsx`                     |
+| **Questions library page**              | `frontend/src/app/dashboard/questions/page.tsx`           |
 | **Prompt modal (view/copy prompts)**    | `frontend/src/components/PromptModal.tsx`                 |
 | **Saved prompts page**                  | `frontend/src/app/dashboard/saved/page.tsx`               |
+| **User profile system**                 | `frontend/src/app/dashboard/settings/page.tsx`, `frontend/src/lib/profileContext.ts` |
 | **Upgrade/pricing page**                | `frontend/src/app/dashboard/upgrade/page.tsx`             |
 | **Settings page**                       | `frontend/src/app/dashboard/settings/page.tsx`            |
 | **Pricing tiers/prices**                | `backend/config/pricing.json`                             |
@@ -331,6 +334,7 @@ Next.js uses file-based routing. Each folder = a URL path.
 | `verify/page.tsx` | `/verify?token=...` | Email verification page |
 | `dashboard/layout.tsx` | `/dashboard/*` | Dashboard sidebar and layout |
 | `dashboard/page.tsx` | `/dashboard` | Prompt library with search |
+| `dashboard/questions/page.tsx` | `/dashboard/questions` | Curated questions library |
 | `dashboard/saved/page.tsx` | `/dashboard/saved` | Saved and custom prompts |
 | `dashboard/upgrade/page.tsx` | `/dashboard/upgrade` | Pricing/upgrade page |
 | `dashboard/builder/page.tsx` | `/dashboard/builder` | Prompt builder (coming soon) |
@@ -341,6 +345,8 @@ Next.js uses file-based routing. Each folder = a URL path.
 
 ### `/src/app/globals.css` - Styles
 
+**Design System:** Winter Ice / Alpine Minimal palette - premium, calm, high-contrast theme
+
 **Key sections:**
 
 ```css
@@ -349,18 +355,30 @@ Next.js uses file-based routing. Each folder = a URL path.
 @tailwind components;
 @tailwind utilities;
 
-/* Lines 5-6: Google Fonts import */
+/* Lines 5-6: Google Fonts import (Inter) */
 
-/* Lines 8-15: CSS variables for colours */
+/* Lines 8-19: CSS variables */
+:root {
+  --foreground-rgb: Dark gray for readability
+  --background-start-rgb: Snow (#F9FBFD)
+  --background-end-rgb: Ice-200 (#E0EEF7)
+  --alpine-navy: Alpine-800 for headings
+  --mountain-layer-1 to 5: Parallax background colors
+}
 
-/* Lines 17-50: Component classes (.btn-primary, .card, etc.) */
+/* Lines 30-76: Component classes */
+.btn-primary, .btn-secondary, .btn-outline
+.input-field, .card
+.glass-card: Glassmorphism with blur and transparency
+.glass-card-dark: Dark glassmorphism for quote sections
+.sidebar-link, .sidebar-link-active
 
-/* Lines 52-70: Scrollbar styling */
+/* Lines 78-91: Scrollbar styling */
 
-/* Lines 72-80: Animation for locked prompts */
+/* Lines 93-108: Scroll snap utilities */
 ```
 
-**When to edit:** To change button styles, card styles, or add new CSS classes.
+**When to edit:** To change button styles, card styles, glassmorphism effects, or add new CSS classes.
 
 ---
 
@@ -385,11 +403,37 @@ The popup that appears when you click on a prompt.
 **Key features:**
 - Shows prompt content (or preview if locked)
 - Placeholder input fields for free prompts
+- **Profile Context Injection**: Automatically appends user profile context when copying (if prompt has contextTags)
 - Copy and "Copy Populated" buttons
 - Save/unsave button
+- "Personalised" indicator for prompts with profile context
 - Upgrade CTA for locked prompts
 
-**When to edit:** To change how prompts are displayed, modify copy functionality, or change the upgrade messaging.
+**When to edit:** To change how prompts are displayed, modify copy functionality, change personalisation logic, or change the upgrade messaging.
+
+#### `ProfileReminder.tsx` - Profile Completion Prompt
+
+Encourages users to complete their profile for personalised prompts.
+
+**Key features:**
+- "Welcome" variant: Large card on dashboard
+- "Banner" variant: Compact reminder on other pages
+- Shows completion percentage
+- Links to settings page
+
+**When to edit:** To change profile completion messaging or styling.
+
+#### `MountainParallax.tsx` - Landing Page Background
+
+Alpine-themed parallax background with layered mountains.
+
+**Key features:**
+- Fixed position background spanning entire page
+- 5 mountain layers with parallax scroll effect
+- Uses CSS variables for colors (--mountain-layer-1 to 5)
+- Subtle animation for depth
+
+**When to edit:** To change mountain layer colors, parallax speed, or add/remove layers.
 
 ---
 
@@ -431,7 +475,7 @@ Defines the shape of data used throughout the app.
 
 **Types defined:**
 - `User`: User profile data
-- `Prompt`: Library prompt
+- `Prompt`: Library prompt (now includes `contextTags` for personalisation)
 - `CustomPrompt`: User-created prompt
 - `Industry`: Industry metadata
 - `PricingTier` / `PricingConfig`: Pricing data
@@ -439,6 +483,8 @@ Defines the shape of data used throughout the app.
 - `SearchQuery`: Search parameters
 - `PaginatedResponse`: Paginated results
 - `ApiError`: Error response format
+- **Profile Types**: `UserProfile`, `ProfileRole`, `ProfileCommunication`, `ProfileWritingStyle`, `ProfileWorkingStyle`, `ProfileFormatting`, `ProfilePersonal`, `ProfileStatus`, `ProfileSection`
+- **Questions Types**: `Question`, `QuestionCategory`
 
 **When to edit:** When adding new data fields or changing data structures.
 
@@ -568,10 +614,17 @@ One file per user (named by UUID). Created automatically on signup.
 
 ### Changing Colours
 
+**Current Theme:** Winter Ice / Alpine Minimal
+
 1. Open `frontend/tailwind.config.js`
 2. Find the `colors` section under `extend`
-3. Modify `primary` or `accent` colour values
+3. Color palettes available:
+   - **primary**: Snow/frost/ice backgrounds → steel/glacier blues → alpine navy
+   - **accent**: Arctic teal for CTA buttons and primary actions
+   - **nebula**: Periwinkle for restrained accents
+   - **cosmos**: Foundation colors (snow, frost, ice) and dark alpines
 4. The app uses Tailwind classes like `bg-primary-600`, `text-primary-700`
+5. Update CSS variables in `globals.css` `:root` for mountain parallax colors
 
 ### Changing Button Styles
 
@@ -582,9 +635,17 @@ One file per user (named by UUID). Created automatically on signup.
 ### Modifying the Sidebar
 
 1. Open `frontend/src/app/dashboard/layout.tsx`
-2. Find the `navigation` array near the top
-3. Add/remove/modify navigation items
-4. Each item has: `name`, `href`, `icon`, and optional `comingSoon`
+2. Find the `navigation` array near the top (around line 25)
+3. Current navigation items:
+   - Prompt Library
+   - **Questions** (new feature)
+   - My Saved Prompts
+   - Upgrade
+   - Prompt Builder (coming soon)
+   - Team Features (coming soon)
+   - Settings
+4. Add/remove/modify navigation items
+5. Each item has: `name`, `href`, `icon`, and optional `comingSoon`
 
 ### Changing Email Templates
 
@@ -718,6 +779,45 @@ Before making changes, use this checklist:
 - [ ] Check browser console for errors
 - [ ] Check terminal for backend errors
 - [ ] Commit and push to deploy
+
+---
+
+---
+
+## Recent Major Changes (December 2024)
+
+### Design System Overhaul
+- **New Color Scheme**: Replaced cosmic/galaxy theme with Winter Ice / Alpine Minimal palette
+  - Primary: Snow, frost, ice backgrounds → alpine navy anchors
+  - Accent: Arctic teal for CTAs
+  - Nebula: Periwinkle for restrained accents
+  - See `tailwind.config.js` lines 10-62
+
+### Landing Page Redesign
+- **Continuous Scrolling**: Removed snap-scroll behavior for fluid experience
+- **MountainParallax Component**: Alpine-themed parallax background
+- **Glassmorphism**: New `.glass-card` and `.glass-card-dark` styles
+- Quote section converted from full-screen to card-style container
+- All sections flow seamlessly without hard visual breaks
+
+### Profile Personalisation System
+- Users can complete multi-section profile (role, communication, writing style, working style, formatting, personal)
+- Prompts with `contextTags` automatically inject relevant profile context when copied
+- Profile completion percentage tracking
+- `ProfileReminder` component encourages completion
+- See `types/index.ts` lines 103-176 for profile types
+
+### Questions Library
+- New `/dashboard/questions` page for curated question library
+- Similar structure to prompts but optimized for questions
+- Category-based filtering
+- Free/premium gating
+
+### Technical Improvements
+- Click-based sorting in prompt library (localStorage tracking)
+- Combined library + custom prompts with unified search
+- Request ID tracking to prevent stale API responses
+- Profile context injection via `buildContextString()` helper
 
 ---
 

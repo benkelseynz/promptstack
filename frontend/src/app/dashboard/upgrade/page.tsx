@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import type { PricingConfig, PricingTier } from '@/types';
@@ -10,18 +11,23 @@ import {
   Sparkles,
   Loader2,
   Clock,
-  Mail,
+  ExternalLink,
+  AlertCircle,
+  CreditCard,
+  Settings,
 } from 'lucide-react';
 
 export default function UpgradePage() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
   const [pricing, setPricing] = useState<PricingConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
-  const [selectedTier, setSelectedTier] = useState<string | null>(null);
-  const [showWaitlist, setShowWaitlist] = useState(false);
-  const [waitlistEmail, setWaitlistEmail] = useState('');
-  const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // Check for cancelled checkout
+  const cancelled = searchParams.get('cancelled');
 
   useEffect(() => {
     const loadPricing = async () => {
@@ -37,15 +43,34 @@ export default function UpgradePage() {
     loadPricing();
   }, []);
 
-  const handleSelectTier = (tierId: string) => {
+  const handleSelectTier = async (tierId: string) => {
     if (tierId === 'free') return;
-    setSelectedTier(tierId);
-    setShowWaitlist(true);
+    if (tierId !== 'professional' && tierId !== 'enterprise') return;
+
+    setCheckoutLoading(tierId);
+    setError(null);
+
+    try {
+      const { url } = await api.createCheckoutSession(tierId);
+
+      // Open Stripe checkout in a new tab
+      window.open(url, '_blank');
+    } catch (err) {
+      console.error('Failed to create checkout session:', err);
+      setError(err instanceof Error ? err.message : 'Failed to start checkout. Please try again.');
+    } finally {
+      setCheckoutLoading(null);
+    }
   };
 
-  const handleWaitlistSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setWaitlistSubmitted(true);
+  const handleManageSubscription = async () => {
+    try {
+      const { url } = await api.createPortalSession();
+      window.open(url, '_blank');
+    } catch (err) {
+      console.error('Failed to create portal session:', err);
+      setError('Failed to open subscription management. Please try again.');
+    }
   };
 
   if (loading) {
@@ -64,16 +89,71 @@ export default function UpgradePage() {
     );
   }
 
+  const hasPaidSubscription = user?.tier === 'professional' || user?.tier === 'enterprise';
+
   return (
     <div className="max-w-5xl mx-auto">
       <div className="text-center mb-10">
         <h1 className="text-3xl font-bold text-gray-900 mb-3">
-          Upgrade Your PromptStack
+          {hasPaidSubscription ? 'Manage Your Subscription' : 'Upgrade Your PromptStack'}
         </h1>
         <p className="text-lg text-gray-600">
-          Unlock premium prompts and supercharge your AI productivity
+          {hasPaidSubscription
+            ? `You're on the ${pricing?.tiers.find(t => t.id === user.tier)?.name} plan`
+            : 'Unlock premium prompts and supercharge your AI productivity'}
         </p>
       </div>
+
+      {/* Cancelled checkout notification */}
+      {cancelled && (
+        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+          <p className="text-amber-800">
+            Your checkout was cancelled. No charges were made. Feel free to try again when you are ready.
+          </p>
+        </div>
+      )}
+
+      {/* Error notification */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+          <p className="text-red-800">{error}</p>
+          <button
+            onClick={() => setError(null)}
+            className="ml-auto text-red-600 hover:text-red-800"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Subscription management for existing subscribers */}
+      {hasPaidSubscription && (
+        <div className="mb-8 p-6 bg-gradient-to-r from-primary-50 to-purple-50 border border-primary-200 rounded-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                <CreditCard className="w-6 h-6 text-primary-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Your Subscription</h3>
+                <p className="text-gray-600 text-sm">
+                  Manage billing, update payment method, or cancel subscription
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleManageSubscription}
+              className="btn-secondary flex items-center gap-2"
+            >
+              <Settings className="w-4 h-4" />
+              Manage Subscription
+              <ExternalLink className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Billing toggle */}
       <div className="flex items-center justify-center gap-4 mb-8">
@@ -112,6 +192,7 @@ export default function UpgradePage() {
             billingCycle={billingCycle}
             annualDiscount={pricing.annualDiscount}
             isCurrentTier={user?.tier === tier.id}
+            isLoading={checkoutLoading === tier.id}
             onSelect={() => handleSelectTier(tier.id)}
           />
         ))}
@@ -189,81 +270,14 @@ export default function UpgradePage() {
         {pricing.refundPolicy}
       </div>
 
-      {/* Waitlist Modal */}
-      {showWaitlist && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setShowWaitlist(false)} />
-          
-          <div className="relative min-h-full flex items-center justify-center p-4">
-            <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-              {waitlistSubmitted ? (
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Check className="w-8 h-8 text-green-600" />
-                  </div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">
-                    You are on the list!
-                  </h2>
-                  <p className="text-gray-600 mb-4">
-                    We will notify you when payments are available. Thank you for your interest!
-                  </p>
-                  <button
-                    onClick={() => {
-                      setShowWaitlist(false);
-                      setWaitlistSubmitted(false);
-                    }}
-                    className="btn-primary"
-                  >
-                    Close
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <div className="text-center mb-6">
-                    <Sparkles className="w-12 h-12 text-primary-600 mx-auto mb-3" />
-                    <h2 className="text-xl font-bold text-gray-900 mb-2">
-                      Payments Coming Soon
-                    </h2>
-                    <p className="text-gray-600">
-                      We are currently finalising our payment system. Join the waitlist
-                      to be notified when you can upgrade to{' '}
-                      {pricing.tiers.find((t) => t.id === selectedTier)?.name}.
-                    </p>
-                  </div>
-
-                  <form onSubmit={handleWaitlistSubmit} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Email address
-                      </label>
-                      <input
-                        type="email"
-                        value={waitlistEmail}
-                        onChange={(e) => setWaitlistEmail(e.target.value)}
-                        className="input-field"
-                        placeholder={user?.email || 'your@email.co.nz'}
-                        required
-                      />
-                    </div>
-
-                    <button type="submit" className="btn-primary w-full flex items-center justify-center gap-2">
-                      <Mail className="w-5 h-5" />
-                      Join Waitlist
-                    </button>
-                  </form>
-
-                  <button
-                    onClick={() => setShowWaitlist(false)}
-                    className="w-full text-center text-gray-500 text-sm mt-4 hover:text-gray-700"
-                  >
-                    Maybe later
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Payment security notice */}
+      <div className="text-center mt-4 text-gray-400 text-xs flex items-center justify-center gap-2">
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+        Secure payments powered by Stripe
+      </div>
     </div>
   );
 }
@@ -274,6 +288,7 @@ function PricingCard({
   billingCycle,
   annualDiscount,
   isCurrentTier,
+  isLoading,
   onSelect,
 }: {
   tier: PricingTier;
@@ -281,6 +296,7 @@ function PricingCard({
   billingCycle: 'monthly' | 'annual';
   annualDiscount: number;
   isCurrentTier: boolean;
+  isLoading: boolean;
   onSelect: () => void;
 }) {
   const monthlyPrice = tier.monthlyPrice;
@@ -355,12 +371,26 @@ function PricingCard({
 
       <button
         onClick={onSelect}
-        disabled={isCurrentTier}
-        className={`w-full ${
+        disabled={isCurrentTier || isLoading}
+        className={`w-full flex items-center justify-center gap-2 ${
           tier.highlighted ? 'btn-primary' : 'btn-secondary'
-        } ${isCurrentTier ? 'opacity-50 cursor-not-allowed' : ''}`}
+        } ${isCurrentTier || isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
-        {isCurrentTier ? 'Current Plan' : tier.id === 'free' ? 'Get Started' : 'Upgrade'}
+        {isLoading ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Opening checkout...
+          </>
+        ) : isCurrentTier ? (
+          'Current Plan'
+        ) : tier.id === 'free' ? (
+          'Get Started'
+        ) : (
+          <>
+            Upgrade
+            <ExternalLink className="w-4 h-4" />
+          </>
+        )}
       </button>
     </div>
   );

@@ -4,9 +4,9 @@
   "name": "Ben Kelsey",
   "passwordHash": "$2b$12$WwxOsUpE4.gq4mAsNkDV6OV5rZ7ORW9uL2i1k/54yWrrSToRqQnCG",
   "emailVerified": true,
-  "tier": "free",
+  "tier": "professional",
   "createdAt": "2025-12-21T08:14:27.229Z",
-  "updatedAt": "2025-12-25T20:00:03.159Z",
+  "updatedAt": "2025-12-26T20:40:06.523Z",
   "customPrompts": [
     {
       "id": "c231a4c4-c613-4b1a-b208-e2732683f01b",
@@ -82,5 +82,8 @@
       "additionalContext": "",
       "greatCollaboration": "It feels best when it’s collaborative and honest, shows its thinking transparently, challenges my assumptions constructively, and asks questions when unsure rather than wasting time with confident nonsense. I’m fine with blunt feedback if it’s accurate."
     }
-  }
+  },
+  "stripeCustomerId": "cus_Tg3hMBUmsha7AU",
+  "stripeSubscriptionId": "sub_1SihnnKnuEDIBIGDzADX3xmf",
+  "subscriptionStartDate": "2025-12-26T20:40:06.522Z"
 }

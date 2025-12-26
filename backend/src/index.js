@@ -11,6 +11,7 @@ const libraryRoutes = require('./routes/library');
 const userRoutes = require('./routes/user');
 const configRoutes = require('./routes/config');
 const questionsRoutes = require('./routes/questions');
+const stripeRoutes = require('./routes/stripe');
 const { globalRateLimiter } = require('./middleware/rateLimiter');
 const { errorHandler } = require('./middleware/errorHandler');
 const { initSearchIndex, watchForChanges } = require('./services/searchIndex');
@@ -25,6 +26,10 @@ app.use(cors({
   credentials: true
 }));
 app.use(cookieParser());
+
+// Stripe webhook needs raw body - must be before express.json()
+app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
+
 app.use(express.json({ limit: '10kb' }));
 app.use(globalRateLimiter);
 
@@ -39,6 +44,7 @@ app.use('/api/library', libraryRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/config', configRoutes);
 app.use('/api/questions', questionsRoutes);
+app.use('/api/stripe', stripeRoutes);
 
 // Error handling
 app.use(errorHandler);

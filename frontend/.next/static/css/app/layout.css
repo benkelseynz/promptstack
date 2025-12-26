@@ -737,6 +737,9 @@ video {
 .ml-64 {
   margin-left: 16rem;
 }
+.ml-auto {
+  margin-left: auto;
+}
 .mt-0\.5 {
   margin-top: 0.125rem;
 }
@@ -1272,6 +1275,11 @@ video {
   --tw-gradient-to: rgb(246 245 250 / 0) var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
+.from-primary-50 {
+  --tw-gradient-from: #F9FBFD var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(249 251 253 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
 .from-primary-500 {
   --tw-gradient-from: #5483BA var(--tw-gradient-from-position);
   --tw-gradient-to: rgb(84 131 186 / 0) var(--tw-gradient-to-position);
@@ -1308,6 +1316,9 @@ video {
 }
 .to-primary-700 {
   --tw-gradient-to: #2D5A85 var(--tw-gradient-to-position);
+}
+.to-purple-50 {
+  --tw-gradient-to: #faf5ff var(--tw-gradient-to-position);
 }
 .bg-clip-text {
   -webkit-background-clip: text;
@@ -1616,6 +1627,10 @@ video {
   --tw-text-opacity: 1;
   color: rgb(0 51 102 / var(--tw-text-opacity, 1));
 }
+.text-purple-600 {
+  --tw-text-opacity: 1;
+  color: rgb(147 51 234 / var(--tw-text-opacity, 1));
+}
 .text-purple-700 {
   --tw-text-opacity: 1;
   color: rgb(126 34 206 / var(--tw-text-opacity, 1));
@@ -1631,6 +1646,10 @@ video {
 .text-red-700 {
   --tw-text-opacity: 1;
   color: rgb(185 28 28 / var(--tw-text-opacity, 1));
+}
+.text-red-800 {
+  --tw-text-opacity: 1;
+  color: rgb(153 27 27 / var(--tw-text-opacity, 1));
 }
 .text-transparent {
   color: transparent;
@@ -1885,6 +1904,11 @@ html {
   color: rgb(185 28 28 / var(--tw-text-opacity, 1));
 }
 
+.hover\:text-red-800:hover {
+  --tw-text-opacity: 1;
+  color: rgb(153 27 27 / var(--tw-text-opacity, 1));
+}
+
 .hover\:text-white:hover {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
@@ -1909,6 +1933,26 @@ html {
 
 .disabled\:opacity-50:disabled {
   opacity: 0.5;
+}
+
+.group:hover .group-hover\:bg-primary-200 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(224 238 247 / var(--tw-bg-opacity, 1));
+}
+
+.group:hover .group-hover\:bg-purple-200 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(233 213 255 / var(--tw-bg-opacity, 1));
+}
+
+.group:hover .group-hover\:text-primary-600 {
+  --tw-text-opacity: 1;
+  color: rgb(79 163 184 / var(--tw-text-opacity, 1));
+}
+
+.group:hover .group-hover\:text-purple-600 {
+  --tw-text-opacity: 1;
+  color: rgb(147 51 234 / var(--tw-text-opacity, 1));
 }
 
 @media (min-width: 640px) {
