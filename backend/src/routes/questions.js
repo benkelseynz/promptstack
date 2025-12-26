@@ -18,14 +18,26 @@ function loadQuestionsData() {
   return questionsData;
 }
 
+// Truncate text to first N words
+function truncateToWords(text, wordCount) {
+  const words = text.split(/\s+/);
+  if (words.length <= wordCount) {
+    return text;
+  }
+  return words.slice(0, wordCount).join(' ') + '...';
+}
+
 // Apply premium gating to a question based on user tier
 function applyQuestionGating(question, userTier) {
   const isPremium = question.access === 'premium';
   const hasPremiumAccess = userTier === 'professional' || userTier === 'enterprise';
+  const isLocked = isPremium && !hasPremiumAccess;
 
   return {
     ...question,
-    isLocked: isPremium && !hasPremiumAccess,
+    // Truncate question text to first 3 words if locked
+    question: isLocked ? truncateToWords(question.question, 3) : question.question,
+    isLocked,
   };
 }
 

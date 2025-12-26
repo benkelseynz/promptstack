@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import type { Question, QuestionCategory } from '@/types';
@@ -10,7 +10,6 @@ import {
   Lock,
   Copy,
   Check,
-  ChevronDown,
   X,
   Loader2,
   Layers,
@@ -23,6 +22,38 @@ import {
 } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 12;
+const CLICK_STORAGE_KEY = 'promptstack_question_clicks';
+
+// Helper functions for click tracking
+function getClickData(): Record<string, number> {
+  if (typeof window === 'undefined') return {};
+  try {
+    const data = localStorage.getItem(CLICK_STORAGE_KEY);
+    return data ? JSON.parse(data) : {};
+  } catch {
+    return {};
+  }
+}
+
+function recordClick(questionId: string) {
+  if (typeof window === 'undefined') return;
+  try {
+    const data = getClickData();
+    data[questionId] = Date.now();
+    localStorage.setItem(CLICK_STORAGE_KEY, JSON.stringify(data));
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+function sortByRecentClicks<T extends { id: string }>(questions: T[]): T[] {
+  const clicks = getClickData();
+  return [...questions].sort((a, b) => {
+    const clickA = clicks[a.id] || 0;
+    const clickB = clicks[b.id] || 0;
+    return clickB - clickA; // Most recent first
+  });
+}
 
 // Map category icon names to Lucide components
 const categoryIcons: Record<string, React.ElementType> = {
@@ -54,7 +85,9 @@ export default function QuestionsPage() {
           q: searchQuery || undefined,
           access: selectedAccess !== 'all' ? selectedAccess : undefined,
         });
-        setQuestions(data.questions);
+        // Sort questions by recent clicks
+        const sortedQuestions = sortByRecentClicks(data.questions);
+        setQuestions(sortedQuestions);
         setCategories(data.categories);
       } catch (err) {
         console.error('Failed to load questions:', err);
@@ -67,6 +100,9 @@ export default function QuestionsPage() {
   }, [searchQuery, selectedCategory, selectedAccess]);
 
   const handleCopy = async (question: Question) => {
+    // Record the click for sorting purposes
+    recordClick(question.id);
+
     if (question.isLocked) return;
 
     await navigator.clipboard.writeText(question.question);
@@ -213,18 +249,13 @@ export default function QuestionsPage() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {paginatedQuestions.map((question) => (
-              <QuestionCard
-                key={question.id}
-                question={question}
-                categoryName={getCategoryName(question.category)}
-                categoryIcon={categoryIcons[categories.find(c => c.id === question.category)?.icon || 'layers']}
-                copied={copiedId === question.id}
-                onCopy={() => handleCopy(question)}
-              />
-            ))}
-          </div>
+          <QuestionsGrid
+            questions={paginatedQuestions}
+            categories={categories}
+            getCategoryName={getCategoryName}
+            copiedId={copiedId}
+            onCopy={handleCopy}
+          />
 
           {/* Pagination */}
           {totalPages > 1 && (
@@ -254,18 +285,116 @@ export default function QuestionsPage() {
   );
 }
 
+// Grid component that handles row-based height alignment
+function QuestionsGrid({
+  questions,
+  categories,
+  getCategoryName,
+  copiedId,
+  onCopy,
+}: {
+  questions: Question[];
+  categories: QuestionCategory[];
+  getCategoryName: (id: string) => string;
+  copiedId: string | null;
+  onCopy: (question: Question) => void;
+}) {
+  const gridRef = useRef<HTMLDivElement>(null);
+  const questionRefs = useRef<Map<string, HTMLParagraphElement>>(new Map());
+
+  const alignRowHeights = useCallback(() => {
+    if (!gridRef.current) return;
+
+    const questionElements = Array.from(questionRefs.current.entries());
+    if (questionElements.length === 0) return;
+
+    // Reset all heights first to get natural heights
+    questionElements.forEach(([, el]) => {
+      el.style.minHeight = '';
+    });
+
+    // Group elements by their row (based on offsetTop of parent card)
+    const rows = new Map<number, { id: string; el: HTMLParagraphElement; height: number }[]>();
+
+    questionElements.forEach(([id, el]) => {
+      const card = el.closest('.card') as HTMLElement;
+      if (!card) return;
+
+      const rowTop = card.offsetTop;
+      const height = el.offsetHeight;
+
+      if (!rows.has(rowTop)) {
+        rows.set(rowTop, []);
+      }
+      rows.get(rowTop)!.push({ id, el, height });
+    });
+
+    // For each row, set all question elements to the max height in that row
+    rows.forEach((rowItems) => {
+      const maxHeight = Math.max(...rowItems.map((item) => item.height));
+      rowItems.forEach(({ el }) => {
+        el.style.minHeight = `${maxHeight}px`;
+      });
+    });
+  }, []);
+
+  // Align heights after render and on resize
+  useEffect(() => {
+    // Initial alignment after a short delay to ensure elements are rendered
+    const timeoutId = setTimeout(alignRowHeights, 50);
+
+    // Re-align on window resize
+    const handleResize = () => {
+      alignRowHeights();
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [alignRowHeights, questions]);
+
+  const setQuestionRef = (id: string, el: HTMLParagraphElement | null) => {
+    if (el) {
+      questionRefs.current.set(id, el);
+    } else {
+      questionRefs.current.delete(id);
+    }
+  };
+
+  return (
+    <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {questions.map((question) => (
+        <QuestionCard
+          key={question.id}
+          question={question}
+          categoryName={getCategoryName(question.category)}
+          categoryIcon={categoryIcons[categories.find(c => c.id === question.category)?.icon || 'layers']}
+          copied={copiedId === question.id}
+          onCopy={() => onCopy(question)}
+          questionRef={(el) => setQuestionRef(question.id, el)}
+        />
+      ))}
+    </div>
+  );
+}
+
 function QuestionCard({
   question,
   categoryName,
   categoryIcon: CategoryIcon,
   copied,
   onCopy,
+  questionRef,
 }: {
   question: Question;
   categoryName: string;
   categoryIcon: React.ElementType;
   copied: boolean;
   onCopy: () => void;
+  questionRef: (el: HTMLParagraphElement | null) => void;
 }) {
   const isLocked = question.isLocked;
 
@@ -299,8 +428,8 @@ function QuestionCard({
         </span>
       </div>
 
-      {/* Question text */}
-      <p className={`font-medium text-gray-900 mb-3 pr-8 ${isLocked ? 'line-clamp-2' : ''}`}>
+      {/* Question text - ref for height alignment */}
+      <p ref={questionRef} className="font-medium text-gray-900 mb-3 pr-8">
         "{question.question}"
       </p>
 
