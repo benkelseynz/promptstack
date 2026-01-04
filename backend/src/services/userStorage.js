@@ -143,12 +143,54 @@ async function getUserById(userId) {
 async function getUserByEmail(email) {
   const emailIndex = await loadEmailIndex();
   const userId = emailIndex[email.toLowerCase()];
-  
+
   if (!userId) {
     return null;
   }
 
   return getUserById(userId);
+}
+
+// Get user by Stripe customer ID
+async function getUserByStripeCustomerId(stripeCustomerId) {
+  try {
+    const files = await listFiles(USERS_DIR);
+    const userFiles = files.filter(f => f.endsWith('.json') && !f.startsWith('_'));
+
+    for (const file of userFiles) {
+      const filePath = path.join(USERS_DIR, file);
+      const userData = await readJsonFile(filePath);
+      if (userData && userData.stripeCustomerId === stripeCustomerId) {
+        return userData;
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error('Error finding user by Stripe customer ID:', error);
+    return null;
+  }
+}
+
+// Get all users (for admin/search purposes)
+async function getAllUsers() {
+  try {
+    const files = await listFiles(USERS_DIR);
+    const userFiles = files.filter(f => f.endsWith('.json') && !f.startsWith('_'));
+
+    const users = [];
+    for (const file of userFiles) {
+      const filePath = path.join(USERS_DIR, file);
+      const userData = await readJsonFile(filePath);
+      if (userData) {
+        const { passwordHash, ...safeUser } = userData;
+        users.push(safeUser);
+      }
+    }
+    return users;
+  } catch (error) {
+    console.error('Error getting all users:', error);
+    return [];
+  }
 }
 
 // Update user
@@ -437,6 +479,8 @@ module.exports = {
   createUser,
   getUserById,
   getUserByEmail,
+  getUserByStripeCustomerId,
+  getAllUsers,
   updateUser,
   verifyPassword,
   markEmailVerified,

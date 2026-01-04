@@ -13,6 +13,7 @@ This document explains what every file does and which files to edit for common t
 5. [Data Files Explained](#data-files-explained)
 6. [Common Tasks Guide](#common-tasks-guide)
 7. [Troubleshooting Guide](#troubleshooting-guide)
+8. [Stripe Integration Guide](#stripe-integration-guide)
 
 ---
 
@@ -44,23 +45,27 @@ This document explains what every file does and which files to edit for common t
 │  ├── /api/auth/*                 ├── userStorage                │
 │  ├── /api/library/*              ├── email (Gmail API)          │
 │  ├── /api/user/*                 ├── searchIndex                │
-│  └── /api/config/*               └── verificationTokens         │
+│  ├── /api/questions/*            ├── verificationTokens         │
+│  ├── /api/stripe/*               └── invoiceGenerator (PDFKit)  │
+│  └── /api/config/*                                              │
 │                                                                 │
 │  Middleware (runs before routes) Schemas (validation)           │
 │  ├── auth (check login)          └── validation (Zod rules)     │
 │  ├── rateLimiter                                                │
 │  └── errorHandler                                               │
 └─────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                        JSON FILE STORAGE                        │
-│                                                                 │
-│  /data/users/*.json         One file per user (profile, prompts)│
-│  /data/industries/*.json    Prompt libraries by industry        │
-│  /data/general.json         General prompts                     │
-│  /config/pricing.json       Pricing tiers and features          │
-└─────────────────────────────────────────────────────────────────┘
+                    │                           │
+                    │                           │ Webhooks
+                    ▼                           ▼
+┌────────────────────────────────┐  ┌──────────────────────────────┐
+│      JSON FILE STORAGE         │  │      STRIPE API              │
+│                                │  │                              │
+│  /data/users/*.json            │  │  Subscription Management     │
+│  /data/industries/*.json       │  │  Payment Processing          │
+│  /data/questions/*.json        │  │  Customer Portal             │
+│  /data/general.json            │  │  Invoice Generation          │
+│  /config/pricing.json          │  │  Webhook Events              │
+└────────────────────────────────┘  └──────────────────────────────┘
 ```
 
 ---
@@ -78,10 +83,14 @@ This document explains what every file does and which files to edit for common t
 | **Questions library page**              | `frontend/src/app/dashboard/questions/page.tsx`           |
 | **Prompt modal (view/copy prompts)**    | `frontend/src/components/PromptModal.tsx`                 |
 | **Saved prompts page**                  | `frontend/src/app/dashboard/saved/page.tsx`               |
-| **User profile system**                 | `frontend/src/app/dashboard/settings/page.tsx`, `frontend/src/lib/profileContext.ts` |
+| **User profile system**                 | `frontend/src/lib/profileContext.ts`                      |
 | **Upgrade/pricing page**                | `frontend/src/app/dashboard/upgrade/page.tsx`             |
-| **Settings page**                       | `frontend/src/app/dashboard/settings/page.tsx`            |
+| **Subscription success page**           | `frontend/src/app/dashboard/upgrade/success/page.tsx`     |
 | **Pricing tiers/prices**                | `backend/config/pricing.json`                             |
+| **Stripe integration**                  | `backend/src/routes/stripe.js`                            |
+| **Invoice generation**                  | `backend/src/services/invoiceGenerator.js`                |
+| **Subscription emails**                 | `backend/src/services/email.js` (subscription functions)  |
+| **Cancel subscription modal**           | `frontend/src/components/CancelSubscriptionModal.tsx`     |
 | **Add/edit prompts**                    | `backend/data/industries/*.json`, `backend/data/general.json` |
 | **Email templates**                     | `backend/src/services/email.js`                           |
 | **Authentication logic**                | `backend/src/routes/auth.js`, `backend/src/middleware/auth.js` |
@@ -171,6 +180,36 @@ These files define what happens when the frontend calls the API.
 
 **When to edit:** If you want to add new configuration endpoints.
 
+#### `questions.js` - Questions Library Routes
+
+| Endpoint | What it does |
+|----------|--------------|
+| `GET /api/questions` | Lists questions with optional category filter |
+| `GET /api/questions/:id` | Gets a single question (gated for premium) |
+
+**When to edit:** If you want to change how questions work, add new categories, or modify premium gating.
+
+#### `stripe.js` - Stripe Subscription Routes
+
+| Endpoint | What it does |
+|----------|--------------|
+| `POST /api/stripe/create-checkout-session` | Creates Stripe checkout session for subscription |
+| `GET /api/stripe/subscription` | Gets current user's subscription status |
+| `POST /api/stripe/create-portal-session` | Creates Stripe customer portal session |
+| `POST /api/stripe/verify-session` | Verifies checkout session completion (fallback) |
+| `POST /api/stripe/cancel-subscription` | Schedules subscription cancellation at period end |
+| `POST /api/stripe/reactivate-subscription` | Reactivates a cancelled subscription before period ends |
+| `POST /api/stripe/webhook` | Handles Stripe webhook events (subscription lifecycle) |
+
+**When to edit:** If you want to change subscription behavior, add new pricing tiers, modify cancellation flow, or handle new Stripe events.
+
+**Webhook Events Handled:**
+- `checkout.session.completed` - Updates user tier, sends welcome email with invoice
+- `customer.subscription.updated` - Updates tier, handles reactivation
+- `customer.subscription.deleted` - Downgrades to free tier
+- `invoice.payment_succeeded` - Sends monthly invoice emails
+- `invoice.payment_failed` - Sends payment failure notifications
+
 ---
 
 ### `/src/middleware/` - Request Processing
@@ -217,18 +256,49 @@ These files contain the core application logic.
 | Function | What it does |
 |----------|--------------|
 | `createGmailClient()` | Sets up Gmail API with OAuth credentials |
-| `createEmail()` | Formats email for Gmail API |
+| `createEmail()` | Formats email for Gmail API (supports attachments) |
 | `sendEmail()` | Sends an email via Gmail API |
 | `sendVerificationEmail()` | Sends the "verify your email" email |
 | `sendWelcomeEmail()` | Sends the "welcome" email after verification |
+| `sendSubscriptionWelcomeEmail()` | Sends subscription confirmation with PDF invoice |
+| `sendMonthlyInvoiceEmail()` | Sends monthly invoice emails with PDF attachment |
+| `sendCancellationEmail()` | Sends subscription cancellation confirmation |
+| `sendPaymentFailedEmail()` | Sends payment failure notification |
 
 **When to edit:** If you want to change email templates, add new email types, or modify email sending logic.
+
+**Email Features:**
+- Multi-part MIME (HTML + plain text)
+- PDF invoice attachments
+- Kiwi-themed messaging ("Kia ora", "Sweet as, mate")
+- Professional HTML templates with inline styling
 
 #### `gmail-setup.js` - Gmail OAuth Setup Script
 
 Run this to get your Gmail refresh token. Not used during normal operation.
 
 **When to edit:** Rarely. Only if Google changes their OAuth flow.
+
+#### `invoiceGenerator.js` - PDF Invoice Generation
+
+| Function | What it does |
+|----------|--------------|
+| `generateInvoiceNumber()` | Creates unique invoice numbers (INV-YYYYMM-XXXX format) |
+| `formatCurrency()` | Formats numbers as NZD currency |
+| `calculateGST()` | Calculates 15% GST for New Zealand |
+| `generateInvoicePDF()` | Generates complete invoice PDF using PDFKit |
+
+**When to edit:** If you want to change invoice layout, add company branding, modify GST calculation, or change invoice numbering.
+
+**Invoice Features:**
+- Professional layout with company branding
+- Customer and company details sections
+- Line items with descriptions and amounts
+- GST calculation (15% for NZ)
+- Subtotal and total with GST breakdown
+- Invoice numbering system
+- "PAID" status indicator
+- PDF generation using PDFKit
 
 #### `userStorage.js` - User Data Management
 
@@ -241,6 +311,12 @@ Run this to get your Gmail refresh token. Not used during normal operation.
 | `markEmailVerified()` | Sets emailVerified to true |
 | `addCustomPrompt()` / `updateCustomPrompt()` / `deleteCustomPrompt()` | Manages custom prompts |
 | `saveLibraryPrompt()` / `removeSavedPrompt()` | Manages saved prompts |
+| `updateUserTier()` | Updates user's subscription tier |
+| `updateStripeCustomer()` | Stores Stripe customer ID and subscription details |
+| `cancelSubscription()` | Marks subscription as cancelled with end date |
+| `reactivateSubscription()` | Removes cancellation flags |
+| `getProfile()` / `updateProfile()` | Manages user profile sections |
+| `getProfileStatus()` | Calculates profile completion status |
 
 **When to edit:** If you want to add new user fields, change how users are stored, or modify user-related features.
 
@@ -336,10 +412,10 @@ Next.js uses file-based routing. Each folder = a URL path.
 | `dashboard/page.tsx` | `/dashboard` | Prompt library with search |
 | `dashboard/questions/page.tsx` | `/dashboard/questions` | Curated questions library |
 | `dashboard/saved/page.tsx` | `/dashboard/saved` | Saved and custom prompts |
-| `dashboard/upgrade/page.tsx` | `/dashboard/upgrade` | Pricing/upgrade page |
+| `dashboard/upgrade/page.tsx` | `/dashboard/upgrade` | Pricing/upgrade page with Stripe integration |
+| `dashboard/upgrade/success/page.tsx` | `/dashboard/upgrade/success` | Subscription success confirmation |
 | `dashboard/builder/page.tsx` | `/dashboard/builder` | Prompt builder (coming soon) |
 | `dashboard/team/page.tsx` | `/dashboard/team` | Team features (coming soon) |
-| `dashboard/settings/page.tsx` | `/dashboard/settings` | Account settings |
 
 ---
 
@@ -435,6 +511,19 @@ Alpine-themed parallax background with layered mountains.
 
 **When to edit:** To change mountain layer colors, parallax speed, or add/remove layers.
 
+#### `CancelSubscriptionModal.tsx` - Subscription Cancellation
+
+Modal for handling subscription cancellations.
+
+**Key features:**
+- Confirmation dialog for cancellation
+- Shows when access will end (end of billing period)
+- Integrates with Stripe cancellation API
+- Handles cancellation feedback
+- Provides option to keep subscription
+
+**When to edit:** To change cancellation messaging, add retention offers, or modify cancellation flow.
+
 ---
 
 ### `/src/contexts/AuthContext.tsx` - Authentication State
@@ -462,7 +551,10 @@ All API calls go through this file.
 - Generic `request()` method for API calls
 - Auth methods: `signup()`, `login()`, `logout()`, `getMe()`, `verifyEmail()`, `resendVerification()`
 - Library methods: `getIndustries()`, `getFilters()`, `searchPrompts()`, `getPrompt()`
+- Questions methods: `getQuestions()`, `getQuestion()`
 - User methods: `getUserPrompts()`, `createUserPrompt()`, `updateUserPrompt()`, `deleteUserPrompt()`, `getSavedPrompts()`, `savePrompt()`, `removeSavedPrompt()`
+- Profile methods: `getProfile()`, `getProfileStatus()`, `updateProfile()`
+- Stripe methods: `createCheckoutSession()`, `getSubscription()`, `createPortalSession()`, `verifySession()`, `cancelSubscription()`, `reactivateSubscription()`
 - Config methods: `getPricing()`
 
 **When to edit:** When adding new API endpoints or changing how API calls are made.
@@ -550,7 +642,23 @@ One file per user (named by UUID). Created automatically on signup.
   "createdAt": "2024-01-01T00:00:00.000Z",
   "updatedAt": "2024-01-01T00:00:00.000Z",
   "customPrompts": [],
-  "savedPrompts": []
+  "savedPrompts": [],
+  "stripeCustomerId": "cus_xxx",
+  "stripeSubscriptionId": "sub_xxx",
+  "subscriptionStartDate": "2024-01-01T00:00:00.000Z",
+  "subscriptionCancelledAt": "2024-01-31T00:00:00.000Z",
+  "subscriptionEndsAt": "2024-02-01T00:00:00.000Z",
+  "profile": {
+    "completed": false,
+    "completedAt": null,
+    "sectionsCompleted": [],
+    "role": {},
+    "communication": {},
+    "writingStyle": {},
+    "workingStyle": {},
+    "formatting": {},
+    "personal": {}
+  }
 }
 ```
 
@@ -575,15 +683,24 @@ One file per user (named by UUID). Created automatically on signup.
       "id": "professional",
       "name": "Professional",
       "monthlyPrice": 29,
-      "originalPrice": 39,           // For showing discount
+      "stripePriceId": "price_xxx",  // Stripe price ID for checkout
+      "originalPrice": 39,
       "discount": {
         "percentage": 25,
         "validUntil": "2025-03-31",
         "label": "Launch Special"
       },
       "features": ["Feature 1", "Feature 2"],
-      "highlighted": true,           // Shows "Most Popular" styling
+      "highlighted": true,
       "badge": "Most Popular"
+    },
+    {
+      "id": "enterprise",
+      "name": "Enterprise",
+      "monthlyPrice": 99,
+      "stripePriceId": "price_yyy",
+      "features": ["Feature 1", "Feature 2", "API Access", "SSO"],
+      "badge": "For Teams"
     }
   ],
   "annualDiscount": 20,
@@ -592,7 +709,7 @@ One file per user (named by UUID). Created automatically on signup.
 }
 ```
 
-**When to edit:** To change prices, features, or add/remove tiers.
+**When to edit:** To change prices, features, add/remove tiers, or update Stripe price IDs.
 
 ---
 
@@ -638,14 +755,14 @@ One file per user (named by UUID). Created automatically on signup.
 2. Find the `navigation` array near the top (around line 25)
 3. Current navigation items:
    - Prompt Library
-   - **Questions** (new feature)
+   - Questions Library
    - My Saved Prompts
-   - Upgrade
+   - Upgrade (shows subscription status when user is subscribed)
    - Prompt Builder (coming soon)
    - Team Features (coming soon)
-   - Settings
 4. Add/remove/modify navigation items
 5. Each item has: `name`, `href`, `icon`, and optional `comingSoon`
+6. Upgrade section dynamically shows subscription status and manage subscription button
 
 ### Changing Email Templates
 
@@ -671,6 +788,36 @@ One file per user (named by UUID). Created automatically on signup.
 1. Create new folder in `frontend/src/app/` (folder name = URL path)
 2. Create `page.tsx` inside with your component
 3. If it needs auth, put it under `dashboard/` to use the dashboard layout
+
+### Managing Stripe Subscriptions
+
+#### Setting Up Stripe Integration
+1. Create products and prices in Stripe dashboard
+2. Copy price IDs to `backend/config/pricing.json` (stripePriceId field)
+3. Set up webhook endpoint in Stripe dashboard: `https://your-backend.railway.app/api/stripe/webhook`
+4. Add webhook signing secret to `.env` as `STRIPE_WEBHOOK_SECRET`
+5. Configure required environment variables:
+   - `STRIPE_SECRET_KEY` - Your Stripe secret key
+   - `STRIPE_WEBHOOK_SECRET` - Webhook signing secret
+   - `STRIPE_MODE` - `test` or `live`
+
+#### Testing Subscriptions Locally
+1. Use Stripe CLI to forward webhooks: `stripe listen --forward-to localhost:3001/api/stripe/webhook`
+2. Use test cards from Stripe documentation
+3. Verify webhook events are received in terminal
+4. Check email service sends invoices correctly
+
+#### Adding a New Pricing Tier
+1. Create product and price in Stripe dashboard
+2. Add tier to `backend/config/pricing.json` with stripePriceId
+3. Update frontend upgrade page to display new tier
+4. Update premium gating logic if needed
+
+#### Changing Invoice Design
+1. Open `backend/src/services/invoiceGenerator.js`
+2. Modify PDF layout in `generateInvoicePDF()` function
+3. Test by triggering a subscription or using the function directly
+4. PDFs are automatically attached to subscription emails
 
 ---
 
@@ -741,6 +888,37 @@ One file per user (named by UUID). Created automatically on signup.
 **To temporarily disable for testing:**
 Comment out rate limiters in `backend/src/routes/auth.js`
 
+### Stripe/Payment Issues
+
+**Files to check:**
+- `backend/src/routes/stripe.js` - Stripe integration logic
+- `backend/config/pricing.json` - Price IDs and tier configuration
+- `backend/.env` - Stripe API keys and webhook secret
+
+**Common issues:**
+- Webhook signature verification fails → Check STRIPE_WEBHOOK_SECRET matches Stripe dashboard
+- Checkout session not creating → Verify stripePriceId in pricing.json matches Stripe dashboard
+- User tier not updating → Check webhook events in Stripe dashboard, verify Railway logs
+- Invoice not generating → Check PDFKit installation, verify generateInvoicePDF() function
+- Emails not sending invoices → Check Gmail API credentials, verify attachment encoding
+
+**Testing webhooks:**
+- Use Stripe CLI: `stripe listen --forward-to localhost:3001/api/stripe/webhook`
+- Check Railway logs for webhook events in production
+- Verify webhook endpoint in Stripe dashboard is correct
+
+### Invoice Generation Issues
+
+**Files to check:**
+- `backend/src/services/invoiceGenerator.js` - PDF generation
+- `backend/src/services/email.js` - Email with attachments
+
+**Common issues:**
+- PDF not generating → Check PDFKit dependency installed
+- Invoice formatting wrong → Modify generateInvoicePDF() layout
+- GST calculation incorrect → Verify calculateGST() returns 15%
+- Invoice number collision → Check generateInvoiceNumber() logic
+
 ---
 
 ## Environment Variables Reference
@@ -759,6 +937,9 @@ Comment out rate limiters in `backend/src/routes/auth.js`
 | `EMAIL_FROM` | Sender email address | `promptstackhello@gmail.com` |
 | `FRONTEND_URL` | Frontend URL for email links | `http://localhost:3000` |
 | `CORS_ORIGIN` | Allowed frontend origin | `http://localhost:3000` |
+| `STRIPE_SECRET_KEY` | Stripe API secret key | `sk_test_...` or `sk_live_...` |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret | `whsec_...` |
+| `STRIPE_MODE` | Stripe mode (test or live) | `test` or `live` |
 
 ### Frontend (.env.local)
 
@@ -782,43 +963,354 @@ Before making changes, use this checklist:
 
 ---
 
+## Stripe Integration Guide
+
+### Overview
+
+PromptStack uses Stripe for subscription management, payment processing, and invoice generation. The integration handles the complete subscription lifecycle from checkout to cancellation.
+
+### Architecture
+
+```
+User clicks "Subscribe"
+    → Frontend calls createCheckoutSession()
+    → Backend creates Stripe checkout session with price ID
+    → User redirected to Stripe-hosted checkout
+    → User completes payment
+    → Stripe sends webhook to /api/stripe/webhook
+    → Webhook handler updates user tier in database
+    → Welcome email sent with PDF invoice
+    → User redirected to success page
+```
+
+### Key Components
+
+#### 1. Checkout Flow
+- **Frontend**: `frontend/src/app/dashboard/upgrade/page.tsx`
+  - Displays pricing tiers from `pricing.json`
+  - "Subscribe" button calls `api.createCheckoutSession(tierId)`
+  - Redirects to Stripe-hosted checkout page
+
+- **Backend**: `backend/src/routes/stripe.js` → `POST /api/stripe/create-checkout-session`
+  - Validates user authentication
+  - Retrieves price ID from `pricing.json`
+  - Creates Stripe checkout session with:
+    - `mode: 'subscription'`
+    - `success_url` and `cancel_url`
+    - Customer email pre-filled
+    - Metadata: userId, tier
+  - Returns session URL for redirect
+
+#### 2. Webhook Processing
+- **Endpoint**: `POST /api/stripe/webhook`
+- **Security**: Verifies webhook signature using `STRIPE_WEBHOOK_SECRET`
+- **Events Handled**:
+
+  | Event | Action |
+  |-------|--------|
+  | `checkout.session.completed` | Create/update Stripe customer, update user tier, send welcome email with invoice |
+  | `customer.subscription.updated` | Update user tier, handle reactivation |
+  | `customer.subscription.deleted` | Downgrade to free tier, remove subscription data |
+  | `invoice.payment_succeeded` | Send monthly invoice email with PDF |
+  | `invoice.payment_failed` | Send payment failure notification |
+
+#### 3. Invoice Generation
+- **Service**: `backend/src/services/invoiceGenerator.js`
+- **Function**: `generateInvoicePDF(invoiceData)`
+- **Features**:
+  - Professional PDF layout using PDFKit
+  - Company branding and logo space
+  - Customer details section
+  - Line items with descriptions
+  - GST calculation (15% for NZ)
+  - Subtotal, GST, and total breakdown
+  - Invoice number format: `INV-YYYYMM-XXXX`
+  - "PAID" status indicator
+
+- **Integration**:
+  - Called during subscription events
+  - PDF buffer attached to emails
+  - Base64 encoded for Gmail API
+
+#### 4. Subscription Management
+- **View Status**: `GET /api/stripe/subscription`
+  - Returns current subscription details
+  - Shows cancellation status and end date
+  - Includes Stripe customer ID
+
+- **Cancel**: `POST /api/stripe/cancel-subscription`
+  - Schedules cancellation at period end
+  - User keeps access until `subscriptionEndsAt`
+  - Updates user record with `subscriptionCancelledAt`
+  - Sends cancellation confirmation email
+
+- **Reactivate**: `POST /api/stripe/reactivate-subscription`
+  - Removes cancellation schedule
+  - Restores subscription to active
+  - Clears `subscriptionCancelledAt` and `subscriptionEndsAt`
+
+- **Customer Portal**: `POST /api/stripe/create-portal-session`
+  - Creates Stripe customer portal session
+  - Redirects to Stripe-hosted portal
+  - Users can manage payment methods, view invoices
+
+#### 5. Email Integration
+- **Service**: `backend/src/services/email.js`
+- **Subscription Emails**:
+
+  | Function | When Sent | Includes |
+  |----------|-----------|----------|
+  | `sendSubscriptionWelcomeEmail()` | First subscription | PDF invoice, welcome message |
+  | `sendMonthlyInvoiceEmail()` | Monthly billing | PDF invoice, payment confirmation |
+  | `sendCancellationEmail()` | User cancels | Cancellation confirmation, end date |
+  | `sendPaymentFailedEmail()` | Payment fails | Failure notification, action required |
+
+- **Email Features**:
+  - Multi-part MIME (HTML + plain text)
+  - PDF invoice attachments (base64 encoded)
+  - Kiwi-themed messaging
+  - Professional HTML templates
+
+### Configuration
+
+#### Environment Variables
+```bash
+# Backend .env
+STRIPE_SECRET_KEY=sk_test_...  # or sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_MODE=test  # or live
+```
+
+#### Pricing Configuration
+**File**: `backend/config/pricing.json`
+
+```json
+{
+  "tiers": [
+    {
+      "id": "professional",
+      "stripePriceId": "price_xxx",  // From Stripe dashboard
+      "monthlyPrice": 29,
+      // ... other fields
+    }
+  ]
+}
+```
+
+### Setup Instructions
+
+#### 1. Stripe Dashboard Setup
+1. Create products in Stripe dashboard:
+   - Professional ($29 NZD/month)
+   - Enterprise ($99 NZD/month)
+2. Create recurring prices for each product
+3. Copy price IDs (e.g., `price_1234abcd`)
+4. Add price IDs to `backend/config/pricing.json`
+
+#### 2. Webhook Configuration
+1. Go to Stripe Dashboard → Developers → Webhooks
+2. Add endpoint: `https://your-backend.railway.app/api/stripe/webhook`
+3. Select events to listen to:
+   - `checkout.session.completed`
+   - `customer.subscription.updated`
+   - `customer.subscription.deleted`
+   - `invoice.payment_succeeded`
+   - `invoice.payment_failed`
+4. Copy webhook signing secret
+5. Add to `.env` as `STRIPE_WEBHOOK_SECRET`
+
+#### 3. Testing Locally
+1. Install Stripe CLI: `brew install stripe/stripe-cli/stripe`
+2. Login: `stripe login`
+3. Forward webhooks: `stripe listen --forward-to localhost:3001/api/stripe/webhook`
+4. Use test cards from [Stripe Testing](https://stripe.com/docs/testing)
+   - Success: `4242 4242 4242 4242`
+   - Decline: `4000 0000 0000 0002`
+5. Monitor webhook events in terminal
+
+#### 4. Going Live
+1. Switch Stripe API keys to live mode
+2. Update `STRIPE_SECRET_KEY` with `sk_live_...`
+3. Update `STRIPE_MODE=live` in `.env`
+4. Verify webhook endpoint in production
+5. Test with real payment (small amount)
+6. Set up Stripe Radar for fraud prevention
+
+### Sandbox Mode
+
+The codebase supports Stripe sandbox mode for testing:
+- Set `STRIPE_MODE=test` in `.env`
+- Use test API keys (`sk_test_...`)
+- Use test price IDs
+- All webhooks work in test mode
+- No real charges are made
+
+### Common Issues
+
+#### Webhook Not Receiving Events
+- Verify webhook endpoint URL is correct
+- Check `STRIPE_WEBHOOK_SECRET` matches dashboard
+- Ensure Railway app is deployed and running
+- Check Stripe dashboard webhook logs for errors
+
+#### User Tier Not Updating
+- Verify webhook events are being received (check logs)
+- Confirm `userId` is in checkout session metadata
+- Check user exists in database
+- Verify `updateUserTier()` function is working
+
+#### Invoice Not Generating
+- Ensure PDFKit is installed: `npm install pdfkit`
+- Check `generateInvoicePDF()` function for errors
+- Verify invoice data structure is correct
+- Test PDF generation in isolation
+
+#### Email Not Sending Invoice
+- Verify Gmail API credentials are correct
+- Check PDF is being generated successfully
+- Ensure base64 encoding is correct
+- Test email without attachment first
+
+### Advanced Features
+
+#### Proration
+Stripe automatically handles proration when:
+- User upgrades mid-cycle (prorated credit)
+- User downgrades mid-cycle (prorated refund)
+
+#### Trial Periods
+Can be configured in Stripe checkout session:
+```javascript
+subscription_data: {
+  trial_period_days: 14
+}
+```
+
+#### Coupons and Discounts
+Apply in pricing.json and checkout session:
+```javascript
+discounts: [{
+  coupon: 'LAUNCH25'
+}]
+```
+
+### Security Considerations
+
+1. **Webhook Signature Verification**: Always verify webhook signatures
+2. **Price Validation**: Validate price IDs against pricing.json
+3. **Idempotency**: Stripe webhooks may send duplicates, handle gracefully
+4. **Error Handling**: Log all errors but don't expose details to users
+5. **Access Control**: Verify user owns subscription before allowing changes
+
+### Monitoring
+
+#### Key Metrics to Track
+- Successful checkout conversions
+- Failed payment attempts
+- Cancellation rate and reasons
+- Average subscription lifetime
+- Monthly recurring revenue (MRR)
+
+#### Stripe Dashboard
+- Monitor webhook delivery success rate
+- Review failed payments
+- Check subscription status
+- Export customer data
+
+#### Application Logs
+- Log all webhook events (Railway logs)
+- Track subscription state changes
+- Monitor email delivery
+- Alert on invoice generation failures
+
 ---
 
-## Recent Major Changes (December 2024)
+## Recent Major Changes (January 2025)
 
-### Design System Overhaul
-- **New Color Scheme**: Replaced cosmic/galaxy theme with Winter Ice / Alpine Minimal palette
-  - Primary: Snow, frost, ice backgrounds → alpine navy anchors
-  - Accent: Arctic teal for CTAs
-  - Nebula: Periwinkle for restrained accents
-  - See `tailwind.config.js` lines 10-62
+### Stripe Payment Integration (MAJOR UPDATE)
+- **Full subscription management system** with 3 pricing tiers (Free, Professional $29 NZD, Enterprise $99 NZD)
+- **Stripe checkout integration** - Seamless subscription flow with `createCheckoutSession()`
+- **Webhook event handling** - Automated tier updates via 5 webhook events:
+  - `checkout.session.completed` - Initial subscription activation
+  - `customer.subscription.updated` - Tier changes and reactivations
+  - `customer.subscription.deleted` - Automatic downgrade to free
+  - `invoice.payment_succeeded` - Monthly invoice emails
+  - `invoice.payment_failed` - Payment failure notifications
+- **Subscription lifecycle management**:
+  - Scheduled cancellation (access until period end)
+  - Reactivation support before period ends
+  - Stripe customer portal integration for self-service management
+- **PDF invoice generation** using PDFKit:
+  - Professional invoice layout with company branding
+  - GST calculation (15% for NZ)
+  - Invoice numbering system (INV-YYYYMM-XXXX)
+  - Automatic email delivery with PDF attachments
+- **Enhanced email system**:
+  - Subscription welcome emails with first invoice
+  - Monthly invoice emails with PDF attachments
+  - Cancellation confirmations
+  - Payment failure notifications
+  - Kiwi-themed messaging throughout
+- **New components**:
+  - `CancelSubscriptionModal` - Graceful cancellation flow
+  - Subscription success page (`/dashboard/upgrade/success`)
+  - Dynamic subscription status in sidebar
+- **Files added**:
+  - `backend/src/routes/stripe.js` (1084 lines) - Complete Stripe integration
+  - `backend/src/services/invoiceGenerator.js` - PDF invoice generation
+- **User model extended** with Stripe fields:
+  - `stripeCustomerId`, `stripeSubscriptionId`
+  - `subscriptionStartDate`, `subscriptionCancelledAt`, `subscriptionEndsAt`
 
-### Landing Page Redesign
-- **Continuous Scrolling**: Removed snap-scroll behavior for fluid experience
-- **MountainParallax Component**: Alpine-themed parallax background
-- **Glassmorphism**: New `.glass-card` and `.glass-card-dark` styles
-- Quote section converted from full-screen to card-style container
-- All sections flow seamlessly without hard visual breaks
+### Email System Enhancements
+- **Multi-part MIME support** - HTML + plain text versions
+- **PDF attachment support** - Base64 encoding for Gmail API
+- **4 new email types**:
+  - `sendSubscriptionWelcomeEmail()` - Welcome with first invoice
+  - `sendMonthlyInvoiceEmail()` - Recurring invoice delivery
+  - `sendCancellationEmail()` - Subscription cancellation confirmation
+  - `sendPaymentFailedEmail()` - Payment failure alerts
+- **Professional templates** with inline CSS styling
+- **Kiwi branding** - "Kia ora", "Sweet as, mate" messaging
 
-### Profile Personalisation System
+### Profile Personalisation System (Previously Added)
 - Users can complete multi-section profile (role, communication, writing style, working style, formatting, personal)
 - Prompts with `contextTags` automatically inject relevant profile context when copied
 - Profile completion percentage tracking
 - `ProfileReminder` component encourages completion
-- See `types/index.ts` lines 103-176 for profile types
+- See `types/index.ts` for profile types
 
-### Questions Library
+### Questions Library (Previously Added)
 - New `/dashboard/questions` page for curated question library
-- Similar structure to prompts but optimized for questions
+- 5 categories: Deepen Understanding, Challenge & Improve, Expand Thinking, Quality Check, Make It Practical
 - Category-based filtering
 - Free/premium gating
+- Helps users get better outputs from AI tools
+
+### Design System Overhaul (Previously Added)
+- **New Color Scheme**: Winter Ice / Alpine Minimal palette
+  - Primary: Snow, frost, ice backgrounds → alpine navy anchors
+  - Accent: Arctic teal for CTAs
+  - Nebula: Periwinkle for restrained accents
+- **MountainParallax Component**: Alpine-themed parallax background
+- **Glassmorphism**: New `.glass-card` and `.glass-card-dark` styles
+- Continuous scrolling landing page
 
 ### Technical Improvements
 - Click-based sorting in prompt library (localStorage tracking)
 - Combined library + custom prompts with unified search
 - Request ID tracking to prevent stale API responses
 - Profile context injection via `buildContextString()` helper
+- Sandbox mode support for Stripe testing
+- Comprehensive error handling for payment flows
+- Webhook signature verification for security
+
+### Infrastructure Updates
+- Railway deployment with webhook endpoint support
+- Stripe webhook endpoint: `/api/stripe/webhook`
+- PDFKit dependency for invoice generation
+- Enhanced user storage with subscription data persistence
 
 ---
 
-*Last updated: December 2024*
+*Last updated: January 2025*

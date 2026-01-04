@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import type { PricingConfig, PricingTier } from '@/types';
+import CancelSubscriptionModal from '@/components/CancelSubscriptionModal';
 import {
   Check,
   X,
@@ -15,33 +16,81 @@ import {
   AlertCircle,
   CreditCard,
   Settings,
+  Calendar,
+  RefreshCw,
+  XCircle,
 } from 'lucide-react';
 
+interface SubscriptionInfo {
+  hasSubscription: boolean;
+  tier: string;
+  subscription?: {
+    id: string;
+    status: string;
+    currentPeriodEnd: string;
+    cancelAtPeriodEnd: boolean;
+  };
+}
+
 export default function UpgradePage() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const searchParams = useSearchParams();
   const [pricing, setPricing] = useState<PricingConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [subscriptionInfo, setSubscriptionInfo] = useState<SubscriptionInfo | null>(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [reactivating, setReactivating] = useState(false);
 
   // Check for cancelled checkout
   const cancelled = searchParams.get('cancelled');
 
+  const loadSubscriptionInfo = useCallback(async () => {
+    try {
+      const info = await api.getSubscription();
+      setSubscriptionInfo(info);
+    } catch (err) {
+      console.error('Failed to load subscription info:', err);
+    }
+  }, []);
+
   useEffect(() => {
-    const loadPricing = async () => {
+    const loadData = async () => {
       try {
-        const data = await api.getPricing();
-        setPricing(data);
+        const [pricingData] = await Promise.all([
+          api.getPricing(),
+          loadSubscriptionInfo(),
+        ]);
+        setPricing(pricingData);
       } catch (err) {
-        console.error('Failed to load pricing:', err);
+        console.error('Failed to load data:', err);
       } finally {
         setLoading(false);
       }
     };
-    loadPricing();
-  }, []);
+    loadData();
+  }, [loadSubscriptionInfo]);
+
+  const handleReactivate = async () => {
+    setReactivating(true);
+    setError(null);
+
+    try {
+      await api.reactivateSubscription();
+      await loadSubscriptionInfo();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reactivate subscription');
+    } finally {
+      setReactivating(false);
+    }
+  };
+
+  const handleCancelled = async (endsAt: string) => {
+    await loadSubscriptionInfo();
+    await refreshUser();
+  };
 
   const handleSelectTier = async (tierId: string) => {
     if (tierId === 'free') return;
@@ -131,6 +180,45 @@ export default function UpgradePage() {
       {/* Subscription management for existing subscribers */}
       {hasPaidSubscription && (
         <div className="mb-8 p-6 bg-gradient-to-r from-primary-50 to-purple-50 border border-primary-200 rounded-xl">
+          {/* Cancellation pending notice */}
+          {subscriptionInfo?.subscription?.cancelAtPeriodEnd && (
+            <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
+              <XCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-amber-800 font-medium">Cancellation Scheduled</p>
+                <p className="text-amber-700 text-sm mt-1">
+                  Your subscription will end on{' '}
+                  <strong>
+                    {new Date(subscriptionInfo.subscription.currentPeriodEnd).toLocaleDateString('en-NZ', {
+                      weekday: 'long',
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                  </strong>
+                  . You'll retain access to premium features until then.
+                </p>
+              </div>
+              <button
+                onClick={handleReactivate}
+                disabled={reactivating}
+                className="btn-primary text-sm flex items-center gap-2"
+              >
+                {reactivating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Reactivating...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4" />
+                    Keep Subscription
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
@@ -139,21 +227,51 @@ export default function UpgradePage() {
               <div>
                 <h3 className="font-semibold text-gray-900">Your Subscription</h3>
                 <p className="text-gray-600 text-sm">
-                  Manage billing, update payment method, or cancel subscription
+                  {subscriptionInfo?.subscription?.cancelAtPeriodEnd
+                    ? 'Your subscription is scheduled for cancellation'
+                    : 'Manage billing, update payment method, or cancel subscription'}
                 </p>
+                {subscriptionInfo?.subscription && !subscriptionInfo.subscription.cancelAtPeriodEnd && (
+                  <p className="text-gray-500 text-xs mt-1 flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    Next billing:{' '}
+                    {new Date(subscriptionInfo.subscription.currentPeriodEnd).toLocaleDateString('en-NZ', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                  </p>
+                )}
               </div>
             </div>
-            <button
-              onClick={handleManageSubscription}
-              className="btn-secondary flex items-center gap-2"
-            >
-              <Settings className="w-4 h-4" />
-              Manage Subscription
-              <ExternalLink className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-3">
+              {!subscriptionInfo?.subscription?.cancelAtPeriodEnd && (
+                <button
+                  onClick={() => setShowCancelModal(true)}
+                  className="text-gray-500 hover:text-red-600 text-sm font-medium transition-colors"
+                >
+                  Cancel Subscription
+                </button>
+              )}
+              <button
+                onClick={handleManageSubscription}
+                className="btn-secondary flex items-center gap-2"
+              >
+                <Settings className="w-4 h-4" />
+                Manage Billing
+                <ExternalLink className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Cancellation modal */}
+      <CancelSubscriptionModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onCancelled={handleCancelled}
+      />
 
       {/* Billing toggle */}
       <div className="flex items-center justify-center gap-4 mb-8">

@@ -1,0 +1,61 @@
+{
+  "id": "99cd5a95-8cff-4bd9-bf86-a314981b12eb",
+  "email": "bsquaredgroups@gmail.com",
+  "name": "Jake Kelsey",
+  "passwordHash": "$2b$12$gYUPoAf65tSu0XpHXsnLi.4HIvgW5u0Fz0Xrookb8vl/R41U99lMa",
+  "emailVerified": true,
+  "tier": "professional",
+  "createdAt": "2026-01-03T22:16:42.498Z",
+  "updatedAt": "2026-01-03T22:18:01.189Z",
+  "customPrompts": [],
+  "savedPrompts": [],
+  "profile": {
+    "completed": false,
+    "completedAt": null,
+    "sectionsCompleted": [],
+    "role": {
+      "title": "",
+      "company": "",
+      "companyDescription": "",
+      "industry": "",
+      "customIndustry": "",
+      "primaryResponsibilities": "",
+      "timeAllocation": "",
+      "keyStakeholders": ""
+    },
+    "communication": {
+      "phrasesToAvoid": "",
+      "formalityLevel": "",
+      "tonePreference": "",
+      "petPeeves": ""
+    },
+    "writingStyle": {
+      "emailStyle": "",
+      "reportStyle": "",
+      "generalNotes": ""
+    },
+    "workingStyle": {
+      "informationPreference": [],
+      "informationPreferenceNotes": "",
+      "analysisDepth": "",
+      "decisionMakingStyle": ""
+    },
+    "formatting": {
+      "structurePreference": "",
+      "structurePreferenceNotes": "",
+      "preferTables": "",
+      "preferBullets": "",
+      "preferCharts": "",
+      "specificRequirements": ""
+    },
+    "personal": {
+      "background": "",
+      "frameworks": "",
+      "additionalContext": "",
+      "greatCollaboration": ""
+    }
+  },
+  "stripeCustomerId": "cus_Tj5IWuMTfuJHZ8",
+  "stripeSubscriptionId": "sub_1Sld8wKnuEDIBIGDrzSjhd2y",
+  "subscriptionStartDate": "2026-01-03T22:18:01.189Z"
+}

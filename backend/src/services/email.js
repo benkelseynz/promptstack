@@ -14,10 +14,10 @@ function createGmailClient() {
   return google.gmail({ version: 'v1', auth: oauth2Client });
 }
 
-// Create email in base64 format for Gmail API
+// Create email in base64 format for Gmail API (without attachments)
 function createEmail(to, subject, htmlContent, textContent) {
   const fromEmail = process.env.EMAIL_FROM || 'promptstackhello@gmail.com';
-  
+
   const messageParts = [
     `From: PromptStack <${fromEmail}>`,
     `To: ${to}`,
@@ -42,6 +42,55 @@ function createEmail(to, subject, htmlContent, textContent) {
   return Buffer.from(message).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
+// Create email with attachments in base64 format for Gmail API
+function createEmailWithAttachments(to, subject, htmlContent, textContent, attachments = []) {
+  const fromEmail = process.env.EMAIL_FROM || 'promptstackhello@gmail.com';
+  const mainBoundary = 'main_boundary_' + Date.now();
+  const altBoundary = 'alt_boundary_' + Date.now();
+
+  let messageParts = [
+    `From: PromptStack <${fromEmail}>`,
+    `To: ${to}`,
+    `Subject: ${subject}`,
+    'MIME-Version: 1.0',
+    `Content-Type: multipart/mixed; boundary="${mainBoundary}"`,
+    '',
+    `--${mainBoundary}`,
+    `Content-Type: multipart/alternative; boundary="${altBoundary}"`,
+    '',
+    `--${altBoundary}`,
+    'Content-Type: text/plain; charset="UTF-8"',
+    '',
+    textContent || '',
+    '',
+    `--${altBoundary}`,
+    'Content-Type: text/html; charset="UTF-8"',
+    '',
+    htmlContent,
+    '',
+    `--${altBoundary}--`,
+  ];
+
+  // Add attachments
+  for (const attachment of attachments) {
+    const base64Content = attachment.content.toString('base64');
+    messageParts.push(
+      '',
+      `--${mainBoundary}`,
+      `Content-Type: ${attachment.mimeType}; name="${attachment.filename}"`,
+      'Content-Transfer-Encoding: base64',
+      `Content-Disposition: attachment; filename="${attachment.filename}"`,
+      '',
+      base64Content
+    );
+  }
+
+  messageParts.push('', `--${mainBoundary}--`);
+
+  const message = messageParts.join('\r\n');
+  return Buffer.from(message).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
 // Send email using Gmail API
 async function sendEmail(to, subject, htmlContent, textContent) {
   try {
@@ -58,6 +107,26 @@ async function sendEmail(to, subject, htmlContent, textContent) {
     return { success: true };
   } catch (error) {
     console.error('Gmail API send error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Send email with attachments using Gmail API
+async function sendEmailWithAttachments(to, subject, htmlContent, textContent, attachments) {
+  try {
+    const gmail = createGmailClient();
+    const encodedMessage = createEmailWithAttachments(to, subject, htmlContent, textContent, attachments);
+
+    await gmail.users.messages.send({
+      userId: 'me',
+      requestBody: {
+        raw: encodedMessage
+      }
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Gmail API send error with attachments:', error);
     return { success: false, error: error.message };
   }
 }
@@ -188,6 +257,8 @@ PromptStack - Built by Kiwis, for Kiwis
 }
 
 module.exports = {
+  sendEmail,
+  sendEmailWithAttachments,
   sendVerificationEmail,
   sendWelcomeEmail
 };

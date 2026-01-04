@@ -303,6 +303,25 @@ class ApiClient {
       }
     );
   }
+
+  async cancelSubscription(reason: string, feedback?: string) {
+    return this.request<{ success: boolean; message: string; endsAt: string }>(
+      '/api/stripe/cancel-subscription',
+      {
+        method: 'POST',
+        body: JSON.stringify({ reason, feedback }),
+      }
+    );
+  }
+
+  async reactivateSubscription() {
+    return this.request<{ success: boolean; message: string }>(
+      '/api/stripe/reactivate-subscription',
+      {
+        method: 'POST',
+      }
+    );
+  }
 }
 
 export const api = new ApiClient();

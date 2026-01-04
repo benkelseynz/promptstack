@@ -114,35 +114,39 @@ async function buildSearchIndex() {
 }
 
 // Initialise the search index
-async function initSearchIndex() {
-  console.log('Building search index...');
+async function initSearchIndex(silent = false) {
+  if (!silent) {
+    console.log('Building search index...');
+  }
   const { prompts, industries } = await buildSearchIndex();
-  
+
   searchIndex = {
     prompts,
     industries,
     lastUpdated: new Date().toISOString()
   };
-  
-  console.log(`Search index built: ${prompts.length} prompts, ${industries.length} industries`);
+
+  if (!silent) {
+    console.log(`Search index built: ${prompts.length} prompts, ${industries.length} industries`);
+  }
   return searchIndex;
 }
 
 // Watch for file changes in dev mode
 function watchForChanges() {
   const chokidar = require('fs');
-  
+
   const watchPaths = [INDUSTRIES_DIR, path.join(DATA_DIR, 'general.json')];
-  
+
   // Simple polling approach for dev mode
   setInterval(async () => {
     try {
-      await initSearchIndex();
+      await initSearchIndex(true); // Silent refresh - no logs
     } catch (error) {
       console.error('Error refreshing search index:', error);
     }
   }, 30000); // Refresh every 30 seconds in dev
-  
+
   console.log('Watching for prompt library changes (30s interval)');
 }
 
