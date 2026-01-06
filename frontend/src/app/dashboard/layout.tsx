@@ -17,18 +17,22 @@ import {
   AlertCircle,
   Mail,
   HelpCircle,
+  Lock,
+  GitBranch,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useState } from 'react';
 import ProfileReminder from '@/components/ProfileReminder';
+import NotificationBell from '@/components/NotificationBell';
 
 const navigation = [
   { name: 'Prompt Library', href: '/dashboard', icon: Library },
   { name: 'Questions', href: '/dashboard/questions', icon: HelpCircle },
-  { name: 'My Saved Prompts', href: '/dashboard/saved', icon: Bookmark },
+  { name: 'Workflows', href: '/dashboard/workflows', icon: GitBranch, requiresPremium: true },
+  { name: 'Saved', href: '/dashboard/saved', icon: Bookmark },
   { name: 'Upgrade', href: '/dashboard/upgrade', icon: CreditCard },
+  { name: 'Team Features', href: '/dashboard/team', icon: Users, requiresEnterprise: true },
   { name: 'Prompt Builder', href: '/dashboard/builder', icon: Wand2, comingSoon: true },
-  { name: 'Team Features', href: '/dashboard/team', icon: Users, comingSoon: true },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
@@ -94,9 +98,12 @@ export default function DashboardLayout({
 
         <nav className="p-4 space-y-1">
           {navigation.map((item) => {
-            const isActive = pathname === item.href || 
-              (item.href === '/dashboard' && pathname === '/dashboard');
-            
+            const isActive = pathname === item.href ||
+              (item.href === '/dashboard' && pathname === '/dashboard') ||
+              (item.href === '/dashboard/saved' && pathname.startsWith('/dashboard/saved'));
+            const isEnterpriseLocked = item.requiresEnterprise && user?.tier !== 'enterprise';
+            const isPremiumLocked = item.requiresPremium && user?.tier === 'free';
+
             return (
               <Link
                 key={item.name}
@@ -109,6 +116,9 @@ export default function DashboardLayout({
                   <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
                     Soon
                   </span>
+                )}
+                {(isEnterpriseLocked || isPremiumLocked) && (
+                  <Lock className="w-4 h-4 text-amber-500" />
                 )}
               </Link>
             );
@@ -141,6 +151,13 @@ export default function DashboardLayout({
 
       {/* Main content */}
       <main className="flex-1 ml-64">
+        {/* Top bar with notifications */}
+        {user.tier === 'enterprise' && (
+          <div className="bg-white border-b border-gray-200 px-6 py-3 flex justify-end">
+            <NotificationBell currentUserId={user.id} />
+          </div>
+        )}
+
         {/* Email verification banner */}
         {!user.emailVerified && (
           <div className="bg-amber-50 border-b border-amber-200 px-4 py-3">

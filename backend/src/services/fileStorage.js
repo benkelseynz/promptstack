@@ -5,10 +5,12 @@ const crypto = require('crypto');
 const DATA_DIR = path.join(__dirname, '../../data');
 const USERS_DIR = path.join(DATA_DIR, 'users');
 const INDUSTRIES_DIR = path.join(DATA_DIR, 'industries');
+const TEAMS_DIR = path.join(DATA_DIR, 'teams');
+const WORKFLOWS_DIR = path.join(DATA_DIR, 'workflows');
 
 // Ensure directories exist
 async function ensureDirectories() {
-  const dirs = [DATA_DIR, USERS_DIR, INDUSTRIES_DIR];
+  const dirs = [DATA_DIR, USERS_DIR, INDUSTRIES_DIR, TEAMS_DIR, WORKFLOWS_DIR];
   for (const dir of dirs) {
     try {
       await fs.mkdir(dir, { recursive: true });
@@ -30,6 +32,27 @@ function getUserFilePath(userId) {
     throw new Error('Invalid user ID format');
   }
   return path.join(USERS_DIR, `${userId}.json`);
+}
+
+// Get safe file path for team data
+function getTeamFilePath(teamId) {
+  if (!isValidUserId(teamId)) { // Teams also use UUID format
+    throw new Error('Invalid team ID format');
+  }
+  return path.join(TEAMS_DIR, `${teamId}.json`);
+}
+
+// Get path for team codes index
+function getTeamCodesIndexPath() {
+  return path.join(TEAMS_DIR, '_codes.json');
+}
+
+// Get safe file path for workflow data
+function getWorkflowFilePath(workflowId) {
+  if (!isValidUserId(workflowId)) { // Workflows also use UUID format
+    throw new Error('Invalid workflow ID format');
+  }
+  return path.join(WORKFLOWS_DIR, `${workflowId}.json`);
 }
 
 // Atomic write - write to temp file then rename
@@ -104,9 +127,14 @@ module.exports = {
   DATA_DIR,
   USERS_DIR,
   INDUSTRIES_DIR,
+  TEAMS_DIR,
+  WORKFLOWS_DIR,
   ensureDirectories,
   isValidUserId,
   getUserFilePath,
+  getTeamFilePath,
+  getTeamCodesIndexPath,
+  getWorkflowFilePath,
   atomicWrite,
   readJsonFile,
   fileExists,

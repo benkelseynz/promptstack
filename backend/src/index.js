@@ -12,6 +12,8 @@ const userRoutes = require('./routes/user');
 const configRoutes = require('./routes/config');
 const questionsRoutes = require('./routes/questions');
 const stripeRoutes = require('./routes/stripe');
+const teamsRoutes = require('./routes/teams');
+const workflowsRoutes = require('./routes/workflows');
 const { globalRateLimiter } = require('./middleware/rateLimiter');
 const { errorHandler } = require('./middleware/errorHandler');
 const { initSearchIndex, watchForChanges } = require('./services/searchIndex');
@@ -45,6 +47,8 @@ app.use('/api/user', userRoutes);
 app.use('/api/config', configRoutes);
 app.use('/api/questions', questionsRoutes);
 app.use('/api/stripe', stripeRoutes);
+app.use('/api/teams', teamsRoutes);
+app.use('/api/workflows', workflowsRoutes);
 
 // Error handling
 app.use(errorHandler);

@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const path = require('path');
+const fs = require('fs');
 
 const { authenticate, requireVerified } = require('../middleware/auth');
 const {
@@ -12,9 +14,51 @@ const {
   getUserById,
   getUserProfile,
   updateUserProfile,
-  getProfileCompletionStatus
+  getProfileCompletionStatus,
+  // Saved questions
+  saveLibraryQuestion,
+  removeSavedQuestion,
+  getSavedQuestionIds,
+  // Custom questions
+  addCustomQuestion,
+  updateCustomQuestion,
+  deleteCustomQuestion,
+  getUserCustomQuestions
 } = require('../services/userStorage');
 const { getPromptById, applyPremiumGating } = require('../services/searchIndex');
+
+// Load questions data for saved questions functionality
+let questionsData = null;
+function loadQuestionsData() {
+  if (questionsData) return questionsData;
+  const filePath = path.join(__dirname, '../../data/questions/follow-ups.json');
+  const fileContent = fs.readFileSync(filePath, 'utf8');
+  questionsData = JSON.parse(fileContent);
+  return questionsData;
+}
+
+function getQuestionById(questionId) {
+  const data = loadQuestionsData();
+  return data.questions.find(q => q.id === questionId);
+}
+
+function applyQuestionGating(question, userTier) {
+  const isPremium = question.access === 'premium';
+  const hasPremiumAccess = userTier === 'professional' || userTier === 'enterprise';
+  const isLocked = isPremium && !hasPremiumAccess;
+
+  function truncateToWords(text, wordCount) {
+    const words = text.split(/\s+/);
+    if (words.length <= wordCount) return text;
+    return words.slice(0, wordCount).join(' ') + '...';
+  }
+
+  return {
+    ...question,
+    question: isLocked ? truncateToWords(question.question, 3) : question.question,
+    isLocked,
+  };
+}
 const {
   validate,
   createPromptSchema,
@@ -160,6 +204,156 @@ router.delete('/saved/:id', async (req, res, next) => {
     res.json({
       message: 'Prompt removed from saved',
       savedCount: savedPrompts.length
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// =====================
+// Saved Questions Routes
+// =====================
+
+// GET /api/user/saved-questions - List saved library questions
+router.get('/saved-questions', async (req, res, next) => {
+  try {
+    const savedIds = await getSavedQuestionIds(req.user.id);
+    const userTier = req.user?.tier || 'free';
+
+    // Get full question data for saved questions
+    const savedQuestions = savedIds
+      .map(id => getQuestionById(id))
+      .filter(Boolean)
+      .map(question => applyQuestionGating(question, userTier));
+
+    res.json({
+      questions: savedQuestions,
+      total: savedQuestions.length
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/user/saved-questions/:id - Save a library question
+router.post('/saved-questions/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    // Verify question exists
+    const question = getQuestionById(id);
+    if (!question) {
+      throw new AppError('Question not found', 404);
+    }
+
+    const savedQuestions = await saveLibraryQuestion(req.user.id, id);
+
+    res.json({
+      message: 'Question saved successfully',
+      savedCount: savedQuestions.length
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE /api/user/saved-questions/:id - Remove saved library question
+router.delete('/saved-questions/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const savedQuestions = await removeSavedQuestion(req.user.id, id);
+
+    res.json({
+      message: 'Question removed from saved',
+      savedCount: savedQuestions.length
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// =====================
+// Custom Questions Routes
+// =====================
+
+// GET /api/user/questions - List user's custom questions
+router.get('/questions', async (req, res, next) => {
+  try {
+    const questions = await getUserCustomQuestions(req.user.id);
+
+    res.json({
+      questions,
+      total: questions.length
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/user/questions - Create custom question
+router.post('/questions', async (req, res, next) => {
+  try {
+    const { question, context, category, tags } = req.body;
+
+    if (!question || !question.trim()) {
+      throw new AppError('Question text is required', 400);
+    }
+
+    const newQuestion = await addCustomQuestion(req.user.id, {
+      question: question.trim(),
+      context: context?.trim() || '',
+      category: category || 'custom',
+      tags: tags || []
+    });
+
+    if (!newQuestion) {
+      throw new AppError('Failed to create question', 500);
+    }
+
+    res.status(201).json({
+      message: 'Question created successfully',
+      question: newQuestion
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// PUT /api/user/questions/:id - Update custom question
+router.put('/questions/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    const question = await updateCustomQuestion(req.user.id, id, updates);
+
+    if (!question) {
+      throw new AppError('Question not found', 404);
+    }
+
+    res.json({
+      message: 'Question updated successfully',
+      question
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE /api/user/questions/:id - Delete custom question
+router.delete('/questions/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const deleted = await deleteCustomQuestion(req.user.id, id);
+
+    if (!deleted) {
+      throw new AppError('Question not found', 404);
+    }
+
+    res.json({
+      message: 'Question deleted successfully'
     });
   } catch (error) {
     next(error);

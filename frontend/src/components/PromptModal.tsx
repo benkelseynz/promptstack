@@ -20,13 +20,17 @@ import {
   Sparkles,
   ArrowRight,
   User,
+  Users,
+  Pencil,
 } from 'lucide-react';
+import AddToTeamModal from './AddToTeamModal';
 
 interface PromptModalProps {
   prompt: Prompt;
   isSaved: boolean;
   onSave: () => void;
   onClose: () => void;
+  onEdit?: (prompt: Prompt) => void;
 }
 
 export default function PromptModal({
@@ -34,13 +38,17 @@ export default function PromptModal({
   isSaved,
   onSave,
   onClose,
+  onEdit,
 }: PromptModalProps) {
-  const { profileStatus } = useAuth();
+  const { user, profileStatus } = useAuth();
   const [copied, setCopied] = useState(false);
   const [placeholderValues, setPlaceholderValues] = useState<Record<string, string>>({});
   const [populatedContent, setPopulatedContent] = useState('');
   const [profile, setProfile] = useState<import('@/types').UserProfile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
+  const [showAddToTeam, setShowAddToTeam] = useState(false);
+
+  const isEnterprise = user?.tier === 'enterprise';
 
   // Check if this prompt can be personalised
   const isCustomPrompt = (prompt as any).isCustom;
@@ -264,22 +272,47 @@ export default function PromptModal({
 
           {/* Footer */}
           <div className="flex items-center justify-between p-4 border-t bg-gray-50">
-            <button
-              onClick={onSave}
-              className="btn-secondary flex items-center gap-2"
-            >
-              {isSaved ? (
-                <>
-                  <BookmarkCheck className="w-5 h-5 text-primary-600" />
-                  Saved
-                </>
-              ) : (
-                <>
-                  <Bookmark className="w-5 h-5" />
-                  Save Prompt
-                </>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={onSave}
+                className="btn-secondary flex items-center gap-2"
+              >
+                {isSaved ? (
+                  <>
+                    <BookmarkCheck className="w-5 h-5 text-primary-600" />
+                    Saved
+                  </>
+                ) : (
+                  <>
+                    <Bookmark className="w-5 h-5" />
+                    Save Prompt
+                  </>
+                )}
+              </button>
+
+              {/* Add to Team button - only for enterprise users and non-custom prompts */}
+              {isEnterprise && !isCustomPrompt && !prompt.isLocked && (
+                <button
+                  onClick={() => setShowAddToTeam(true)}
+                  className="btn-secondary flex items-center gap-2"
+                >
+                  <Users className="w-5 h-5" />
+                  Add to Team
+                </button>
               )}
-            </button>
+
+              {/* Edit button - only for library prompts, creates a copy as custom */}
+              {onEdit && !isCustomPrompt && !prompt.isLocked && (
+                <button
+                  onClick={() => onEdit(prompt)}
+                  className="btn-secondary flex items-center gap-2"
+                  title="Create a copy as your own custom prompt"
+                >
+                  <Pencil className="w-5 h-5" />
+                  Edit Copy
+                </button>
+              )}
+            </div>
 
             <div className="flex flex-col items-end gap-1">
               {prompt.isLocked ? (
@@ -314,6 +347,15 @@ export default function PromptModal({
           </div>
         </div>
       </div>
+
+      {/* Add to Team Modal */}
+      {isEnterprise && !isCustomPrompt && (
+        <AddToTeamModal
+          isOpen={showAddToTeam}
+          onClose={() => setShowAddToTeam(false)}
+          prompt={prompt}
+        />
+      )}
     </div>
   );
 }

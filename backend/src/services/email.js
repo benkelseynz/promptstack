@@ -256,9 +256,122 @@ PromptStack - Built by Kiwis, for Kiwis
   return sendEmail(email, subject, htmlContent, textContent);
 }
 
+// Send team invitation email
+async function sendTeamInvitationEmail(invitation) {
+  const { email, teamName, teamCode, invitedByName, role } = invitation;
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+  const subject = `${invitedByName} invited you to join ${teamName} on PromptStack`;
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Team Invitation</title>
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #1a365d; margin-bottom: 10px;">PromptStack</h1>
+          <p style="color: #666; font-size: 14px;">Built by Kiwis, for Kiwis</p>
+        </div>
+
+        <div style="background: #f7fafc; border-radius: 8px; padding: 30px; margin-bottom: 20px;">
+          <h2 style="margin-top: 0; color: #2d3748;">Kia ora!</h2>
+          <p><strong>${invitedByName}</strong> has invited you to join their team <strong>${teamName}</strong> on PromptStack as a <strong>${role}</strong>.</p>
+
+          <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0;">
+            <p style="margin: 0 0 10px 0; color: #666; font-size: 14px;">Your team credentials:</p>
+            <p style="margin: 5px 0;"><strong>Team Name:</strong> ${teamName}</p>
+            <p style="margin: 5px 0;"><strong>Team Code:</strong> <code style="background: #edf2f7; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 16px; letter-spacing: 1px;">${teamCode}</code></p>
+          </div>
+
+          <h3 style="color: #2d3748; margin-bottom: 10px;">How to join:</h3>
+
+          <div style="margin-bottom: 20px;">
+            <p style="font-weight: 600; color: #2d3748; margin-bottom: 5px;">Already have a PromptStack account?</p>
+            <ol style="margin: 0; padding-left: 20px; color: #4a5568;">
+              <li>Log in to your PromptStack account</li>
+              <li>Ensure you have an Enterprise subscription</li>
+              <li>Go to the Team Features tab in your dashboard</li>
+              <li>Click "Join a Team" and enter the team name and code above</li>
+            </ol>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <p style="font-weight: 600; color: #2d3748; margin-bottom: 5px;">Don't have an account yet?</p>
+            <ol style="margin: 0; padding-left: 20px; color: #4a5568;">
+              <li>Sign up for a PromptStack account</li>
+              <li>We recommend completing the profile questionnaire when you first sign up - it helps personalise prompts for you</li>
+              <li>Subscribe to the Enterprise plan</li>
+              <li>Navigate to Team Features and join using the credentials above</li>
+            </ol>
+          </div>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${frontendUrl}/signup" style="display: inline-block; background: #2563eb; color: white; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: 600; margin-right: 10px;">Sign Up</a>
+            <a href="${frontendUrl}/login" style="display: inline-block; background: #4a5568; color: white; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: 600;">Log In</a>
+          </div>
+
+          <p style="font-size: 14px; color: #666;">This invitation expires in 7 days.</p>
+        </div>
+
+        <div style="background: #edf2f7; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+          <h3 style="margin-top: 0; color: #2d3748; font-size: 16px;">What are team features?</h3>
+          <p style="margin-bottom: 0; color: #4a5568; font-size: 14px;">
+            Team features let you share prompts, questions, and workflows with your colleagues.
+            Create custom categories, tag teammates with useful prompts, and build workflows together.
+          </p>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #999; font-size: 12px;">
+          <p>PromptStack</p>
+          <p>Auckland, New Zealand</p>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const textContent = `
+Kia ora!
+
+${invitedByName} has invited you to join their team "${teamName}" on PromptStack as a ${role}.
+
+YOUR TEAM CREDENTIALS:
+Team Name: ${teamName}
+Team Code: ${teamCode}
+
+HOW TO JOIN:
+
+If you already have a PromptStack account:
+1. Log in to your PromptStack account
+2. Ensure you have an Enterprise subscription
+3. Go to the Team Features tab in your dashboard
+4. Click "Join a Team" and enter the team name and code above
+
+If you don't have an account yet:
+1. Sign up at ${frontendUrl}/signup
+2. We recommend completing the profile questionnaire when you first sign up - it helps personalise prompts for you
+3. Subscribe to the Enterprise plan
+4. Navigate to Team Features and join using the credentials above
+
+This invitation expires in 7 days.
+
+WHAT ARE TEAM FEATURES?
+Team features let you share prompts, questions, and workflows with your colleagues.
+Create custom categories, tag teammates with useful prompts, and build workflows together.
+
+PromptStack - Built by Kiwis, for Kiwis
+  `;
+
+  return sendEmail(email, subject, htmlContent, textContent);
+}
+
 module.exports = {
   sendEmail,
   sendEmailWithAttachments,
   sendVerificationEmail,
-  sendWelcomeEmail
+  sendWelcomeEmail,
+  sendTeamInvitationEmail
 };

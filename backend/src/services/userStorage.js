@@ -346,6 +346,135 @@ async function removeSavedPrompt(userId, promptId) {
   return userData.savedPrompts;
 }
 
+// =====================
+// Saved Questions
+// =====================
+
+// Save library question reference
+async function saveLibraryQuestion(userId, questionId) {
+  const userData = await getUserById(userId);
+
+  if (!userData) {
+    return null;
+  }
+
+  userData.savedQuestions = userData.savedQuestions || [];
+
+  if (!userData.savedQuestions.includes(questionId)) {
+    userData.savedQuestions.push(questionId);
+
+    const userFilePath = getUserFilePath(userId);
+    await atomicWrite(userFilePath, userData);
+  }
+
+  return userData.savedQuestions;
+}
+
+// Remove saved library question
+async function removeSavedQuestion(userId, questionId) {
+  const userData = await getUserById(userId);
+
+  if (!userData) {
+    return null;
+  }
+
+  userData.savedQuestions = userData.savedQuestions || [];
+  userData.savedQuestions = userData.savedQuestions.filter(id => id !== questionId);
+
+  const userFilePath = getUserFilePath(userId);
+  await atomicWrite(userFilePath, userData);
+
+  return userData.savedQuestions;
+}
+
+// Get user's saved question IDs
+async function getSavedQuestionIds(userId) {
+  const userData = await getUserById(userId);
+  return userData?.savedQuestions || [];
+}
+
+// =====================
+// Custom Questions
+// =====================
+
+// Add custom question
+async function addCustomQuestion(userId, questionData) {
+  const userData = await getUserById(userId);
+
+  if (!userData) {
+    return null;
+  }
+
+  const newQuestion = {
+    id: uuidv4(),
+    ...questionData,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  userData.customQuestions = userData.customQuestions || [];
+  userData.customQuestions.push(newQuestion);
+
+  const userFilePath = getUserFilePath(userId);
+  await atomicWrite(userFilePath, userData);
+
+  return newQuestion;
+}
+
+// Update custom question
+async function updateCustomQuestion(userId, questionId, updates) {
+  const userData = await getUserById(userId);
+
+  if (!userData) {
+    return null;
+  }
+
+  const questionIndex = userData.customQuestions?.findIndex(q => q.id === questionId);
+
+  if (questionIndex === -1 || questionIndex === undefined) {
+    return null;
+  }
+
+  userData.customQuestions[questionIndex] = {
+    ...userData.customQuestions[questionIndex],
+    ...updates,
+    updatedAt: new Date().toISOString()
+  };
+
+  const userFilePath = getUserFilePath(userId);
+  await atomicWrite(userFilePath, userData);
+
+  return userData.customQuestions[questionIndex];
+}
+
+// Delete custom question
+async function deleteCustomQuestion(userId, questionId) {
+  const userData = await getUserById(userId);
+
+  if (!userData) {
+    return false;
+  }
+
+  const questionIndex = userData.customQuestions?.findIndex(q => q.id === questionId);
+
+  if (questionIndex === -1 || questionIndex === undefined) {
+    return false;
+  }
+
+  userData.customQuestions.splice(questionIndex, 1);
+
+  const userFilePath = getUserFilePath(userId);
+  await atomicWrite(userFilePath, userData);
+
+  return true;
+}
+
+// Get user custom questions
+async function getUserCustomQuestions(userId) {
+  const userData = await getUserById(userId);
+  return userData?.customQuestions || [];
+}
+
 // Section names for validation
 const PROFILE_SECTIONS = ['role', 'communication', 'writingStyle', 'workingStyle', 'formatting', 'personal'];
 
@@ -485,12 +614,24 @@ module.exports = {
   verifyPassword,
   markEmailVerified,
   getSafeUserData,
+  // Custom prompts
   addCustomPrompt,
   updateCustomPrompt,
   deleteCustomPrompt,
   getUserCustomPrompts,
+  // Saved prompts
   saveLibraryPrompt,
   removeSavedPrompt,
+  // Saved questions
+  saveLibraryQuestion,
+  removeSavedQuestion,
+  getSavedQuestionIds,
+  // Custom questions
+  addCustomQuestion,
+  updateCustomQuestion,
+  deleteCustomQuestion,
+  getUserCustomQuestions,
+  // Profile
   getUserProfile,
   updateUserProfile,
   getProfileCompletionStatus,

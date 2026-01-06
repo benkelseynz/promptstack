@@ -18,6 +18,20 @@ import type {
   ProfilePersonal,
   Question,
   QuestionCategory,
+  CustomQuestion,
+  Team,
+  TeamSummary,
+  TeamRole,
+  TeamCategory,
+  TeamPrompt,
+  TeamQuestion,
+  TeamWorkflow,
+  WorkflowStep,
+  TeamActivity,
+  TeamAnalytics,
+  ActivityType,
+  PersonalWorkflow,
+  WorkflowCategory,
 } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -267,6 +281,61 @@ class ApiClient {
     return this.request<{ question: Question }>(`/api/questions/${id}`);
   }
 
+  // Saved Questions endpoints
+  async getSavedQuestions() {
+    return this.request<{ questions: Question[]; total: number }>('/api/user/saved-questions');
+  }
+
+  async saveQuestion(id: string) {
+    return this.request<{ message: string; savedCount: number }>(
+      `/api/user/saved-questions/${id}`,
+      { method: 'POST' }
+    );
+  }
+
+  async removeSavedQuestion(id: string) {
+    return this.request<{ message: string; savedCount: number }>(
+      `/api/user/saved-questions/${id}`,
+      { method: 'DELETE' }
+    );
+  }
+
+  // Custom Questions endpoints
+  async getUserQuestions() {
+    return this.request<{ questions: CustomQuestion[]; total: number }>(
+      '/api/user/questions'
+    );
+  }
+
+  async createUserQuestion(data: { question: string; context?: string; category?: string; tags?: string[] }) {
+    return this.request<{ question: CustomQuestion; message: string }>(
+      '/api/user/questions',
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async updateUserQuestion(
+    id: string,
+    data: { question?: string; context?: string; category?: string; tags?: string[] }
+  ) {
+    return this.request<{ question: CustomQuestion; message: string }>(
+      `/api/user/questions/${id}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async deleteUserQuestion(id: string) {
+    return this.request<{ message: string }>(`/api/user/questions/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Stripe endpoints
   async createCheckoutSession(tier: 'professional' | 'enterprise') {
     return this.request<{ sessionId: string; url: string }>('/api/stripe/create-checkout-session', {
@@ -319,6 +388,622 @@ class ApiClient {
       '/api/stripe/reactivate-subscription',
       {
         method: 'POST',
+      }
+    );
+  }
+
+  // Team endpoints
+  async createTeam(name: string) {
+    return this.request<{ message: string; team: TeamSummary }>('/api/teams', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    });
+  }
+
+  async getMyTeams() {
+    return this.request<{ teams: TeamSummary[]; total: number }>('/api/teams/my');
+  }
+
+  async getTeam(id: string) {
+    return this.request<{ team: Team; role: TeamRole; maxMembers: number }>(
+      `/api/teams/${id}`
+    );
+  }
+
+  async validateTeamCode(code: string) {
+    return this.request<{ valid: boolean; teamName: string | null }>(
+      `/api/teams/validate/${encodeURIComponent(code)}`
+    );
+  }
+
+  async joinTeam(teamName: string, teamCode: string) {
+    return this.request<{ message: string; team: TeamSummary }>('/api/teams/join', {
+      method: 'POST',
+      body: JSON.stringify({ teamName, teamCode }),
+    });
+  }
+
+  async leaveTeam(teamId: string) {
+    return this.request<{ message: string }>(`/api/teams/leave/${teamId}`, {
+      method: 'POST',
+    });
+  }
+
+  // Team invitation endpoints
+  async inviteTeamMember(teamId: string, email: string, role: 'admin' | 'member' = 'member') {
+    return this.request<{
+      message: string;
+      invitation: {
+        id: string;
+        email: string;
+        role: string;
+        expiresAt: string;
+      };
+    }>(`/api/teams/${teamId}/invite`, {
+      method: 'POST',
+      body: JSON.stringify({ email, role }),
+    });
+  }
+
+  async getTeamInvitations(teamId: string) {
+    return this.request<{
+      invitations: Array<{
+        id: string;
+        email: string;
+        role: string;
+        invitedByName: string;
+        createdAt: string;
+        expiresAt: string;
+      }>;
+      total: number;
+    }>(`/api/teams/${teamId}/invitations`);
+  }
+
+  async cancelInvitation(teamId: string, invitationId: string) {
+    return this.request<{ message: string }>(
+      `/api/teams/${teamId}/invitations/${invitationId}`,
+      { method: 'DELETE' }
+    );
+  }
+
+  // Team member management endpoints
+  async updateMemberRole(teamId: string, userId: string, role: 'admin' | 'member') {
+    return this.request<{
+      message: string;
+      member: {
+        userId: string;
+        name: string;
+        email: string;
+        role: string;
+      };
+    }>(`/api/teams/${teamId}/members/${userId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role }),
+    });
+  }
+
+  async removeMember(teamId: string, userId: string) {
+    return this.request<{ message: string }>(
+      `/api/teams/${teamId}/members/${userId}`,
+      { method: 'DELETE' }
+    );
+  }
+
+  // Team category endpoints
+  async getTeamCategories(teamId: string) {
+    return this.request<{ categories: TeamCategory[]; total: number }>(
+      `/api/teams/${teamId}/categories`
+    );
+  }
+
+  async createTeamCategory(teamId: string, data: { name: string; color?: string }) {
+    return this.request<{ message: string; category: TeamCategory }>(
+      `/api/teams/${teamId}/categories`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async updateTeamCategory(teamId: string, categoryId: string, data: { name?: string; color?: string }) {
+    return this.request<{ message: string; category: TeamCategory }>(
+      `/api/teams/${teamId}/categories/${categoryId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async deleteTeamCategory(teamId: string, categoryId: string) {
+    return this.request<{ message: string }>(
+      `/api/teams/${teamId}/categories/${categoryId}`,
+      { method: 'DELETE' }
+    );
+  }
+
+  // Team prompt endpoints
+  async getTeamPrompts(teamId: string, params?: { category?: string; q?: string }) {
+    const searchParams = new URLSearchParams();
+    if (params?.category) searchParams.set('category', params.category);
+    if (params?.q) searchParams.set('q', params.q);
+
+    const queryString = searchParams.toString();
+    return this.request<{ prompts: TeamPrompt[]; total: number; categories: TeamCategory[] }>(
+      `/api/teams/${teamId}/prompts${queryString ? `?${queryString}` : ''}`
+    );
+  }
+
+  async addTeamPrompt(
+    teamId: string,
+    data: {
+      sourceType?: 'library' | 'custom';
+      sourceId?: string;
+      title: string;
+      content: string;
+      categoryId?: string;
+      keywords?: string[];
+      industry?: string;
+      role?: string;
+      notes?: string;
+    }
+  ) {
+    return this.request<{ message: string; prompt: TeamPrompt }>(
+      `/api/teams/${teamId}/prompts`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async updateTeamPrompt(
+    teamId: string,
+    promptId: string,
+    data: {
+      title?: string;
+      content?: string;
+      categoryId?: string | null;
+      keywords?: string[];
+      notes?: string;
+      sourceType?: 'library' | 'custom';
+    }
+  ) {
+    return this.request<{ message: string; prompt: TeamPrompt }>(
+      `/api/teams/${teamId}/prompts/${promptId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async removeTeamPrompt(teamId: string, promptId: string) {
+    return this.request<{ message: string }>(
+      `/api/teams/${teamId}/prompts/${promptId}`,
+      { method: 'DELETE' }
+    );
+  }
+
+  // Team prompt tagging endpoints
+  async tagTeammate(teamId: string, promptId: string, userId: string, message?: string) {
+    return this.request<{
+      message: string;
+      tag: {
+        userId: string;
+        userName: string;
+        taggedBy: string;
+        taggedByName: string;
+        message?: string;
+        taggedAt: string;
+      };
+    }>(`/api/teams/${teamId}/prompts/${promptId}/tags`, {
+      method: 'POST',
+      body: JSON.stringify({ userId, message }),
+    });
+  }
+
+  async removeTag(teamId: string, promptId: string, userId: string) {
+    return this.request<{ message: string }>(
+      `/api/teams/${teamId}/prompts/${promptId}/tags/${userId}`,
+      { method: 'DELETE' }
+    );
+  }
+
+  async getPromptsForMe(teamId: string) {
+    return this.request<{
+      prompts: Array<TeamPrompt & {
+        tagInfo: {
+          taggedBy: string;
+          taggedByName: string;
+          message?: string;
+          taggedAt: string;
+          seen: boolean;
+        };
+      }>;
+      unseenCount: number;
+      categories: TeamCategory[];
+    }>(`/api/teams/${teamId}/prompts/for-me`);
+  }
+
+  async markTagSeen(teamId: string, promptId: string, userId: string) {
+    return this.request<{ message: string }>(
+      `/api/teams/${teamId}/prompts/${promptId}/tags/${userId}/seen`,
+      { method: 'POST' }
+    );
+  }
+
+  async getUnseenTagCount(teamId: string) {
+    return this.request<{ count: number }>(
+      `/api/teams/${teamId}/prompts/for-me/count`
+    );
+  }
+
+  // Team question endpoints
+  async getTeamQuestions(teamId: string, params?: { category?: string; q?: string }) {
+    const searchParams = new URLSearchParams();
+    if (params?.category) searchParams.set('category', params.category);
+    if (params?.q) searchParams.set('q', params.q);
+
+    const queryString = searchParams.toString();
+    return this.request<{ questions: TeamQuestion[]; total: number; categories: TeamCategory[] }>(
+      `/api/teams/${teamId}/questions${queryString ? `?${queryString}` : ''}`
+    );
+  }
+
+  async addTeamQuestion(
+    teamId: string,
+    data: {
+      sourceType?: 'library' | 'custom';
+      sourceId?: string;
+      question: string;
+      context?: string;
+      categoryId?: string;
+      tags?: string[];
+      notes?: string;
+    }
+  ) {
+    return this.request<{ message: string; question: TeamQuestion }>(
+      `/api/teams/${teamId}/questions`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async updateTeamQuestion(
+    teamId: string,
+    questionId: string,
+    data: {
+      categoryId?: string | null;
+      notes?: string;
+      context?: string;
+    }
+  ) {
+    return this.request<{ message: string; question: TeamQuestion }>(
+      `/api/teams/${teamId}/questions/${questionId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async removeTeamQuestion(teamId: string, questionId: string) {
+    return this.request<{ message: string }>(
+      `/api/teams/${teamId}/questions/${questionId}`,
+      { method: 'DELETE' }
+    );
+  }
+
+  // Notes endpoints
+  async updatePromptNotes(teamId: string, promptId: string, notes: string) {
+    return this.request<{ message: string; prompt: TeamPrompt }>(
+      `/api/teams/${teamId}/prompts/${promptId}/notes`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ notes }),
+      }
+    );
+  }
+
+  async updateQuestionNotes(teamId: string, questionId: string, notes: string) {
+    return this.request<{ message: string; question: TeamQuestion }>(
+      `/api/teams/${teamId}/questions/${questionId}/notes`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ notes }),
+      }
+    );
+  }
+
+  // Workflow endpoints
+  async getWorkflows(teamId: string, params?: { category?: string; q?: string }) {
+    const searchParams = new URLSearchParams();
+    if (params?.category) searchParams.set('category', params.category);
+    if (params?.q) searchParams.set('q', params.q);
+
+    const queryString = searchParams.toString();
+    return this.request<{ workflows: TeamWorkflow[]; categories: TeamCategory[]; total: number }>(
+      `/api/teams/${teamId}/workflows${queryString ? `?${queryString}` : ''}`
+    );
+  }
+
+  async createWorkflow(
+    teamId: string,
+    data: {
+      name: string;
+      description?: string;
+      sharedWith?: 'team' | 'private';
+      categoryId?: string;
+    }
+  ) {
+    return this.request<{ message: string; workflow: TeamWorkflow }>(
+      `/api/teams/${teamId}/workflows`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async getWorkflow(teamId: string, workflowId: string) {
+    return this.request<{
+      workflow: TeamWorkflow;
+      canEdit: boolean;
+    }>(`/api/teams/${teamId}/workflows/${workflowId}`);
+  }
+
+  async updateWorkflow(
+    teamId: string,
+    workflowId: string,
+    data: {
+      name?: string;
+      description?: string;
+      sharedWith?: 'team' | 'private';
+      categoryId?: string | null;
+    }
+  ) {
+    return this.request<{ message: string; workflow: TeamWorkflow }>(
+      `/api/teams/${teamId}/workflows/${workflowId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async deleteWorkflow(teamId: string, workflowId: string) {
+    return this.request<{ message: string }>(
+      `/api/teams/${teamId}/workflows/${workflowId}`,
+      { method: 'DELETE' }
+    );
+  }
+
+  async addWorkflowStep(
+    teamId: string,
+    workflowId: string,
+    data: {
+      type: 'prompt' | 'instruction';
+      // For prompt steps
+      title?: string;
+      content?: string;
+      files?: string[];
+      // For instruction steps
+      instruction?: string;
+    }
+  ) {
+    return this.request<{ message: string; step: WorkflowStep }>(
+      `/api/teams/${teamId}/workflows/${workflowId}/steps`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async updateWorkflowStep(
+    teamId: string,
+    workflowId: string,
+    stepId: string,
+    data: {
+      title?: string;
+      content?: string;
+      files?: string[];
+      instruction?: string;
+    }
+  ) {
+    return this.request<{ message: string; step: WorkflowStep }>(
+      `/api/teams/${teamId}/workflows/${workflowId}/steps/${stepId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async deleteWorkflowStep(teamId: string, workflowId: string, stepId: string) {
+    return this.request<{ message: string }>(
+      `/api/teams/${teamId}/workflows/${workflowId}/steps/${stepId}`,
+      { method: 'DELETE' }
+    );
+  }
+
+  async reorderWorkflowSteps(teamId: string, workflowId: string, stepIds: string[]) {
+    return this.request<{ message: string; steps: WorkflowStep[] }>(
+      `/api/teams/${teamId}/workflows/${workflowId}/reorder`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ stepIds }),
+      }
+    );
+  }
+
+  // Activity endpoints
+  async getTeamActivity(
+    teamId: string,
+    params?: { limit?: number; offset?: number; type?: ActivityType }
+  ) {
+    const searchParams = new URLSearchParams();
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+    if (params?.offset) searchParams.set('offset', params.offset.toString());
+    if (params?.type) searchParams.set('type', params.type);
+
+    const queryString = searchParams.toString();
+    return this.request<{
+      activities: TeamActivity[];
+      total: number;
+      limit: number;
+      offset: number;
+      hasMore: boolean;
+    }>(`/api/teams/${teamId}/activity${queryString ? `?${queryString}` : ''}`);
+  }
+
+  async getUnreadActivityCount(teamId: string) {
+    return this.request<{ count: number }>(`/api/teams/${teamId}/activity/unread`);
+  }
+
+  async markActivityRead(teamId: string, activityIds?: string[]) {
+    return this.request<{ message: string; markedCount: number }>(
+      `/api/teams/${teamId}/activity/mark-read`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ activityIds }),
+      }
+    );
+  }
+
+  // Analytics endpoints
+  async getTeamAnalytics(teamId: string) {
+    return this.request<TeamAnalytics>(`/api/teams/${teamId}/analytics`);
+  }
+
+  // Personal Workflow endpoints (for premium users)
+  async getPersonalWorkflows(params?: { category?: string; q?: string }) {
+    const searchParams = new URLSearchParams();
+    if (params?.category) searchParams.set('category', params.category);
+    if (params?.q) searchParams.set('q', params.q);
+
+    const queryString = searchParams.toString();
+    return this.request<{ workflows: PersonalWorkflow[]; categories: WorkflowCategory[] }>(
+      `/api/workflows${queryString ? `?${queryString}` : ''}`
+    );
+  }
+
+  async createPersonalWorkflow(data: { name: string; description?: string; categoryId?: string }) {
+    return this.request<{ workflow: PersonalWorkflow }>('/api/workflows', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getPersonalWorkflow(workflowId: string) {
+    return this.request<{ workflow: PersonalWorkflow }>(
+      `/api/workflows/${workflowId}`
+    );
+  }
+
+  async updatePersonalWorkflow(
+    workflowId: string,
+    data: { name?: string; description?: string; categoryId?: string | null }
+  ) {
+    return this.request<{ workflow: PersonalWorkflow }>(
+      `/api/workflows/${workflowId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  // Personal workflow category endpoints
+  async getWorkflowCategories() {
+    return this.request<{ categories: WorkflowCategory[] }>('/api/workflows/categories');
+  }
+
+  async createWorkflowCategory(data: { name: string; color?: string }) {
+    return this.request<{ category: WorkflowCategory }>('/api/workflows/categories', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateWorkflowCategory(categoryId: string, data: { name?: string; color?: string }) {
+    return this.request<{ category: WorkflowCategory }>(
+      `/api/workflows/categories/${categoryId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async deleteWorkflowCategory(categoryId: string) {
+    return this.request<{ message: string }>(
+      `/api/workflows/categories/${categoryId}`,
+      { method: 'DELETE' }
+    );
+  }
+
+  async deletePersonalWorkflow(workflowId: string) {
+    return this.request<{ message: string }>(`/api/workflows/${workflowId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async addPersonalWorkflowStep(
+    workflowId: string,
+    data: {
+      type: 'prompt' | 'instruction';
+      title?: string;
+      content?: string;
+      files?: string[];
+      instruction?: string;
+    }
+  ) {
+    return this.request<{ step: WorkflowStep }>(
+      `/api/workflows/${workflowId}/steps`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async updatePersonalWorkflowStep(
+    workflowId: string,
+    stepId: string,
+    data: {
+      title?: string;
+      content?: string;
+      files?: string[];
+      instruction?: string;
+    }
+  ) {
+    return this.request<{ step: WorkflowStep }>(
+      `/api/workflows/${workflowId}/steps/${stepId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async deletePersonalWorkflowStep(workflowId: string, stepId: string) {
+    return this.request<{ message: string }>(
+      `/api/workflows/${workflowId}/steps/${stepId}`,
+      { method: 'DELETE' }
+    );
+  }
+
+  async reorderPersonalWorkflowSteps(workflowId: string, stepIds: string[]) {
+    return this.request<{ steps: WorkflowStep[] }>(
+      `/api/workflows/${workflowId}/reorder`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ stepIds }),
       }
     );
   }

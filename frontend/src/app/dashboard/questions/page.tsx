@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import type { Question, QuestionCategory } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
+import type { Question, QuestionCategory, CustomQuestion } from '@/types';
 import {
   Search,
   Filter,
@@ -19,7 +21,11 @@ import {
   Play,
   ArrowRight,
   HelpCircle,
+  Users,
+  Bookmark,
+  Pencil,
 } from 'lucide-react';
+import AddQuestionToTeamModal from '@/components/AddQuestionToTeamModal';
 
 const ITEMS_PER_PAGE = 12;
 const CLICK_STORAGE_KEY = 'promptstack_question_clicks';
@@ -65,6 +71,8 @@ const categoryIcons: Record<string, React.ElementType> = {
 };
 
 export default function QuestionsPage() {
+  const { user } = useAuth();
+  const router = useRouter();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [categories, setCategories] = useState<QuestionCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,9 +82,67 @@ export default function QuestionsPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [page, setPage] = useState(1);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [addToTeamQuestion, setAddToTeamQuestion] = useState<Question | null>(null);
+  const [savedQuestionIds, setSavedQuestionIds] = useState<Set<string>>(new Set());
+  const [customQuestions, setCustomQuestions] = useState<Question[]>([]);
+  const [customQuestionsLoaded, setCustomQuestionsLoaded] = useState(false);
+
+  const isEnterprise = user?.tier === 'enterprise';
+
+  // Load saved question IDs and custom questions
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const [savedData, customData] = await Promise.all([
+          api.getSavedQuestions(),
+          api.getUserQuestions(),
+        ]);
+        setSavedQuestionIds(new Set(savedData.questions.map((q) => q.id)));
+
+        // Convert custom questions to Question format for display
+        const customAsQuestions: Question[] = customData.questions.map((cq: CustomQuestion) => ({
+          id: cq.id,
+          question: cq.question,
+          context: cq.context || '',
+          category: cq.category || 'custom',
+          tags: cq.tags || [],
+          access: 'free' as const,
+          isLocked: false,
+          isCustom: true,
+        }));
+        setCustomQuestions(customAsQuestions);
+        setCustomQuestionsLoaded(true);
+      } catch (err) {
+        console.error('Failed to load user data:', err);
+        setCustomQuestionsLoaded(true);
+      }
+    };
+    loadUserData();
+  }, []);
+
+  // Filter custom questions based on current search criteria
+  const filteredCustomQuestions = useMemo(() => {
+    let filtered = customQuestions;
+    if (searchQuery) {
+      const searchLower = searchQuery.toLowerCase();
+      filtered = filtered.filter(q =>
+        q.question.toLowerCase().includes(searchLower) ||
+        q.tags.some(t => t.toLowerCase().includes(searchLower))
+      );
+    }
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(q => q.category === selectedCategory);
+    }
+    if (selectedAccess === 'premium') {
+      filtered = []; // Custom questions are never premium
+    }
+    return filtered;
+  }, [customQuestions, searchQuery, selectedCategory, selectedAccess]);
 
   // Load questions
   useEffect(() => {
+    if (!customQuestionsLoaded) return;
+
     const fetchQuestions = async () => {
       setLoading(true);
       try {
@@ -85,8 +151,12 @@ export default function QuestionsPage() {
           q: searchQuery || undefined,
           access: selectedAccess !== 'all' ? selectedAccess : undefined,
         });
+
+        // Combine custom questions with library questions
+        const allQuestions = [...filteredCustomQuestions, ...data.questions];
+
         // Sort questions by recent clicks
-        const sortedQuestions = sortByRecentClicks(data.questions);
+        const sortedQuestions = sortByRecentClicks(allQuestions);
         setQuestions(sortedQuestions);
         setCategories(data.categories);
       } catch (err) {
@@ -97,7 +167,41 @@ export default function QuestionsPage() {
     };
 
     fetchQuestions();
-  }, [searchQuery, selectedCategory, selectedAccess]);
+  }, [searchQuery, selectedCategory, selectedAccess, filteredCustomQuestions, customQuestionsLoaded]);
+
+  const handleSaveQuestion = async (questionId: string) => {
+    try {
+      if (savedQuestionIds.has(questionId)) {
+        await api.removeSavedQuestion(questionId);
+        setSavedQuestionIds((prev) => {
+          const next = new Set(prev);
+          next.delete(questionId);
+          return next;
+        });
+      } else {
+        await api.saveQuestion(questionId);
+        setSavedQuestionIds((prev) => new Set(prev).add(questionId));
+      }
+    } catch (err) {
+      console.error('Failed to save question:', err);
+    }
+  };
+
+  const handleEditQuestion = async (question: Question) => {
+    try {
+      // Create a copy of the library question as a custom question
+      await api.createUserQuestion({
+        question: question.question,
+        context: question.context || '',
+        category: question.category,
+        tags: question.tags || [],
+      });
+      // Navigate to saved questions page with custom tab
+      router.push('/dashboard/saved/questions?tab=custom');
+    } catch (err) {
+      console.error('Failed to create custom question copy:', err);
+    }
+  };
 
   const handleCopy = async (question: Question) => {
     // Record the click for sorting purposes
@@ -255,6 +359,11 @@ export default function QuestionsPage() {
             getCategoryName={getCategoryName}
             copiedId={copiedId}
             onCopy={handleCopy}
+            isEnterprise={isEnterprise}
+            onAddToTeam={setAddToTeamQuestion}
+            savedQuestionIds={savedQuestionIds}
+            onSave={handleSaveQuestion}
+            onEdit={handleEditQuestion}
           />
 
           {/* Pagination */}
@@ -281,6 +390,15 @@ export default function QuestionsPage() {
           )}
         </>
       )}
+
+      {/* Add to Team Modal */}
+      {addToTeamQuestion && (
+        <AddQuestionToTeamModal
+          isOpen={!!addToTeamQuestion}
+          onClose={() => setAddToTeamQuestion(null)}
+          question={addToTeamQuestion}
+        />
+      )}
     </div>
   );
 }
@@ -292,12 +410,22 @@ function QuestionsGrid({
   getCategoryName,
   copiedId,
   onCopy,
+  isEnterprise,
+  onAddToTeam,
+  savedQuestionIds,
+  onSave,
+  onEdit,
 }: {
   questions: Question[];
   categories: QuestionCategory[];
   getCategoryName: (id: string) => string;
   copiedId: string | null;
   onCopy: (question: Question) => void;
+  isEnterprise: boolean;
+  onAddToTeam: (question: Question) => void;
+  savedQuestionIds: Set<string>;
+  onSave: (questionId: string) => void;
+  onEdit: (question: Question) => void;
 }) {
   const gridRef = useRef<HTMLDivElement>(null);
   const questionRefs = useRef<Map<string, HTMLParagraphElement>>(new Map());
@@ -375,6 +503,12 @@ function QuestionsGrid({
           copied={copiedId === question.id}
           onCopy={() => onCopy(question)}
           questionRef={(el) => setQuestionRef(question.id, el)}
+          isEnterprise={isEnterprise}
+          onAddToTeam={() => onAddToTeam(question)}
+          isSaved={savedQuestionIds.has(question.id)}
+          onSave={() => onSave(question.id)}
+          isCustom={(question as Question & { isCustom?: boolean }).isCustom || false}
+          onEdit={() => onEdit(question)}
         />
       ))}
     </div>
@@ -388,6 +522,12 @@ function QuestionCard({
   copied,
   onCopy,
   questionRef,
+  isEnterprise,
+  onAddToTeam,
+  isSaved,
+  onSave,
+  isCustom,
+  onEdit,
 }: {
   question: Question;
   categoryName: string;
@@ -395,6 +535,12 @@ function QuestionCard({
   copied: boolean;
   onCopy: () => void;
   questionRef: (el: HTMLParagraphElement | null) => void;
+  isEnterprise: boolean;
+  onAddToTeam: () => void;
+  isSaved: boolean;
+  onSave: () => void;
+  isCustom: boolean;
+  onEdit: () => void;
 }) {
   const isLocked = question.isLocked;
 
@@ -413,15 +559,21 @@ function QuestionCard({
 
       {/* Header badges */}
       <div className="flex items-center gap-2 mb-3 flex-wrap">
-        <span
-          className={`text-xs font-medium px-2 py-1 rounded-full ${
-            question.access === 'premium'
-              ? 'bg-amber-100 text-amber-700'
-              : 'bg-green-100 text-green-700'
-          }`}
-        >
-          {question.access === 'premium' ? 'Premium' : 'Free'}
-        </span>
+        {isCustom ? (
+          <span className="text-xs font-medium px-2 py-1 rounded-full bg-purple-100 text-purple-700">
+            Custom
+          </span>
+        ) : (
+          <span
+            className={`text-xs font-medium px-2 py-1 rounded-full ${
+              question.access === 'premium'
+                ? 'bg-amber-100 text-amber-700'
+                : 'bg-green-100 text-green-700'
+            }`}
+          >
+            {question.access === 'premium' ? 'Premium' : 'Free'}
+          </span>
+        )}
         <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-600 flex items-center gap-1">
           <CategoryIcon className="w-3 h-3" />
           {categoryName}
@@ -468,25 +620,69 @@ function QuestionCard({
         )}
 
         {!isLocked && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onCopy();
-            }}
-            className="text-primary-600 hover:text-primary-700 transition-colors flex items-center gap-1"
-          >
-            {copied ? (
-              <>
-                <Check className="w-4 h-4 text-green-600" />
-                <span className="text-xs text-green-600 font-medium">Copied!</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-4 h-4" />
-                <span className="text-xs font-medium">Copy</span>
-              </>
+          <div className="flex items-center gap-2">
+            {/* Save button - only show for library questions, not custom */}
+            {!isCustom && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSave();
+                }}
+                className={`transition-colors flex items-center gap-1 ${
+                  isSaved
+                    ? 'text-primary-600 hover:text-primary-700'
+                    : 'text-gray-400 hover:text-primary-600'
+                }`}
+                title={isSaved ? 'Remove from saved' : 'Save question'}
+              >
+                <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
+              </button>
             )}
-          </button>
+            {/* Edit button - only show for library questions, not custom */}
+            {!isCustom && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit();
+                }}
+                className="text-gray-400 hover:text-primary-600 transition-colors"
+                title="Edit as custom question"
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
+            )}
+            {isEnterprise && !isCustom && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddToTeam();
+                }}
+                className="text-gray-500 hover:text-primary-600 transition-colors flex items-center gap-1"
+                title="Add to team"
+              >
+                <Users className="w-4 h-4" />
+              </button>
+            )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onCopy();
+              }}
+              className="text-primary-600 hover:text-primary-700 transition-colors flex items-center gap-1"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-4 h-4 text-green-600" />
+                  <span className="text-xs text-green-600 font-medium">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4" />
+                  <span className="text-xs font-medium">Copy</span>
+                </>
+              )}
+            </button>
+          </div>
         )}
       </div>
     </div>

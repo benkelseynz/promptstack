@@ -1,0 +1,69 @@
+{
+  "id": "44edcc96-a99a-4934-8a23-3d31220a3108",
+  "email": "islaestephenson@gmail.com",
+  "name": "Isla Stephenson",
+  "passwordHash": "$2b$12$ORt06F70nxMjnW138Cys5eXfZ7QXdAKFJCw/Z5O4BBnsEPOEWcKnW",
+  "emailVerified": true,
+  "tier": "enterprise",
+  "createdAt": "2026-01-04T07:15:56.368Z",
+  "updatedAt": "2026-01-04T08:19:48.016Z",
+  "customPrompts": [],
+  "savedPrompts": [],
+  "profile": {
+    "completed": false,
+    "completedAt": null,
+    "sectionsCompleted": [],
+    "role": {
+      "title": "",
+      "company": "",
+      "companyDescription": "",
+      "industry": "",
+      "customIndustry": "",
+      "primaryResponsibilities": "",
+      "timeAllocation": "",
+      "keyStakeholders": ""
+    },
+    "communication": {
+      "phrasesToAvoid": "",
+      "formalityLevel": "",
+      "tonePreference": "",
+      "petPeeves": ""
+    },
+    "writingStyle": {
+      "emailStyle": "",
+      "reportStyle": "",
+      "generalNotes": ""
+    },
+    "workingStyle": {
+      "informationPreference": [],
+      "informationPreferenceNotes": "",
+      "analysisDepth": "",
+      "decisionMakingStyle": ""
+    },
+    "formatting": {
+      "structurePreference": "",
+      "structurePreferenceNotes": "",
+      "preferTables": "",
+      "preferBullets": "",
+      "preferCharts": "",
+      "specificRequirements": ""
+    },
+    "personal": {
+      "background": "",
+      "frameworks": "",
+      "additionalContext": "",
+      "greatCollaboration": ""
+    }
+  },
+  "stripeCustomerId": "cus_TjE04KgHtuJy1O",
+  "stripeSubscriptionId": "sub_1SlmXIKnuEDIBIGDKAxhEqkq",
+  "subscriptionStartDate": "2026-01-04T08:19:48.015Z",
+  "teamMemberships": [
+    {
+      "teamId": "38bee808-dceb-432b-8153-b44d83332399",
+      "teamName": "Ben & Isla",
+      "role": "member",
+      "joinedAt": "2026-01-04T07:21:03.944Z"
+    }
+  ]
+}

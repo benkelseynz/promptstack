@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Prompt, Industry, FilterOptions, CustomPrompt } from '@/types';
@@ -58,6 +58,7 @@ function sortByRecentClicks<T extends { id: string }>(prompts: T[]): T[] {
 export default function DashboardPage() {
   const { user, profileStatus } = useAuth();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [industries, setIndustries] = useState<Industry[]>([]);
   const [filters, setFilters] = useState<FilterOptions | null>(null);
@@ -236,6 +237,24 @@ export default function DashboardPage() {
       }
     } catch (err) {
       console.error('Failed to save prompt:', err);
+    }
+  };
+
+  const handleEditPrompt = async (prompt: Prompt) => {
+    try {
+      // Create a copy of the library prompt as a custom prompt
+      await api.createUserPrompt({
+        title: `${prompt.title} (Copy)`,
+        content: prompt.content || '',
+        keywords: prompt.keywords || [],
+        industry: prompt.industry,
+        role: prompt.role,
+      });
+      // Close the modal and navigate to saved prompts page
+      setSelectedPrompt(null);
+      router.push('/dashboard/saved/prompts?tab=custom');
+    } catch (err) {
+      console.error('Failed to create custom prompt copy:', err);
     }
   };
 
@@ -446,6 +465,7 @@ export default function DashboardPage() {
           isSaved={savedPromptIds.has(selectedPrompt.id)}
           onSave={() => handleSavePrompt(selectedPrompt.id)}
           onClose={() => setSelectedPrompt(null)}
+          onEdit={handleEditPrompt}
         />
       )}
     </div>

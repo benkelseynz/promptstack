@@ -14,29 +14,25 @@ const COMPANY = {
   website: 'www.promptstack.co.nz',
 };
 
-// Brand colors
+// Brand colors derived directly from your globals.css
 const COLORS = {
-  primary: '#7c3aed',
-  dark: '#111827',
-  gray: '#6b7280',
-  lightGray: '#f3f4f6',
+  primary: '#004681',    // --alpine-navy
+  secondary: '#204E78',  // --mountain-layer-5
+  accent: '#F9FBFD',     // --background-start-rgb (snow)
+  border: '#E5E7EB',     // Gray-200
+  text: '#111827',       // --foreground-rgb
+  textMuted: '#6B7280',  // Gray-500
+  success: '#059669',    // Green
+  white: '#FFFFFF'
 };
+
+// Layout constants
+const MARGIN = 50;
+const PAGE_WIDTH = 595.28; // A4 width in points
+const CONTENT_WIDTH = PAGE_WIDTH - (MARGIN * 2);
 
 /**
  * Generate a PDF invoice
- * @param {Object} options Invoice options
- * @param {string} options.invoiceNumber Unique invoice number
- * @param {Date} options.date Invoice date
- * @param {Object} options.customer Customer details
- * @param {string} options.customer.name Customer name
- * @param {string} options.customer.email Customer email
- * @param {Array} options.items Line items
- * @param {string} options.items[].description Item description
- * @param {number} options.items[].amount Item amount
- * @param {string} options.periodStart Billing period start
- * @param {string} options.periodEnd Billing period end
- * @param {boolean} options.isPaid Whether invoice is paid
- * @returns {Promise<Buffer>} PDF buffer
  */
 async function generateInvoice(options) {
   const {
@@ -53,7 +49,7 @@ async function generateInvoice(options) {
     try {
       const doc = new PDFDocument({
         size: 'A4',
-        margin: 50,
+        margin: MARGIN,
         info: {
           Title: `Invoice ${invoiceNumber}`,
           Author: COMPANY.name,
@@ -65,186 +61,14 @@ async function generateInvoice(options) {
       doc.on('end', () => resolve(Buffer.concat(chunks)));
       doc.on('error', reject);
 
-      // Header with logo/brand
-      doc
-        .fillColor(COLORS.primary)
-        .fontSize(28)
-        .font('Helvetica-Bold')
-        .text('PromptStack', 50, 50);
+      // --- RENDER SECTIONS ---
+      // We use a tracking variable 'y' to ensure elements never overlap
+      let y = 50;
 
-      doc
-        .fillColor(COLORS.gray)
-        .fontSize(10)
-        .font('Helvetica')
-        .text('AI Prompt Library', 50, 80);
-
-      // Invoice title
-      doc
-        .fillColor(COLORS.dark)
-        .fontSize(24)
-        .font('Helvetica-Bold')
-        .text('INVOICE', 400, 50, { align: 'right' });
-
-      // Invoice details
-      doc
-        .fillColor(COLORS.gray)
-        .fontSize(10)
-        .font('Helvetica')
-        .text(`Invoice #: ${invoiceNumber}`, 400, 80, { align: 'right' })
-        .text(`Date: ${formatDate(date)}`, 400, 95, { align: 'right' });
-
-      if (isPaid) {
-        doc
-          .fillColor('#059669')
-          .fontSize(12)
-          .font('Helvetica-Bold')
-          .text('PAID', 400, 115, { align: 'right' });
-      }
-
-      // Divider
-      doc
-        .strokeColor(COLORS.lightGray)
-        .lineWidth(1)
-        .moveTo(50, 140)
-        .lineTo(545, 140)
-        .stroke();
-
-      // From section
-      doc
-        .fillColor(COLORS.gray)
-        .fontSize(10)
-        .font('Helvetica-Bold')
-        .text('FROM', 50, 160);
-
-      doc
-        .fillColor(COLORS.dark)
-        .fontSize(10)
-        .font('Helvetica')
-        .text(COMPANY.name, 50, 175)
-        .text(COMPANY.address, 50, 190)
-        .text(COMPANY.email, 50, 205)
-        .text(COMPANY.website, 50, 220);
-
-      // To section
-      doc
-        .fillColor(COLORS.gray)
-        .fontSize(10)
-        .font('Helvetica-Bold')
-        .text('BILL TO', 300, 160);
-
-      doc
-        .fillColor(COLORS.dark)
-        .fontSize(10)
-        .font('Helvetica')
-        .text(customer.name || 'Valued Customer', 300, 175)
-        .text(customer.email, 300, 190);
-
-      // Billing period
-      if (periodStart && periodEnd) {
-        doc
-          .fillColor(COLORS.gray)
-          .fontSize(9)
-          .text(`Billing Period: ${formatDate(periodStart)} - ${formatDate(periodEnd)}`, 300, 210);
-      }
-
-      // Items table header
-      const tableTop = 270;
-      doc
-        .fillColor(COLORS.primary)
-        .rect(50, tableTop, 495, 25)
-        .fill();
-
-      doc
-        .fillColor('#ffffff')
-        .fontSize(10)
-        .font('Helvetica-Bold')
-        .text('DESCRIPTION', 60, tableTop + 8)
-        .text('AMOUNT', 450, tableTop + 8, { align: 'right' });
-
-      // Items
-      let yPosition = tableTop + 35;
-      let subtotal = 0;
-
-      items.forEach((item, index) => {
-        const bgColor = index % 2 === 0 ? '#ffffff' : COLORS.lightGray;
-        doc.fillColor(bgColor).rect(50, yPosition - 5, 495, 25).fill();
-
-        doc
-          .fillColor(COLORS.dark)
-          .fontSize(10)
-          .font('Helvetica')
-          .text(item.description, 60, yPosition + 3)
-          .text(`${pricingConfig.currencySymbol}${item.amount.toFixed(2)}`, 450, yPosition + 3, {
-            align: 'right',
-          });
-
-        subtotal += item.amount;
-        yPosition += 25;
-      });
-
-      // Totals section
-      yPosition += 20;
-
-      // Subtotal
-      doc
-        .fillColor(COLORS.gray)
-        .fontSize(10)
-        .font('Helvetica')
-        .text('Subtotal:', 350, yPosition)
-        .fillColor(COLORS.dark)
-        .text(`${pricingConfig.currencySymbol}${subtotal.toFixed(2)}`, 450, yPosition, {
-          align: 'right',
-        });
-
-      yPosition += 20;
-
-      // GST (15% for NZ)
-      const gst = subtotal * 0.15;
-      doc
-        .fillColor(COLORS.gray)
-        .text('GST (15%):', 350, yPosition)
-        .fillColor(COLORS.dark)
-        .text(`${pricingConfig.currencySymbol}${gst.toFixed(2)}`, 450, yPosition, {
-          align: 'right',
-        });
-
-      yPosition += 25;
-
-      // Total
-      const total = subtotal + gst;
-      doc
-        .fillColor(COLORS.primary)
-        .rect(340, yPosition - 5, 205, 30)
-        .fill();
-
-      doc
-        .fillColor('#ffffff')
-        .fontSize(12)
-        .font('Helvetica-Bold')
-        .text('TOTAL:', 355, yPosition + 3)
-        .text(
-          `${pricingConfig.currency} ${pricingConfig.currencySymbol}${total.toFixed(2)}`,
-          450,
-          yPosition + 3,
-          { align: 'right' }
-        );
-
-      // Footer
-      const footerY = 750;
-      doc
-        .fillColor(COLORS.gray)
-        .fontSize(9)
-        .font('Helvetica')
-        .text('Thank you for your subscription to PromptStack!', 50, footerY, {
-          align: 'center',
-          width: 495,
-        })
-        .text(
-          'Questions? Contact us at hello@promptstack.co.nz',
-          50,
-          footerY + 15,
-          { align: 'center', width: 495 }
-        );
+      y = renderHeader(doc, y, invoiceNumber, date, isPaid);
+      y = renderAddresses(doc, y, customer, periodStart, periodEnd);
+      y = renderTable(doc, y, items, pricingConfig);
+      renderFooter(doc);
 
       doc.end();
     } catch (error) {
@@ -254,7 +78,291 @@ async function generateInvoice(options) {
 }
 
 /**
- * Generate invoice number from timestamp and random suffix
+ * 1. HEADER SECTION
+ * Top bar, Logo, Invoice Details, Status Badge
+ */
+function renderHeader(doc, startY, invoiceNumber, date, isPaid) {
+  let y = startY;
+
+  // 1. Top Brand Strip
+  doc.rect(0, 0, PAGE_WIDTH, 6).fill(COLORS.primary);
+
+  // 2. Company Name (Logo area)
+  doc
+    .fillColor(COLORS.primary)
+    .fontSize(26)
+    .font('Helvetica-Bold')
+    .text(COMPANY.name, MARGIN, y);
+
+  doc
+    .fillColor(COLORS.textMuted)
+    .fontSize(10)
+    .font('Helvetica')
+    .text('AI Prompt Library', MARGIN, y + 32);
+
+  // 3. Invoice Meta Data (Right aligned)
+  // We align these to the right margin
+  const rightColX = 400;
+  
+  doc
+    .fillColor(COLORS.textMuted)
+    .fontSize(9)
+    .font('Helvetica-Bold')
+    .text('INVOICE NUMBER', rightColX, y, { align: 'right', width: 145 });
+
+  doc
+    .fillColor(COLORS.text)
+    .fontSize(10)
+    .font('Helvetica')
+    .text(invoiceNumber, rightColX, y + 12, { align: 'right', width: 145 });
+
+  doc
+    .fillColor(COLORS.textMuted)
+    .fontSize(9)
+    .font('Helvetica-Bold')
+    .text('DATE', rightColX, y + 35, { align: 'right', width: 145 });
+
+  doc
+    .fillColor(COLORS.text)
+    .fontSize(10)
+    .font('Helvetica')
+    .text(formatDate(date), rightColX, y + 47, { align: 'right', width: 145 });
+
+  // 4. Status Badge
+  const badgeY = y + 70;
+  if (isPaid) {
+    drawBadge(doc, 'PAID', PAGE_WIDTH - MARGIN, badgeY, COLORS.success);
+  } else {
+    drawBadge(doc, 'DUE', PAGE_WIDTH - MARGIN, badgeY, COLORS.secondary);
+  }
+
+  return y + 110; // Return new Y position
+}
+
+/**
+ * 2. ADDRESS SECTION
+ * From (Left) and Bill To (Right, inside a box)
+ */
+function renderAddresses(doc, startY, customer, periodStart, periodEnd) {
+  const boxPadding = 20;
+  const boxHeight = 110;
+  
+  // "From" Section (Left side)
+  doc
+    .fillColor(COLORS.textMuted)
+    .fontSize(9)
+    .font('Helvetica-Bold')
+    .text('FROM', MARGIN, startY);
+
+  doc
+    .fillColor(COLORS.text)
+    .fontSize(10)
+    .font('Helvetica')
+    .text(COMPANY.name, MARGIN, startY + 15)
+    .fillColor(COLORS.textMuted)
+    .text(COMPANY.address, MARGIN, startY + 30)
+    .text(COMPANY.email, MARGIN, startY + 45)
+    .text(COMPANY.website, MARGIN, startY + 60);
+
+  // "Bill To" Section (Right side - highlighted box)
+  // We draw a subtle box to frame the customer info professionally
+  const boxY = startY - 10;
+  const boxX = 300;
+  const boxWidth = CONTENT_WIDTH - (boxX - MARGIN);
+
+  doc
+    .roundedRect(boxX, boxY, boxWidth, boxHeight, 8)
+    .fill(COLORS.accent); // The 'Snow' color from your globals
+
+  // Bill To Content inside the box
+  const contentX = boxX + boxPadding;
+  const contentY = boxY + boxPadding;
+
+  doc
+    .fillColor(COLORS.primary) // Using primary for the header to tie it together
+    .fontSize(9)
+    .font('Helvetica-Bold')
+    .text('BILL TO', contentX, contentY);
+
+  doc
+    .fillColor(COLORS.text)
+    .fontSize(10)
+    .font('Helvetica-Bold')
+    .text(customer.name || 'Valued Customer', contentX, contentY + 15)
+    .font('Helvetica')
+    .fillColor(COLORS.textMuted)
+    .text(customer.email, contentX, contentY + 30);
+
+  if (periodStart && periodEnd) {
+    doc.text(
+      `Period: ${formatDate(periodStart)} - ${formatDate(periodEnd)}`,
+      contentX,
+      contentY + 50
+    );
+  }
+
+  // Draw a border around the box for definition
+  doc
+    .roundedRect(boxX, boxY, boxWidth, boxHeight, 8)
+    .strokeColor(COLORS.border)
+    .stroke();
+
+  return startY + 140; // Spacing after addresses
+}
+
+/**
+ * 3. TABLE SECTION
+ * Headers, Rows, and Total
+ */
+function renderTable(doc, startY, items, pricingConfig) {
+  let y = startY;
+
+  // --- Table Headers ---
+  doc
+    .fillColor(COLORS.textMuted)
+    .fontSize(9)
+    .font('Helvetica-Bold')
+    .text('DESCRIPTION', MARGIN, y)
+    .text('AMOUNT', MARGIN, y, { align: 'right', width: CONTENT_WIDTH });
+
+  y += 15;
+
+  // Header separator line
+  doc
+    .moveTo(MARGIN, y)
+    .lineTo(PAGE_WIDTH - MARGIN, y)
+    .strokeColor(COLORS.primary) // Primary color line for header
+    .lineWidth(1)
+    .stroke();
+
+  y += 20;
+
+  // --- Table Items ---
+  let total = 0;
+
+  items.forEach((item) => {
+    // Description
+    doc
+      .fillColor(COLORS.text)
+      .fontSize(10)
+      .font('Helvetica')
+      .text(item.description, MARGIN, y);
+
+    // Amount
+    doc
+      .text(
+        `${pricingConfig.currencySymbol}${item.amount.toFixed(2)}`,
+        MARGIN,
+        y,
+        { align: 'right', width: CONTENT_WIDTH }
+      );
+
+    y += 20;
+    
+    // Light separator line between items
+    doc
+      .moveTo(MARGIN, y)
+      .lineTo(PAGE_WIDTH - MARGIN, y)
+      .strokeColor(COLORS.border)
+      .lineWidth(0.5)
+      .stroke();
+      
+    y += 15;
+    total += item.amount;
+  });
+
+  // --- Totals Section ---
+  y += 10;
+
+  // We align the totals block to the right
+  // No GST calculation here as requested
+  
+  const totalLabelX = 350;
+  const totalValueX = 450; // Just reference, we use align right with width
+
+  // Final Total Box
+  // We make the total standout with a background or larger text
+  doc
+    .rect(300, y - 10, PAGE_WIDTH - 300 - MARGIN, 40)
+    .fill(COLORS.accent); // Light background
+
+  doc
+    .fillColor(COLORS.primary)
+    .fontSize(11)
+    .font('Helvetica-Bold')
+    .text('TOTAL', 320, y + 4);
+
+  doc
+    .fillColor(COLORS.primary)
+    .fontSize(14)
+    .text(
+      `${pricingConfig.currency} ${pricingConfig.currencySymbol}${total.toFixed(2)}`,
+      MARGIN, // Start at margin
+      y + 2,
+      { align: 'right', width: CONTENT_WIDTH } // Align right against margin
+    );
+
+  return y;
+}
+
+/**
+ * 4. FOOTER SECTION
+ * Bottom of page
+ */
+function renderFooter(doc) {
+  const footerY = 750;
+
+  doc
+    .moveTo(MARGIN, footerY)
+    .lineTo(PAGE_WIDTH - MARGIN, footerY)
+    .strokeColor(COLORS.border)
+    .lineWidth(1)
+    .stroke();
+
+  doc
+    .fillColor(COLORS.textMuted)
+    .fontSize(9)
+    .font('Helvetica')
+    .text('Thank you for subscribing to PromptStack.', MARGIN, footerY + 15, {
+      align: 'center',
+      width: CONTENT_WIDTH
+    });
+
+  doc
+    .fillColor(COLORS.primary)
+    .text(COMPANY.website, MARGIN, footerY + 30, {
+      align: 'center',
+      width: CONTENT_WIDTH,
+      link: `https://${COMPANY.website}`
+    });
+}
+
+/**
+ * Helper to draw a status badge (pill shape) aligned to right
+ */
+function drawBadge(doc, text, xEnd, y, color) {
+  const width = 80;
+  const height = 22;
+  const xStart = xEnd - width;
+
+  // Pill background
+  doc
+    .roundedRect(xStart, y, width, height, 11)
+    .fill(color);
+
+  // Text
+  doc
+    .fillColor('#FFFFFF')
+    .fontSize(10)
+    .font('Helvetica-Bold')
+    .text(text, xStart, y + 6, {
+      width: width,
+      align: 'center',
+    });
+}
+
+/**
+ * Helper to generate Invoice Number
  */
 function generateInvoiceNumber() {
   const date = new Date();
@@ -267,7 +375,7 @@ function generateInvoiceNumber() {
 }
 
 /**
- * Format date for display
+ * Helper to format date
  */
 function formatDate(date) {
   if (!date) return '';

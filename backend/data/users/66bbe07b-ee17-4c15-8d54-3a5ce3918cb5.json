@@ -4,9 +4,9 @@
   "name": "Ben Kelsey",
   "passwordHash": "$2b$12$WwxOsUpE4.gq4mAsNkDV6OV5rZ7ORW9uL2i1k/54yWrrSToRqQnCG",
   "emailVerified": true,
-  "tier": "professional",
+  "tier": "enterprise",
   "createdAt": "2025-12-21T08:14:27.229Z",
-  "updatedAt": "2025-12-26T20:40:06.523Z",
+  "updatedAt": "2026-01-04T07:12:40.495Z",
   "customPrompts": [
     {
       "id": "c231a4c4-c613-4b1a-b208-e2732683f01b",
@@ -23,9 +23,28 @@
       "updatedAt": "2025-12-21T09:31:40.303Z",
       "industry": "finance",
       "role": "Financial Analyst"
+    },
+    {
+      "id": "54c33d13-ea54-4894-8e11-bcbc51ff6d57",
+      "title": "Investment Portfolio Review",
+      "content": "Conduct a comprehensive portfolio review for [Client Name/Type].\n\nPortfolio Value: [Total Value]\nRisk Profile: [Conservative/Balanced/Growth/Aggressive]\nInvestment Horizon: [Timeframe]\n\nCurrent Allocation:\n[List Asset Classes and Percentages]\n\nPerformance Period: [Period]\nBenchmark: [Relevant Benchmark]\n\nNZ-Specific Considerations:\n- PIE tax implications\n- KiwiSaver alignment (if applicable)\n- NZ dollar exposure\n\nProvide:\n1. Performance analysis vs benchmark\n2. Risk assessment\n3. Rebalancing recommendations\n4. Tax efficiency opportunities\n5. Forward outlook",
+      "keywords": [
+        "investment",
+        "portfolio",
+        "review",
+        "KiwiSaver",
+        "PIE",
+        "NZ"
+      ],
+      "createdAt": "2026-01-06T03:49:13.157Z",
+      "updatedAt": "2026-01-06T03:55:12.997Z",
+      "industry": "finance",
+      "role": "Investment Advisor"
     }
   ],
-  "savedPrompts": [],
+  "savedPrompts": [
+    "gen-005"
+  ],
   "profile": {
     "completed": true,
     "completedAt": "2025-12-25T19:57:44.435Z",
@@ -84,6 +103,14 @@
     }
   },
   "stripeCustomerId": "cus_Tg3hMBUmsha7AU",
-  "stripeSubscriptionId": "sub_1SihnnKnuEDIBIGDzADX3xmf",
-  "subscriptionStartDate": "2025-12-26T20:40:06.522Z"
+  "stripeSubscriptionId": "sub_1SllSIKnuEDIBIGD3ZgiSOxG",
+  "subscriptionStartDate": "2026-01-04T07:10:32.979Z",
+  "teamMemberships": [
+    {
+      "teamId": "38bee808-dceb-432b-8153-b44d83332399",
+      "teamName": "Ben & Isla",
+      "role": "owner",
+      "joinedAt": "2026-01-04T07:12:40.490Z"
+    }
+  ]
 }

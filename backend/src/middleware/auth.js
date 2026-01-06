@@ -91,8 +91,27 @@ const requireVerified = (req, res, next) => {
   next();
 };
 
+// Require premium or enterprise tier
+const requirePremium = (req, res, next) => {
+  const tier = req.user?.tier;
+  if (tier !== 'professional' && tier !== 'enterprise') {
+    return next(new AppError('This feature requires a Premium or Enterprise subscription', 403));
+  }
+  next();
+};
+
+// Require enterprise tier only
+const requireEnterprise = (req, res, next) => {
+  if (req.user?.tier !== 'enterprise') {
+    return next(new AppError('This feature requires an Enterprise subscription', 403));
+  }
+  next();
+};
+
 module.exports = {
   authenticate,
   optionalAuth,
-  requireVerified
+  requireVerified,
+  requirePremium,
+  requireEnterprise
 };

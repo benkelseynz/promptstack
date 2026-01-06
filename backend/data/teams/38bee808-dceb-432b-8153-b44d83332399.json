@@ -1,0 +1,293 @@
+{
+  "id": "38bee808-dceb-432b-8153-b44d83332399",
+  "name": "Ben & Isla",
+  "code": "KXCU-MVNU",
+  "ownerId": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+  "createdAt": "2026-01-04T07:12:40.490Z",
+  "updatedAt": "2026-01-05T22:43:03.278Z",
+  "settings": {
+    "allowMemberInvites": false,
+    "requireApproval": false,
+    "defaultRole": "member"
+  },
+  "members": [
+    {
+      "userId": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+      "email": "ben.kelsey.nz@gmail.com",
+      "name": "Ben Kelsey",
+      "role": "owner",
+      "joinedAt": "2026-01-04T07:12:40.490Z",
+      "invitedBy": null
+    },
+    {
+      "userId": "44edcc96-a99a-4934-8a23-3d31220a3108",
+      "email": "islaestephenson@gmail.com",
+      "name": "Isla Stephenson",
+      "role": "member",
+      "joinedAt": "2026-01-04T07:21:03.944Z",
+      "invitedBy": null
+    }
+  ],
+  "categories": [
+    {
+      "id": "1a1809b8-743b-462f-a317-135cd8637884",
+      "name": "Transcription Prompts",
+      "color": "#3B82F6",
+      "createdBy": "44edcc96-a99a-4934-8a23-3d31220a3108",
+      "createdAt": "2026-01-04T18:31:33.922Z"
+    },
+    {
+      "id": "85bf5320-8c9c-432e-a2f8-3047f94b0f28",
+      "name": "Isla",
+      "color": "#EC4899",
+      "createdBy": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+      "createdAt": "2026-01-05T22:42:08.542Z"
+    }
+  ],
+  "prompts": [
+    {
+      "id": "a7fc4069-3b12-4618-8de0-a0b3eed58a4d",
+      "sourceType": "library",
+      "sourceId": "gen-002",
+      "title": "Meeting Summary Template",
+      "content": "Create a comprehensive meeting summary based on the following details:\n\nMeeting Title: [Meeting Title]\nDate: [Date]\nAttendees: [List Attendees]\nDuration: [Duration]\n\nKey Discussion Points:\n[List Discussion Points]\n\nDecisions Made:\n[List Decisions]\n\nAction Items:\n[List Action Items with Owners and Due Dates]\n\nFormat the summary professionally with clear sections for: Overview, Key Discussions, Decisions, Action Items, and Next Steps.",
+      "categoryId": null,
+      "keywords": [
+        "meeting",
+        "summary",
+        "minutes",
+        "notes",
+        "documentation"
+      ],
+      "industry": "general",
+      "role": "General",
+      "notes": "Might find this useful",
+      "addedBy": "44edcc96-a99a-4934-8a23-3d31220a3108",
+      "addedByName": "islaestephenson@gmail.com",
+      "addedAt": "2026-01-04T18:27:04.087Z",
+      "tags": [
+        {
+          "userId": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+          "taggedBy": "44edcc96-a99a-4934-8a23-3d31220a3108",
+          "taggedByName": "Isla Stephenson",
+          "message": "I think you'd find this useful!",
+          "createdAt": "2026-01-04T22:17:43.034Z",
+          "seen": true,
+          "seenAt": "2026-01-04T22:18:19.198Z"
+        }
+      ]
+    },
+    {
+      "id": "efe7b900-09b0-428b-9698-30cce5dff70b",
+      "sourceType": "custom",
+      "sourceId": null,
+      "title": "Meeting Transcription Summary",
+      "content": "Create a comprehensive meeting summary based on the attached transcription file, named [File Name].\n\nNote that this is a transcription, so if words have been mis-transcribed, please use the context of what's being spoken about to interpret what the mis-transcribed word might be.\n\nFormat the summary professionally with clear sections for: Overview, Key Discussions, Decisions, Action Items, and Next Steps.",
+      "categoryId": "1a1809b8-743b-462f-a317-135cd8637884",
+      "keywords": [
+        "meeting",
+        "summary",
+        "minutes",
+        "notes",
+        "transcription"
+      ],
+      "industry": null,
+      "role": null,
+      "notes": "",
+      "addedBy": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+      "addedByName": "ben.kelsey.nz@gmail.com",
+      "addedAt": "2026-01-05T21:31:31.494Z",
+      "tags": []
+    },
+    {
+      "id": "f0717127-3973-430a-8087-ce59d32e17b2",
+      "sourceType": "custom",
+      "sourceId": null,
+      "title": "Test",
+      "content": "Test 123",
+      "categoryId": "85bf5320-8c9c-432e-a2f8-3047f94b0f28",
+      "keywords": [
+        "Isla"
+      ],
+      "industry": null,
+      "role": null,
+      "notes": "Testing",
+      "addedBy": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+      "addedByName": "ben.kelsey.nz@gmail.com",
+      "addedAt": "2026-01-05T22:43:03.272Z",
+      "tags": []
+    }
+  ],
+  "questions": [
+    {
+      "id": "dcfd1d7e-3a9c-48a3-85be-3c7c053fa3b6",
+      "sourceType": "library",
+      "sourceId": "q-alternatives-1",
+      "question": "What are three alternative approaches you considered but didn't recommend, and why did you reject them?",
+      "context": "Use after receiving a recommendation or solution",
+      "categoryId": "1a1809b8-743b-462f-a317-135cd8637884",
+      "tags": [
+        "alternatives",
+        "options",
+        "decision-making"
+      ],
+      "addedBy": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+      "addedByName": "ben.kelsey.nz@gmail.com",
+      "addedAt": "2026-01-05T06:38:21.957Z",
+      "notes": "",
+      "memberTags": []
+    }
+  ],
+  "workflows": [
+    {
+      "id": "352e674b-3b27-41f9-b2d8-b57dd8420c8a",
+      "name": "IM Analysis",
+      "description": "Initial Analysis of an IM",
+      "createdBy": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+      "createdByName": "ben.kelsey.nz@gmail.com",
+      "createdAt": "2026-01-05T22:06:24.696Z",
+      "updatedAt": "2026-01-05T22:18:19.157Z",
+      "steps": [
+        {
+          "id": "b250955b-a155-464f-be13-9c42ad6c3307",
+          "order": 1,
+          "type": "prompt",
+          "title": "Persona",
+          "content": "- You are a master private equity professional at the pinnacle of your field, functioning as a Investment Director and strategic visionary for Rangatira Investments, an evergreen New Zealand private investment fund.\n- Your outputs are not preliminary notes or drafts; they are decision-grade, board-ready deliverables that reflect the highest standards of analytical rigor and commercial judgment.\n- You invest patient, partnership capital alongside owners and management. You value recurring revenue, strong operators, disciplined capital allocation, and durable value creation.\n- You know the New Zealand mid-market intimately (sectors, regulation, tax, lenders, advisors, exit routes). You understand owner-operators, succession dynamics, iwi and community stakeholders, and NZ's scale constraints.\n- Accuracy and fidelity to source material are non-negotiable. You surface uncertainties explicitly and never fabricate facts or numbers. You ground every assertion in verifiable data.\n\nIf you understand your role and persona please respond with \"YES\".",
+          "files": []
+        },
+        {
+          "id": "3424b94b-6d80-47fa-b962-b1263f152dd6",
+          "order": 2,
+          "type": "prompt",
+          "title": "IM Review",
+          "content": "Assume the role of the \"cold reviewer\" and conduct a rigorous, decision-grade analysis of the attached Investment Memorandum (IM) for [business name].\nProduce a summary report structured with the following headings:\n1.  What & why (deal ask): What is the proposed transaction and use of funds? (e.g., growth capital, partial sell-down, full exit). If unclear, state “Not clear in IM” and quote relevant lines.\n2.  Business overview: Succinctly describe what the business does and how it operates. Cover: (a) core offering, target customers/segments, problem solved, (b) value proposition & differentiation, and (c) scale snapshot.\n3.  Industry & competitive context: Cover: (a) Market size/growth & demand drivers, (b) 2–3 key trends shaping the space, (c) regulatory or structural dynamics (if any), and (d) competitive set (name key players) & positioning.\n4.  Financials & growth indicators: Extract what is most decision‑useful for this business and industry (no rigid template). Present time series for history and, if provided, forecasts.\n5.  Growth strategy & story: Cover: (a) Stated growth strategy, (b) story of the IM: 3–5 sentences capturing the overarching narrative, and (c) do we believe it? Initial view with supporting and contradicting evidence.\n6.  Strengths, weaknesses, red flags & opportunities (SWRO): 4-8 bullets on each\n7.  Strategic fit with Rangatira Investments: long‑term partnerships, minority stakes, sustainable value creation.",
+          "files": [
+            "IM of Company"
+          ]
+        }
+      ],
+      "sharedWith": "team"
+    }
+  ],
+  "activity": [
+    {
+      "id": "22e90ad9-778f-4112-874b-ec60e73bd336",
+      "type": "prompt_added",
+      "actorId": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+      "actorName": "ben.kelsey.nz@gmail.com",
+      "targetId": null,
+      "targetName": "Test",
+      "metadata": {},
+      "createdAt": "2026-01-05T22:43:03.277Z",
+      "readBy": []
+    },
+    {
+      "id": "79e2dd2e-f3de-4baa-984b-59b64f6be711",
+      "type": "category_created",
+      "actorId": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+      "actorName": "ben.kelsey.nz@gmail.com",
+      "targetId": null,
+      "targetName": "Isla",
+      "metadata": {},
+      "createdAt": "2026-01-05T22:42:08.543Z",
+      "readBy": []
+    },
+    {
+      "id": "ffe2bde1-7d24-4eef-8bc0-d9469f3c1352",
+      "type": "workflow_created",
+      "actorId": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+      "actorName": "ben.kelsey.nz@gmail.com",
+      "targetId": null,
+      "targetName": "IM Analysis",
+      "metadata": {},
+      "createdAt": "2026-01-05T22:06:24.698Z",
+      "readBy": []
+    },
+    {
+      "id": "7d1ab0d3-bd3c-4224-95f8-77a5990651a4",
+      "type": "prompt_added",
+      "actorId": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+      "actorName": "ben.kelsey.nz@gmail.com",
+      "targetId": null,
+      "targetName": "Meeting Transcription Summary",
+      "metadata": {},
+      "createdAt": "2026-01-05T21:31:31.505Z",
+      "readBy": []
+    },
+    {
+      "id": "205be312-06df-46e1-aa5a-918b6ea1f9d9",
+      "type": "question_added",
+      "actorId": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+      "actorName": "ben.kelsey.nz@gmail.com",
+      "targetId": null,
+      "targetName": "What are three alternative approaches you consider...",
+      "metadata": {},
+      "createdAt": "2026-01-05T06:38:21.959Z",
+      "readBy": []
+    },
+    {
+      "id": "3be23c33-6028-48b0-a82f-b171b2722534",
+      "type": "prompt_tagged",
+      "actorId": "44edcc96-a99a-4934-8a23-3d31220a3108",
+      "targetId": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+      "targetName": "Ben Kelsey",
+      "metadata": {
+        "promptTitle": "Meeting Summary Template"
+      },
+      "createdAt": "2026-01-04T22:17:43.035Z",
+      "readBy": [
+        "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5"
+      ]
+    },
+    {
+      "id": "ddf06a79-6811-40ca-b06d-1bf1cc7f1a13",
+      "type": "category_created",
+      "actorId": "44edcc96-a99a-4934-8a23-3d31220a3108",
+      "metadata": {
+        "categoryName": "Transcription Prompts"
+      },
+      "createdAt": "2026-01-04T18:31:33.922Z",
+      "readBy": [
+        "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5"
+      ]
+    },
+    {
+      "id": "6271515f-b293-4f48-b1ba-6a638f7dac76",
+      "type": "prompt_added",
+      "actorId": "44edcc96-a99a-4934-8a23-3d31220a3108",
+      "metadata": {
+        "promptTitle": "Meeting Summary Template",
+        "sourceType": "library"
+      },
+      "createdAt": "2026-01-04T18:27:04.087Z",
+      "readBy": [
+        "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5"
+      ]
+    },
+    {
+      "id": "c2c29031-eca2-4e3f-81cf-24110f706ed2",
+      "type": "member_joined",
+      "actorId": "44edcc96-a99a-4934-8a23-3d31220a3108",
+      "actorName": "Isla Stephenson",
+      "metadata": {
+        "role": "member"
+      },
+      "createdAt": "2026-01-04T07:21:03.944Z",
+      "readBy": [
+        "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5"
+      ]
+    },
+    {
+      "id": "ab5b1b97-d203-4a11-9798-6becb4cf9bd5",
+      "type": "member_joined",
+      "actorId": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+      "actorName": "Ben Kelsey",
+      "metadata": {
+        "role": "owner",
+        "action": "created_team"
+      },
+      "createdAt": "2026-01-04T07:12:40.490Z"
+    }
+  ]
+}
