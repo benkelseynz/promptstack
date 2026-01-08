@@ -43,7 +43,10 @@
     }
   ],
   "savedPrompts": [
-    "gen-005"
+    "gen-005",
+    "fin-002",
+    "fin-004",
+    "fin-003"
   ],
   "profile": {
     "completed": true,
@@ -111,6 +114,19 @@
       "teamName": "Ben & Isla",
       "role": "owner",
       "joinedAt": "2026-01-04T07:12:40.490Z"
+    }
+  ],
+  "customQuestions": [
+    {
+      "id": "5494b776-695d-49fe-94c3-ffc0d7b952af",
+      "question": "What assumptions are you making here?",
+      "context": "Use when performing analysis",
+      "category": "deepen",
+      "tags": [
+        "Assumptions"
+      ],
+      "createdAt": "2026-01-06T04:54:29.178Z",
+      "updatedAt": "2026-01-08T08:27:55.188Z"
     }
   ]
 }

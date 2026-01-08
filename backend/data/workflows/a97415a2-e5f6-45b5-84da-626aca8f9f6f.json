@@ -4,7 +4,7 @@
   "description": "Gather initial questions for an advisor once the IM has been received.",
   "userId": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
   "createdAt": "2026-01-05T22:33:56.886Z",
-  "updatedAt": "2026-01-05T22:35:38.976Z",
+  "updatedAt": "2026-01-06T05:34:13.308Z",
   "steps": [
     {
       "id": "369b6f11-6307-491f-80ee-4a52ca5bf8fd",
@@ -30,5 +30,6 @@
         "Company IM"
       ]
     }
-  ]
+  ],
+  "categoryId": "0939fc5b-064a-4ad8-b305-03f88c07762d"
 }

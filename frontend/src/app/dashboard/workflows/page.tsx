@@ -19,6 +19,8 @@ import {
   LayoutGrid,
   FolderOpen,
   Pencil,
+  Settings,
+  ChevronDown,
 } from 'lucide-react';
 import type { PersonalWorkflow, WorkflowCategory } from '@/types';
 
@@ -62,6 +64,15 @@ export default function WorkflowsPage() {
 
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+
+  const [settingsWorkflow, setSettingsWorkflow] = useState<PersonalWorkflow | null>(null);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editCategoryId, setEditCategoryId] = useState<string | null>(null);
+  const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [deletingFromSettings, setDeletingFromSettings] = useState(false);
 
   const isPremium = user?.tier === 'professional' || user?.tier === 'enterprise';
 
@@ -131,6 +142,55 @@ export default function WorkflowsPage() {
       alert(err instanceof Error ? err.message : 'Failed to delete workflow');
     } finally {
       setDeleting(null);
+    }
+  };
+
+  const openSettings = (workflow: PersonalWorkflow) => {
+    setSettingsWorkflow(workflow);
+    setEditName(workflow.name);
+    setEditDescription(workflow.description || '');
+    setEditCategoryId(workflow.categoryId || null);
+    setCategoryMenuOpen(false);
+    setShowSettingsModal(true);
+  };
+
+  const closeSettings = () => {
+    setShowSettingsModal(false);
+    setSettingsWorkflow(null);
+    setCategoryMenuOpen(false);
+    setSavingSettings(false);
+    setDeletingFromSettings(false);
+  };
+
+  const handleSaveSettings = async () => {
+    if (!settingsWorkflow) return;
+    setSavingSettings(true);
+    try {
+      await api.updatePersonalWorkflow(settingsWorkflow.id, {
+        name: editName.trim(),
+        description: editDescription.trim() || undefined,
+        categoryId: editCategoryId,
+      });
+      await loadData();
+      closeSettings();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to update workflow');
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
+  const handleDeleteFromSettings = async () => {
+    if (!settingsWorkflow) return;
+    if (!confirm('Delete this workflow? This action cannot be undone.')) return;
+    setDeletingFromSettings(true);
+    try {
+      await api.deletePersonalWorkflow(settingsWorkflow.id);
+      await loadData();
+      closeSettings();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to delete workflow');
+      setDeletingFromSettings(false);
     }
   };
 
@@ -452,13 +512,10 @@ export default function WorkflowsPage() {
                         )}
                       </div>
 
-                      <div className="relative">
+                      <div className="relative" onClick={(e) => e.stopPropagation()}>
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setMenuOpen(menuOpen === workflow.id ? null : workflow.id);
-                          }}
-                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                          onClick={() => setMenuOpen(menuOpen === workflow.id ? null : workflow.id)}
+                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                         >
                           <MoreVertical className="w-4 h-4" />
                         </button>
@@ -467,15 +524,22 @@ export default function WorkflowsPage() {
                           <>
                             <div
                               className="fixed inset-0 z-10"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setMenuOpen(null);
-                              }}
+                              onClick={() => setMenuOpen(null)}
                             />
                             <div className="absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
                               <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
+                                onClick={() => {
+                                  setMenuOpen(null);
+                                  openSettings(workflow);
+                                }}
+                                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                              >
+                                <Settings className="w-4 h-4" />
+                                Settings
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setMenuOpen(null);
                                   handleDelete(workflow.id);
                                 }}
                                 className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
@@ -602,6 +666,155 @@ export default function WorkflowsPage() {
                 ) : (
                   'Create Workflow'
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {showSettingsModal && settingsWorkflow && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="font-semibold text-gray-900">Workflow Settings</h3>
+              <button
+                onClick={() => {
+                  setEditName(settingsWorkflow.name);
+                  setEditDescription(settingsWorkflow.description || '');
+                  setEditCategoryId(settingsWorkflow.categoryId || null);
+                  closeSettings();
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Workflow Name</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="input-field"
+                  placeholder="Enter workflow name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+                <textarea
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  className="input-field"
+                  rows={3}
+                  placeholder="Describe what this workflow is for..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setCategoryMenuOpen(!categoryMenuOpen)}
+                    className="input-field flex items-center justify-between"
+                  >
+                    <span className="flex items-center gap-2 text-sm text-gray-700">
+                      <span
+                        className="w-2 h-2 rounded-full"
+                        style={{
+                          backgroundColor: categories.find((c) => c.id === editCategoryId)?.color || '#d1d5db',
+                        }}
+                      />
+                      {categories.find((c) => c.id === editCategoryId)?.name || 'Uncategorized'}
+                    </span>
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  </button>
+
+                  {categoryMenuOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={() => setCategoryMenuOpen(false)}
+                      />
+                      <div className="absolute left-0 right-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-20 max-h-56 overflow-y-auto">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditCategoryId(null);
+                            setCategoryMenuOpen(false);
+                          }}
+                          className={`w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 ${
+                            editCategoryId ? 'text-gray-700' : 'bg-gray-50 text-gray-900'
+                          }`}
+                        >
+                          <span className="w-2 h-2 rounded-full bg-gray-300" />
+                          Uncategorized
+                        </button>
+                        {categories.map((category) => (
+                          <button
+                            key={category.id}
+                            type="button"
+                            onClick={() => {
+                              setEditCategoryId(category.id);
+                              setCategoryMenuOpen(false);
+                            }}
+                            className={`w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 ${
+                              editCategoryId === category.id
+                                ? 'bg-gray-50 text-gray-900'
+                                : 'text-gray-700'
+                            }`}
+                          >
+                            <span
+                              className="w-2 h-2 rounded-full"
+                              style={{ backgroundColor: category.color }}
+                            />
+                            {category.name}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-gray-200">
+                <button
+                  onClick={handleDeleteFromSettings}
+                  disabled={deletingFromSettings}
+                  className="w-full flex items-center justify-center gap-2 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                  {deletingFromSettings ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
+                  Delete Workflow
+                </button>
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-gray-200 flex gap-3">
+              <button
+                onClick={() => {
+                  setEditName(settingsWorkflow.name);
+                  setEditDescription(settingsWorkflow.description || '');
+                  setEditCategoryId(settingsWorkflow.categoryId || null);
+                  closeSettings();
+                }}
+                className="flex-1 btn-secondary"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveSettings}
+                disabled={savingSettings || !editName.trim()}
+                className="flex-1 btn-primary"
+              >
+                {savingSettings ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Save Changes'}
               </button>
             </div>
           </div>

@@ -225,7 +225,7 @@ export default function SavedPromptsPage() {
                 className="card cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => setSelectedCustomPrompt(prompt)}
               >
-                <div className="flex items-start gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-2">
                   <span className="text-xs font-medium px-2 py-1 rounded-full bg-purple-100 text-purple-700">
                     Custom
                   </span>

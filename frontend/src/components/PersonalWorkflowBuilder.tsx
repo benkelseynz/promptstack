@@ -19,7 +19,7 @@ import {
   Paperclip,
   ArrowRight,
 } from 'lucide-react';
-import type { PersonalWorkflow, WorkflowStep } from '@/types';
+import type { PersonalWorkflow, WorkflowStep, WorkflowCategory } from '@/types';
 
 interface PersonalWorkflowBuilderProps {
   workflow: PersonalWorkflow;
@@ -60,12 +60,27 @@ export default function PersonalWorkflowBuilder({
   // Settings state
   const [editName, setEditName] = useState(workflow.name);
   const [editDescription, setEditDescription] = useState(workflow.description || '');
+  const [editCategoryId, setEditCategoryId] = useState<string | null>(workflow.categoryId || null);
   const [savingSettings, setSavingSettings] = useState(false);
+  const [categories, setCategories] = useState<WorkflowCategory[]>([]);
+  const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
 
   // Sync steps when workflow prop changes
   useEffect(() => {
     setSteps(workflow.steps);
   }, [workflow.steps]);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const data = await api.getWorkflowCategories();
+        setCategories(data.categories);
+      } catch (err) {
+        console.error('Failed to load categories:', err);
+      }
+    };
+    loadCategories();
+  }, []);
 
   const resetAddForm = () => {
     setAddStepType(null);
@@ -218,6 +233,7 @@ export default function PersonalWorkflowBuilder({
       await api.updatePersonalWorkflow(workflow.id, {
         name: editName.trim(),
         description: editDescription.trim() || undefined,
+        categoryId: editCategoryId,
       });
       onUpdated();
       setShowSettings(false);
@@ -256,7 +272,13 @@ export default function PersonalWorkflowBuilder({
           </div>
 
           <button
-            onClick={() => setShowSettings(true)}
+            onClick={() => {
+              setEditName(workflow.name);
+              setEditDescription(workflow.description || '');
+              setEditCategoryId(workflow.categoryId || null);
+              setCategoryMenuOpen(false);
+              setShowSettings(true);
+            }}
             className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
             title="Workflow settings"
           >
@@ -654,6 +676,8 @@ export default function PersonalWorkflowBuilder({
                   setShowSettings(false);
                   setEditName(workflow.name);
                   setEditDescription(workflow.description || '');
+                  setEditCategoryId(workflow.categoryId || null);
+                  setCategoryMenuOpen(false);
                 }}
                 className="p-2 hover:bg-gray-100 rounded-lg"
               >
@@ -684,6 +708,73 @@ export default function PersonalWorkflowBuilder({
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setCategoryMenuOpen(!categoryMenuOpen)}
+                    className="input-field flex items-center justify-between"
+                  >
+                    <span className="flex items-center gap-2 text-sm text-gray-700">
+                      <span
+                        className="w-2 h-2 rounded-full"
+                        style={{
+                          backgroundColor: categories.find((c) => c.id === editCategoryId)?.color || '#d1d5db',
+                        }}
+                      />
+                      {categories.find((c) => c.id === editCategoryId)?.name || 'Uncategorized'}
+                    </span>
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  </button>
+
+                  {categoryMenuOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={() => setCategoryMenuOpen(false)}
+                      />
+                      <div className="absolute left-0 right-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-20 max-h-56 overflow-y-auto">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditCategoryId(null);
+                            setCategoryMenuOpen(false);
+                          }}
+                          className={`w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 ${
+                            editCategoryId ? 'text-gray-700' : 'bg-gray-50 text-gray-900'
+                          }`}
+                        >
+                          <span className="w-2 h-2 rounded-full bg-gray-300" />
+                          Uncategorized
+                        </button>
+                        {categories.map((category) => (
+                          <button
+                            key={category.id}
+                            type="button"
+                            onClick={() => {
+                              setEditCategoryId(category.id);
+                              setCategoryMenuOpen(false);
+                            }}
+                            className={`w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 ${
+                              editCategoryId === category.id
+                                ? 'bg-gray-50 text-gray-900'
+                                : 'text-gray-700'
+                            }`}
+                          >
+                            <span
+                              className="w-2 h-2 rounded-full"
+                              style={{ backgroundColor: category.color }}
+                            />
+                            {category.name}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
               {/* Delete workflow */}
               <div className="pt-4 border-t border-gray-200">
                 <button
@@ -707,6 +798,8 @@ export default function PersonalWorkflowBuilder({
                   setShowSettings(false);
                   setEditName(workflow.name);
                   setEditDescription(workflow.description || '');
+                  setEditCategoryId(workflow.categoryId || null);
+                  setCategoryMenuOpen(false);
                 }}
                 className="flex-1 btn-secondary"
               >

@@ -1,9 +1,9 @@
 {
-  "/dashboard/page": "app/dashboard/page.js",
-  "/dashboard/saved/prompts/page": "app/dashboard/saved/prompts/page.js",
   "/dashboard/saved/page": "app/dashboard/saved/page.js",
-  "/dashboard/workflows/page": "app/dashboard/workflows/page.js",
   "/dashboard/saved/questions/page": "app/dashboard/saved/questions/page.js",
-  "/dashboard/team/page": "app/dashboard/team/page.js",
-  "/dashboard/questions/page": "app/dashboard/questions/page.js"
+  "/dashboard/questions/page": "app/dashboard/questions/page.js",
+  "/dashboard/team/[teamId]/page": "app/dashboard/team/[teamId]/page.js",
+  "/dashboard/saved/prompts/page": "app/dashboard/saved/prompts/page.js",
+  "/dashboard/team/[teamId]/prompts/page": "app/dashboard/team/[teamId]/prompts/page.js",
+  "/dashboard/team/page": "app/dashboard/team/page.js"
 }

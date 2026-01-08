@@ -4,5 +4,11 @@
     "name": "Work",
     "color": "#06b6d4",
     "createdAt": "2026-01-06T03:13:10.816Z"
+  },
+  {
+    "id": "0939fc5b-064a-4ad8-b305-03f88c07762d",
+    "name": "PromptStack",
+    "color": "#8b5cf6",
+    "createdAt": "2026-01-06T05:03:12.806Z"
   }
 ]

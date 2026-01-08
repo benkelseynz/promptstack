@@ -4,7 +4,7 @@
   "code": "KXCU-MVNU",
   "ownerId": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
   "createdAt": "2026-01-04T07:12:40.490Z",
-  "updatedAt": "2026-01-05T22:43:03.278Z",
+  "updatedAt": "2026-01-06T05:34:29.767Z",
   "settings": {
     "allowMemberInvites": false,
     "requireApproval": false,
@@ -146,7 +146,7 @@
       "createdBy": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
       "createdByName": "ben.kelsey.nz@gmail.com",
       "createdAt": "2026-01-05T22:06:24.696Z",
-      "updatedAt": "2026-01-05T22:18:19.157Z",
+      "updatedAt": "2026-01-06T05:34:29.767Z",
       "steps": [
         {
           "id": "b250955b-a155-464f-be13-9c42ad6c3307",
@@ -167,7 +167,8 @@
           ]
         }
       ],
-      "sharedWith": "team"
+      "sharedWith": "team",
+      "categoryId": "1a1809b8-743b-462f-a317-135cd8637884"
     }
   ],
   "activity": [
