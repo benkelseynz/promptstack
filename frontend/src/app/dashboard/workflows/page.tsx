@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -37,6 +37,8 @@ const CATEGORY_COLORS = [
   '#3b82f6', // blue
 ];
 
+const ITEMS_PER_PAGE = 12;
+
 export default function WorkflowsPage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -48,6 +50,7 @@ export default function WorkflowsPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createName, setCreateName] = useState('');
@@ -83,10 +86,7 @@ export default function WorkflowsPage() {
     }
 
     try {
-      const data = await api.getPersonalWorkflows({
-        category: selectedCategory || undefined,
-        q: searchQuery || undefined,
-      });
+      const data = await api.getPersonalWorkflows();
       setWorkflows(data.workflows);
       setCategories(data.categories);
     } catch (err) {
@@ -94,21 +94,14 @@ export default function WorkflowsPage() {
     } finally {
       setLoading(false);
     }
-  }, [isPremium, selectedCategory, searchQuery]);
+  }, [isPremium]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  // Debounced search
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!loading && isPremium) {
-        loadData();
-      }
-    }, 300);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setPage(1);
   }, [searchQuery, selectedCategory]);
 
   const handleCreate = async () => {
@@ -275,6 +268,35 @@ export default function WorkflowsPage() {
     return workflows.filter((w) => w.categoryId === categoryId).length;
   };
 
+  const filteredWorkflows = useMemo(() => {
+    const searchLower = searchQuery.trim().toLowerCase();
+    return workflows.filter((workflow) => {
+      const matchesSearch = !searchLower
+        || workflow.name.toLowerCase().includes(searchLower)
+        || (workflow.description || '').toLowerCase().includes(searchLower);
+
+      const matchesCategory =
+        selectedCategory === null
+          ? true
+          : selectedCategory === 'uncategorized'
+          ? !workflow.categoryId
+          : workflow.categoryId === selectedCategory;
+
+      return matchesSearch && matchesCategory;
+    });
+  }, [workflows, searchQuery, selectedCategory]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredWorkflows.length / ITEMS_PER_PAGE));
+  const currentPage = Math.min(page, totalPages);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedWorkflows = filteredWorkflows.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
   // Show upgrade prompt for free users
   if (!isPremium) {
     return (
@@ -336,7 +358,7 @@ export default function WorkflowsPage() {
 
   if (error) {
     return (
-      <div className="max-w-6xl mx-auto">
+      <div>
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
           <p className="text-red-700">{error}</p>
         </div>
@@ -345,13 +367,13 @@ export default function WorkflowsPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">My Workflows</h1>
           <p className="text-gray-600">
-            {workflows.length} workflow{workflows.length !== 1 ? 's' : ''}
+            {filteredWorkflows.length} workflow{filteredWorkflows.length !== 1 ? 's' : ''}
           </p>
         </div>
         <button
@@ -458,7 +480,7 @@ export default function WorkflowsPage() {
           </div>
 
           {/* Workflows list */}
-          {workflows.length === 0 ? (
+          {filteredWorkflows.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <GitBranch className="w-8 h-8 text-gray-400" />
@@ -482,98 +504,122 @@ export default function WorkflowsPage() {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {workflows.map((workflow) => {
-                const category = workflow.categoryId ? getCategoryById(workflow.categoryId) : null;
-                return (
-                  <div
-                    key={workflow.id}
-                    className={`card hover:shadow-md transition-shadow cursor-pointer ${
-                      deleting === workflow.id ? 'opacity-50' : ''
-                    }`}
-                    onClick={() => router.push(`/dashboard/workflows/${workflow.id}`)}
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <div className="p-2 bg-primary-100 rounded-lg">
-                          <GitBranch className="w-5 h-5 text-primary-600" />
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {paginatedWorkflows.map((workflow) => {
+                  const category = workflow.categoryId ? getCategoryById(workflow.categoryId) : null;
+                  return (
+                    <div
+                      key={workflow.id}
+                      className={`card hover:shadow-md transition-shadow cursor-pointer ${
+                        deleting === workflow.id ? 'opacity-50' : ''
+                      }`}
+                      onClick={() => router.push(`/dashboard/workflows/${workflow.id}`)}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <div className="p-2 bg-primary-100 rounded-lg">
+                            <GitBranch className="w-5 h-5 text-primary-600" />
+                          </div>
+                          {category && (
+                            <span
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium"
+                              style={{
+                                backgroundColor: category.color + '20',
+                                color: category.color,
+                              }}
+                            >
+                              <FolderOpen className="w-3 h-3" />
+                              {category.name}
+                            </span>
+                          )}
                         </div>
-                        {category && (
-                          <span
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium"
-                            style={{
-                              backgroundColor: category.color + '20',
-                              color: category.color,
-                            }}
+
+                        <div className="relative" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={() => setMenuOpen(menuOpen === workflow.id ? null : workflow.id)}
+                            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                           >
-                            <FolderOpen className="w-3 h-3" />
-                            {category.name}
-                          </span>
-                        )}
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+
+                          {menuOpen === workflow.id && (
+                            <>
+                              <div
+                                className="fixed inset-0 z-10"
+                                onClick={() => setMenuOpen(null)}
+                              />
+                              <div className="absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                                <button
+                                  onClick={() => {
+                                    setMenuOpen(null);
+                                    openSettings(workflow);
+                                  }}
+                                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                >
+                                  <Settings className="w-4 h-4" />
+                                  Settings
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setMenuOpen(null);
+                                    handleDelete(workflow.id);
+                                  }}
+                                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                  Delete
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="relative" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={() => setMenuOpen(menuOpen === workflow.id ? null : workflow.id)}
-                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                        >
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
+                      <h3 className="font-semibold text-gray-900 mb-1">{workflow.name}</h3>
+                      {workflow.description && (
+                        <p className="text-sm text-gray-500 mb-3 line-clamp-2">
+                          {workflow.description}
+                        </p>
+                      )}
 
-                        {menuOpen === workflow.id && (
-                          <>
-                            <div
-                              className="fixed inset-0 z-10"
-                              onClick={() => setMenuOpen(null)}
-                            />
-                            <div className="absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
-                              <button
-                                onClick={() => {
-                                  setMenuOpen(null);
-                                  openSettings(workflow);
-                                }}
-                                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                              >
-                                <Settings className="w-4 h-4" />
-                                Settings
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setMenuOpen(null);
-                                  handleDelete(workflow.id);
-                                }}
-                                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                                Delete
-                              </button>
-                            </div>
-                          </>
-                        )}
+                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <Play className="w-3 h-3" />
+                          {workflow.steps.length} {workflow.steps.length === 1 ? 'step' : 'steps'}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-400">
+                        Updated {formatDate(workflow.updatedAt)}
                       </div>
                     </div>
+                  );
+                })}
+              </div>
 
-                    <h3 className="font-semibold text-gray-900 mb-1">{workflow.name}</h3>
-                    {workflow.description && (
-                      <p className="text-sm text-gray-500 mb-3 line-clamp-2">
-                        {workflow.description}
-                      </p>
-                    )}
-
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <Play className="w-3 h-3" />
-                        {workflow.steps.length} {workflow.steps.length === 1 ? 'step' : 'steps'}
-                      </span>
-                    </div>
-
-                    <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-400">
-                      Updated {formatDate(workflow.updatedAt)}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-8">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="btn-secondary disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-gray-600 px-4">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="btn-secondary disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

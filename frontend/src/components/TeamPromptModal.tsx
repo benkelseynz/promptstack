@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { api } from '@/lib/api';
 import {
   X,
@@ -14,13 +14,17 @@ import {
   User,
   Plus,
   GitBranch,
+  UserPlus,
 } from 'lucide-react';
-import type { TeamPrompt, TeamCategory } from '@/types';
+import type { TeamPrompt, TeamCategory, TeamMember } from '@/types';
+import TagTeammateModal from './TagTeammateModal';
 
 interface TeamPromptModalProps {
   prompt: TeamPrompt | null;
   teamId: string;
   categories: TeamCategory[];
+  members: TeamMember[];
+  currentUserId: string;
   isCreating?: boolean;
   onClose: () => void;
   onSaved: () => void;
@@ -30,6 +34,8 @@ export default function TeamPromptModal({
   prompt,
   teamId,
   categories,
+  members,
+  currentUserId,
   isCreating = false,
   onClose,
   onSaved,
@@ -39,6 +45,7 @@ export default function TeamPromptModal({
   const [isEditing, setIsEditing] = useState(isCreating);
   const [loading, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [showTagModal, setShowTagModal] = useState(false);
 
   // Edit form state
   const [title, setTitle] = useState(prompt?.title || '');
@@ -53,6 +60,7 @@ export default function TeamPromptModal({
   const [newTitle, setNewTitle] = useState('');
 
   const isLibraryPrompt = prompt?.sourceType === 'library';
+  const canTagTeammate = !!prompt && members.length > 1;
 
   // Helper to escape special regex characters
   const escapeRegex = (str: string) => {
@@ -535,13 +543,24 @@ export default function TeamPromptModal({
               </>
             ) : (
               <>
-                <button
-                  onClick={handleStartEdit}
-                  className="btn-secondary flex items-center gap-2"
-                >
-                  <Pencil className="w-5 h-5" />
-                  Edit Prompt
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleStartEdit}
+                    className="btn-secondary flex items-center gap-2"
+                  >
+                    <Pencil className="w-5 h-5" />
+                    Edit Prompt
+                  </button>
+                  {canTagTeammate && (
+                    <button
+                      onClick={() => setShowTagModal(true)}
+                      className="btn-secondary flex items-center gap-2"
+                    >
+                      <UserPlus className="w-5 h-5" />
+                      Tag a Teammate
+                    </button>
+                  )}
+                </div>
                 <button
                   onClick={handleCopy}
                   className="btn-primary flex items-center gap-2"
@@ -563,6 +582,18 @@ export default function TeamPromptModal({
           </div>
         </div>
       </div>
+
+      {prompt && (
+        <TagTeammateModal
+          isOpen={showTagModal}
+          onClose={() => setShowTagModal(false)}
+          teamId={teamId}
+          prompt={prompt}
+          members={members}
+          currentUserId={currentUserId}
+          onTagged={onSaved}
+        />
+      )}
     </div>
   );
 }

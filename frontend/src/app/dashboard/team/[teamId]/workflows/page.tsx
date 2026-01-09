@@ -23,6 +23,8 @@ import {
 } from 'lucide-react';
 import type { TeamWorkflow, TeamRole, TeamCategory } from '@/types';
 
+const ITEMS_PER_PAGE = 12;
+
 export default function TeamWorkflowsPage() {
   const params = useParams();
   const router = useRouter();
@@ -37,6 +39,7 @@ export default function TeamWorkflowsPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createName, setCreateName] = useState('');
@@ -91,6 +94,10 @@ export default function TeamWorkflowsPage() {
     }, 300);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, selectedCategory]);
+
+  useEffect(() => {
+    setPage(1);
   }, [searchQuery, selectedCategory]);
 
   const handleCreate = async () => {
@@ -187,6 +194,15 @@ export default function TeamWorkflowsPage() {
     });
   };
 
+  const getFirstName = (name?: string) => {
+    const trimmed = (name || '').trim();
+    if (!trimmed) return 'Unknown';
+    if (trimmed.includes('@')) {
+      return trimmed.split('@')[0] || 'Unknown';
+    }
+    return trimmed.split(' ')[0] || 'Unknown';
+  };
+
   const getCategoryById = (categoryId: string) => {
     return categories.find((c) => c.id === categoryId);
   };
@@ -202,6 +218,18 @@ export default function TeamWorkflowsPage() {
     return workflows.filter((w) => w.categoryId === categoryId).length;
   };
 
+  const filteredWorkflows = workflows;
+  const totalPages = Math.max(1, Math.ceil(filteredWorkflows.length / ITEMS_PER_PAGE));
+  const currentPage = Math.min(page, totalPages);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedWorkflows = filteredWorkflows.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
   if (loading && workflows.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -212,7 +240,7 @@ export default function TeamWorkflowsPage() {
 
   if (error) {
     return (
-      <div className="max-w-6xl mx-auto">
+      <div>
         <button
           onClick={() => router.push(`/dashboard/team/${teamId}`)}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
@@ -228,7 +256,7 @@ export default function TeamWorkflowsPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div>
       {/* Back link */}
       <button
         onClick={() => router.push(`/dashboard/team/${teamId}`)}
@@ -243,7 +271,7 @@ export default function TeamWorkflowsPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Team Workflows</h1>
           <p className="text-gray-600">
-            {workflows.length} workflow{workflows.length !== 1 ? 's' : ''} shared with your team
+            {filteredWorkflows.length} workflow{filteredWorkflows.length !== 1 ? 's' : ''} shared with your team
           </p>
         </div>
         <button
@@ -330,7 +358,7 @@ export default function TeamWorkflowsPage() {
           </div>
 
           {/* Workflows list */}
-          {workflows.length === 0 ? (
+          {filteredWorkflows.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <GitBranch className="w-8 h-8 text-gray-400" />
@@ -354,8 +382,9 @@ export default function TeamWorkflowsPage() {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {workflows.map((workflow) => {
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {paginatedWorkflows.map((workflow) => {
                 const category = workflow.categoryId ? getCategoryById(workflow.categoryId) : null;
                 return (
                   <div
@@ -452,7 +481,7 @@ export default function TeamWorkflowsPage() {
                       </span>
                       <span className="flex items-center gap-1">
                         <User className="w-3 h-3" />
-                        {workflow.createdByName}
+                        Created by {getFirstName(workflow.createdByName)}
                       </span>
                     </div>
 
@@ -461,8 +490,31 @@ export default function TeamWorkflowsPage() {
                     </div>
                   </div>
                 );
-              })}
-            </div>
+                })}
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-8">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="btn-secondary disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-gray-600 px-4">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="btn-secondary disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

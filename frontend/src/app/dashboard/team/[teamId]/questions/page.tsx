@@ -18,6 +18,9 @@ import {
 import type { TeamQuestion, TeamCategory, TeamRole, User } from '@/types';
 import TeamQuestionCard from '@/components/TeamQuestionCard';
 import CategoryModal from '@/components/CategoryModal';
+import TeamQuestionModal from '@/components/TeamQuestionModal';
+
+const ITEMS_PER_PAGE = 12;
 
 export default function TeamQuestionsPage() {
   const params = useParams();
@@ -34,10 +37,12 @@ export default function TeamQuestionsPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<TeamCategory | null>(null);
   const [categoryMenuOpen, setCategoryMenuOpen] = useState<string | null>(null);
   const [deletingCategory, setDeletingCategory] = useState<string | null>(null);
+  const [selectedQuestion, setSelectedQuestion] = useState<TeamQuestion | null>(null);
 
   const isAdmin = userRole === 'owner' || userRole === 'admin';
 
@@ -89,6 +94,10 @@ export default function TeamQuestionsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, selectedCategory]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, selectedCategory]);
+
   const handleDeleteCategory = async (categoryId: string) => {
     if (!confirm('Delete this category? Questions in this category will become uncategorized.')) {
       return;
@@ -114,6 +123,16 @@ export default function TeamQuestionsPage() {
   };
 
   const filteredQuestions = questions;
+  const totalPages = Math.max(1, Math.ceil(filteredQuestions.length / ITEMS_PER_PAGE));
+  const currentPage = Math.min(page, totalPages);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedQuestions = filteredQuestions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   if (loading && questions.length === 0) {
     return (
@@ -125,7 +144,7 @@ export default function TeamQuestionsPage() {
 
   if (error) {
     return (
-      <div className="max-w-6xl mx-auto">
+      <div>
         <button
           onClick={() => router.push(`/dashboard/team/${teamId}`)}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
@@ -141,7 +160,7 @@ export default function TeamQuestionsPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div>
       {/* Back link */}
       <button
         onClick={() => router.push(`/dashboard/team/${teamId}`)}
@@ -155,7 +174,7 @@ export default function TeamQuestionsPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Team Questions</h1>
-          <p className="text-gray-600">{questions.length} questions shared with your team</p>
+          <p className="text-gray-600">{filteredQuestions.length} questions shared with your team</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -323,8 +342,9 @@ export default function TeamQuestionsPage() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredQuestions.map((question) => (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {paginatedQuestions.map((question) => (
                 <TeamQuestionCard
                   key={question.id}
                   question={question}
@@ -334,9 +354,33 @@ export default function TeamQuestionsPage() {
                   currentUserId={currentUser?.id || ''}
                   onDeleted={loadData}
                   onUpdated={loadData}
+                  onEdit={setSelectedQuestion}
                 />
-              ))}
-            </div>
+                ))}
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-8">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="btn-secondary disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-gray-600 px-4">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="btn-secondary disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -352,6 +396,16 @@ export default function TeamQuestionsPage() {
         category={editingCategory}
         onSaved={loadData}
       />
+
+      {selectedQuestion && (
+        <TeamQuestionModal
+          question={selectedQuestion}
+          teamId={teamId}
+          categories={categories}
+          onClose={() => setSelectedQuestion(null)}
+          onSaved={loadData}
+        />
+      )}
     </div>
   );
 }

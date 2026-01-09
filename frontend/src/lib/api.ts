@@ -723,9 +723,12 @@ class ApiClient {
     teamId: string,
     questionId: string,
     data: {
+      question?: string;
       categoryId?: string | null;
       notes?: string;
       context?: string;
+      tags?: string[];
+      sourceType?: 'custom';
     }
   ) {
     return this.request<{ message: string; question: TeamQuestion }>(

@@ -144,5 +144,11 @@
       "updatedAt": "2026-01-09T02:00:43.163Z",
       "categoryId": "2ccab4e3-37fc-4453-83b9-1d20a22ff84a"
     }
+  ],
+  "savedQuestions": [
+    {
+      "id": "q-confidence-1",
+      "categoryId": null
+    }
   ]
 }

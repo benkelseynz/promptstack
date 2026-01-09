@@ -1443,11 +1443,11 @@ router.delete('/:id/questions/:qId', async (req, res, next) => {
   }
 });
 
-// PATCH /api/teams/:id/questions/:qId - Update question (category, notes)
+// PATCH /api/teams/:id/questions/:qId - Update question (content, category, notes)
 router.patch('/:id/questions/:qId', async (req, res, next) => {
   try {
     const { id, qId } = req.params;
-    const { categoryId, notes, context } = req.body;
+    const { question: questionText, categoryId, notes, context, tags, sourceType } = req.body;
 
     // Verify user is a member
     const isMember = await isTeamMember(req.user.id, id);
@@ -1474,6 +1474,13 @@ router.patch('/:id/questions/:qId', async (req, res, next) => {
     }
 
     // Update fields
+    if (questionText !== undefined) {
+      if (typeof questionText !== 'string' || questionText.trim().length < 1) {
+        throw new AppError('Question text is required', 400);
+      }
+      question.question = questionText.trim();
+    }
+
     if (categoryId !== undefined) {
       question.categoryId = categoryId;
     }
@@ -1481,7 +1488,19 @@ router.patch('/:id/questions/:qId', async (req, res, next) => {
       question.notes = notes;
     }
     if (context !== undefined) {
-      question.context = context;
+      question.context = context || '';
+    }
+    if (tags !== undefined) {
+      if (!Array.isArray(tags)) {
+        throw new AppError('Tags must be an array', 400);
+      }
+      question.tags = tags;
+    }
+
+    // Allow converting library questions to custom when edited
+    if (sourceType === 'custom' && question.sourceType === 'library') {
+      question.sourceType = 'custom';
+      question.sourceId = null;
     }
     question.updatedAt = new Date().toISOString();
     team.updatedAt = new Date().toISOString();
@@ -1634,8 +1653,20 @@ router.get('/:id/workflows', async (req, res, next) => {
     // Sort by most recent
     workflows.sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
 
+    const memberNameById = new Map(
+      (team.members || []).map(member => [
+        member.userId,
+        member.name || member.email || ''
+      ])
+    );
+
+    const workflowsWithNames = workflows.map(workflow => ({
+      ...workflow,
+      createdByName: memberNameById.get(workflow.createdBy) || workflow.createdByName || ''
+    }));
+
     res.json({
-      workflows,
+      workflows: workflowsWithNames,
       categories: team.categories || [],
       total: workflows.length
     });
@@ -1745,8 +1776,18 @@ router.get('/:id/workflows/:wfId', async (req, res, next) => {
     const isAdmin = member && (member.role === 'owner' || member.role === 'admin');
     const canEdit = workflow.createdBy === req.user.id || isAdmin;
 
+    const memberNameById = new Map(
+      (team.members || []).map(member => [
+        member.userId,
+        member.name || member.email || ''
+      ])
+    );
+
     res.json({
-      workflow,
+      workflow: {
+        ...workflow,
+        createdByName: memberNameById.get(workflow.createdBy) || workflow.createdByName || ''
+      },
       canEdit
     });
   } catch (error) {

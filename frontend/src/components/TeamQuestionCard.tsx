@@ -7,10 +7,10 @@ import {
   Check,
   MoreVertical,
   Trash2,
+  Edit3,
   FolderOpen,
   HelpCircle,
   User,
-  Loader2,
 } from 'lucide-react';
 import type { TeamQuestion, TeamCategory, TeamRole } from '@/types';
 import NotesEditor from './NotesEditor';
@@ -23,6 +23,7 @@ interface TeamQuestionCardProps {
   currentUserId: string;
   onDeleted: () => void;
   onUpdated: () => void;
+  onEdit: (question: TeamQuestion) => void;
 }
 
 export default function TeamQuestionCard({
@@ -33,6 +34,7 @@ export default function TeamQuestionCard({
   currentUserId,
   onDeleted,
   onUpdated,
+  onEdit,
 }: TeamQuestionCardProps) {
   const [copied, setCopied] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -41,6 +43,16 @@ export default function TeamQuestionCard({
   const category = categories.find((c) => c.id === question.categoryId);
   const isAdmin = userRole === 'owner' || userRole === 'admin';
   const canDelete = isAdmin || question.addedBy === currentUserId;
+  const addedByFirstName = (() => {
+    const name = (question.addedByName || '').trim();
+    if (!name) {
+      return 'Unknown';
+    }
+    if (name.includes('@')) {
+      return name.split('@')[0] || 'Unknown';
+    }
+    return name.split(' ')[0] || 'Unknown';
+  })();
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(question.question);
@@ -79,15 +91,20 @@ export default function TeamQuestionCard({
   };
 
   return (
-    <div className={`card group ${deleting ? 'opacity-50' : ''}`}>
+    <div className={`card group flex flex-col h-full ${deleting ? 'opacity-50' : ''}`}>
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            {question.sourceType === 'library' && (
+            {question.sourceType === 'library' ? (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
                 <HelpCircle className="w-3 h-3" />
                 Library
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
+                <Edit3 className="w-3 h-3" />
+                Custom
               </span>
             )}
             {category && (
@@ -134,6 +151,16 @@ export default function TeamQuestionCard({
                     onClick={() => setMenuOpen(false)}
                   />
                   <div className="absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        onEdit(question);
+                      }}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                      Edit
+                    </button>
                     <button
                       onClick={handleDelete}
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
@@ -188,10 +215,10 @@ export default function TeamQuestionCard({
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-3 border-t border-gray-100 text-xs text-gray-500">
+      <div className="flex items-center justify-between pt-3 border-t border-gray-100 text-xs text-gray-500 mt-auto">
         <div className="flex items-center gap-1">
           <User className="w-3 h-3" />
-          <span>{question.addedByName}</span>
+          <span>Added by {addedByFirstName}</span>
         </div>
         <span>{formatDate(question.addedAt)}</span>
       </div>

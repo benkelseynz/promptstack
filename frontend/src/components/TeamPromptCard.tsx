@@ -3,8 +3,6 @@
 import { useState } from 'react';
 import { api } from '@/lib/api';
 import {
-  Copy,
-  Check,
   MoreVertical,
   Trash2,
   Edit3,
@@ -12,17 +10,14 @@ import {
   Library,
   User,
   StickyNote,
-  UserPlus,
   Users,
 } from 'lucide-react';
-import type { TeamPrompt, TeamCategory, TeamRole, TeamMember } from '@/types';
-import TagTeammateModal from './TagTeammateModal';
+import type { TeamPrompt, TeamCategory, TeamRole } from '@/types';
 
 interface TeamPromptCardProps {
   prompt: TeamPrompt;
   teamId: string;
   categories: TeamCategory[];
-  members: TeamMember[];
   userRole: TeamRole;
   currentUserId: string;
   onDeleted: () => void;
@@ -34,27 +29,28 @@ export default function TeamPromptCard({
   prompt,
   teamId,
   categories,
-  members,
   userRole,
   currentUserId,
   onDeleted,
   onEdit,
   onClick,
 }: TeamPromptCardProps) {
-  const [copied, setCopied] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [showTagModal, setShowTagModal] = useState(false);
 
   const category = categories.find((c) => c.id === prompt.categoryId);
   const isAdmin = userRole === 'owner' || userRole === 'admin';
   const canDelete = isAdmin || prompt.addedBy === currentUserId;
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(prompt.content);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const addedByFirstName = (() => {
+    const name = (prompt.addedByName || '').trim();
+    if (!name) {
+      return 'Unknown';
+    }
+    if (name.includes('@')) {
+      return name.split('@')[0] || 'Unknown';
+    }
+    return name.split(' ')[0] || 'Unknown';
+  })();
 
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to remove this prompt from the team?')) {
@@ -83,7 +79,7 @@ export default function TeamPromptCard({
 
   return (
     <div
-      className={`card group ${deleting ? 'opacity-50' : ''} ${onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
+      className={`card group flex flex-col h-full ${deleting ? 'opacity-50' : ''} ${onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
       onClick={onClick}
     >
       {/* Header */}
@@ -118,40 +114,6 @@ export default function TeamPromptCard({
         </div>
 
         <div className="flex items-center gap-1 ml-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleCopy();
-            }}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Copy prompt"
-          >
-            {copied ? (
-              <Check className="w-4 h-4 text-green-600" />
-            ) : (
-              <Copy className="w-4 h-4" />
-            )}
-          </button>
-
-          {/* Tag button */}
-          {members.length > 1 && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowTagModal(true);
-              }}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors relative"
-              title="Tag a teammate"
-            >
-              <UserPlus className="w-4 h-4" />
-              {prompt.tags && prompt.tags.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary-500 text-white text-xs rounded-full flex items-center justify-center">
-                  {prompt.tags.length}
-                </span>
-              )}
-            </button>
-          )}
-
           {canDelete && (
             <div className="relative" onClick={(e) => e.stopPropagation()}>
               <button
@@ -224,10 +186,10 @@ export default function TeamPromptCard({
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-3 border-t border-gray-100 text-xs text-gray-500">
+      <div className="flex items-center justify-between pt-3 border-t border-gray-100 text-xs text-gray-500 mt-auto">
         <div className="flex items-center gap-1">
           <User className="w-3 h-3" />
-          <span>{prompt.addedByName}</span>
+          <span>Added by {addedByFirstName}</span>
         </div>
         <div className="flex items-center gap-2">
           {prompt.tags && prompt.tags.length > 0 && (
@@ -239,17 +201,6 @@ export default function TeamPromptCard({
           <span>{formatDate(prompt.addedAt)}</span>
         </div>
       </div>
-
-      {/* Tag Teammate Modal */}
-      <TagTeammateModal
-        isOpen={showTagModal}
-        onClose={() => setShowTagModal(false)}
-        teamId={teamId}
-        prompt={prompt}
-        members={members}
-        currentUserId={currentUserId}
-        onTagged={onDeleted} // Refresh the list when tagged
-      />
     </div>
   );
 }

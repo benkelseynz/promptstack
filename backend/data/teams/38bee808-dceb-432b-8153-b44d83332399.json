@@ -4,7 +4,7 @@
   "code": "KXCU-MVNU",
   "ownerId": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
   "createdAt": "2026-01-04T07:12:40.490Z",
-  "updatedAt": "2026-01-09T06:42:43.226Z",
+  "updatedAt": "2026-01-09T20:10:58.925Z",
   "settings": {
     "allowMemberInvites": false,
     "requireApproval": false,
@@ -63,7 +63,7 @@
       "role": "General",
       "notes": "Might find this useful",
       "addedBy": "44edcc96-a99a-4934-8a23-3d31220a3108",
-      "addedByName": "islaestephenson@gmail.com",
+      "addedByName": "Isla Stephenson",
       "addedAt": "2026-01-04T18:27:04.087Z",
       "tags": [
         {
@@ -95,9 +95,11 @@
       "role": null,
       "notes": "",
       "addedBy": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
-      "addedByName": "ben.kelsey.nz@gmail.com",
+      "addedByName": "Ben Kelsey",
       "addedAt": "2026-01-05T21:31:31.494Z",
-      "tags": []
+      "tags": [],
+      "updatedAt": "2026-01-09T19:26:58.673Z",
+      "updatedBy": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5"
     },
     {
       "id": "f0717127-3973-430a-8087-ce59d32e17b2",
@@ -113,8 +115,30 @@
       "role": null,
       "notes": "Testing",
       "addedBy": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
-      "addedByName": "ben.kelsey.nz@gmail.com",
+      "addedByName": "Ben Kelsey",
       "addedAt": "2026-01-05T22:43:03.272Z",
+      "tags": []
+    },
+    {
+      "id": "c3a00eea-6458-4eae-b652-056615fb2117",
+      "sourceType": "library",
+      "sourceId": "gen-001",
+      "title": "Professional Email Response",
+      "content": "Write a professional email response to the following message. The response should be from [Your Name] at [Company Name], maintaining a [Tone: formal/friendly/assertive] tone.\n\nOriginal message:\n[Paste Original Email]\n\nKey points to address:\n[List Key Points]\n\nDesired outcome:\n[Desired Outcome]",
+      "categoryId": "85bf5320-8c9c-432e-a2f8-3047f94b0f28",
+      "keywords": [
+        "email",
+        "response",
+        "professional",
+        "communication",
+        "business"
+      ],
+      "industry": "general",
+      "role": "General",
+      "notes": "",
+      "addedBy": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+      "addedByName": "Ben Kelsey",
+      "addedAt": "2026-01-09T19:36:46.223Z",
       "tags": []
     }
   ],
@@ -132,7 +156,7 @@
         "decision-making"
       ],
       "addedBy": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
-      "addedByName": "ben.kelsey.nz@gmail.com",
+      "addedByName": "Ben Kelsey",
       "addedAt": "2026-01-05T06:38:21.957Z",
       "notes": "",
       "memberTags": []
@@ -150,8 +174,43 @@
         "impact"
       ],
       "addedBy": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
-      "addedByName": "ben.kelsey.nz@gmail.com",
+      "addedByName": "Ben Kelsey",
       "addedAt": "2026-01-09T06:42:43.222Z",
+      "notes": "",
+      "memberTags": []
+    },
+    {
+      "id": "428183ea-673a-4ff7-973b-9c8a730abd31",
+      "sourceType": "library",
+      "sourceId": "q-assumptions-1",
+      "question": "What assumptions are made here?",
+      "context": "Use after receiving any analysis or recommendation",
+      "categoryId": "85bf5320-8c9c-432e-a2f8-3047f94b0f28",
+      "tags": [
+        "assumptions",
+        "critical-thinking",
+        "analysis"
+      ],
+      "addedBy": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+      "addedByName": "Ben Kelsey",
+      "addedAt": "2026-01-09T19:46:52.338Z",
+      "notes": "",
+      "memberTags": []
+    },
+    {
+      "id": "bc083555-53e5-44ae-9c9f-3546e456fe3f",
+      "sourceType": "custom",
+      "question": "What assumptions are embedded in this response that I should be aware of?",
+      "context": "Use after receiving any analysis or recommendation",
+      "categoryId": "85bf5320-8c9c-432e-a2f8-3047f94b0f28",
+      "tags": [
+        "assumptions",
+        "critical-thinking",
+        "analysis"
+      ],
+      "addedBy": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+      "addedByName": "Ben Kelsey",
+      "addedAt": "2026-01-09T20:10:58.922Z",
       "notes": "",
       "memberTags": []
     }
@@ -190,6 +249,39 @@
     }
   ],
   "activity": [
+    {
+      "id": "c474dedb-648e-41f8-8dc6-1a51686c0cfc",
+      "type": "question_added",
+      "actorId": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+      "actorName": "Ben Kelsey",
+      "targetId": null,
+      "targetName": "What assumptions are embedded in this response tha...",
+      "metadata": {},
+      "createdAt": "2026-01-09T20:10:58.924Z",
+      "readBy": []
+    },
+    {
+      "id": "f91c1eb4-b86d-4620-b519-8bd1e09f2383",
+      "type": "question_added",
+      "actorId": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+      "actorName": "Ben Kelsey",
+      "targetId": null,
+      "targetName": "What assumptions are made here?",
+      "metadata": {},
+      "createdAt": "2026-01-09T19:46:52.341Z",
+      "readBy": []
+    },
+    {
+      "id": "97465bb9-8839-4b7d-ad19-41a6eeb02b6c",
+      "type": "prompt_added",
+      "actorId": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+      "actorName": "Ben Kelsey",
+      "targetId": null,
+      "targetName": "Professional Email Response",
+      "metadata": {},
+      "createdAt": "2026-01-09T19:36:46.227Z",
+      "readBy": []
+    },
     {
       "id": "6a2410ae-8fc7-4812-99a2-583d55af6ab2",
       "type": "question_added",

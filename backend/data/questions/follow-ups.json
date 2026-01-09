@@ -36,7 +36,7 @@
   "questions": [
     {
       "id": "q-assumptions-1",
-      "question": "What assumptions are embedded in this response that I should be aware of?",
+      "question": "What assumptions are made here?",
       "category": "challenge",
       "context": "Use after receiving any analysis or recommendation",
       "tags": ["assumptions", "critical-thinking", "analysis"],

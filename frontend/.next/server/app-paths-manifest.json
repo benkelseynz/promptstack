@@ -1,8 +1,9 @@
 {
-  "/signup/page": "app/signup/page.js",
-  "/dashboard/team/[teamId]/analytics/page": "app/dashboard/team/[teamId]/analytics/page.js",
-  "/dashboard/questions/page": "app/dashboard/questions/page.js",
+  "/dashboard/team/[teamId]/page": "app/dashboard/team/[teamId]/page.js",
   "/dashboard/team/page": "app/dashboard/team/page.js",
   "/dashboard/page": "app/dashboard/page.js",
-  "/dashboard/team/[teamId]/questions/page": "app/dashboard/team/[teamId]/questions/page.js"
+  "/dashboard/team/[teamId]/analytics/page": "app/dashboard/team/[teamId]/analytics/page.js",
+  "/dashboard/questions/page": "app/dashboard/questions/page.js",
+  "/dashboard/saved/questions/page": "app/dashboard/saved/questions/page.js",
+  "/dashboard/team/[teamId]/workflows/page": "app/dashboard/team/[teamId]/workflows/page.js"
 }

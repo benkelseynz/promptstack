@@ -20,6 +20,8 @@ import TeamPromptCard from '@/components/TeamPromptCard';
 import CategoryModal from '@/components/CategoryModal';
 import TeamPromptModal from '@/components/TeamPromptModal';
 
+const ITEMS_PER_PAGE = 12;
+
 export default function TeamPromptsPage() {
   const params = useParams();
   const router = useRouter();
@@ -36,6 +38,7 @@ export default function TeamPromptsPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<TeamCategory | null>(null);
   const [categoryMenuOpen, setCategoryMenuOpen] = useState<string | null>(null);
@@ -96,6 +99,10 @@ export default function TeamPromptsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, selectedCategory]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, selectedCategory]);
+
   const handleDeleteCategory = async (categoryId: string) => {
     if (!confirm('Delete this category? Prompts in this category will become uncategorized.')) {
       return;
@@ -121,6 +128,16 @@ export default function TeamPromptsPage() {
   };
 
   const filteredPrompts = prompts;
+  const totalPages = Math.max(1, Math.ceil(filteredPrompts.length / ITEMS_PER_PAGE));
+  const currentPage = Math.min(page, totalPages);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedPrompts = filteredPrompts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   if (loading && prompts.length === 0) {
     return (
@@ -132,7 +149,7 @@ export default function TeamPromptsPage() {
 
   if (error) {
     return (
-      <div className="max-w-6xl mx-auto">
+      <div>
         <button
           onClick={() => router.push(`/dashboard/team/${teamId}`)}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
@@ -148,7 +165,7 @@ export default function TeamPromptsPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div>
       {/* Back link */}
       <button
         onClick={() => router.push(`/dashboard/team/${teamId}`)}
@@ -162,7 +179,7 @@ export default function TeamPromptsPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Team Prompts</h1>
-          <p className="text-gray-600">{prompts.length} prompts shared with your team</p>
+          <p className="text-gray-600">{filteredPrompts.length} prompts shared with your team</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -346,22 +363,45 @@ export default function TeamPromptsPage() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredPrompts.map((prompt) => (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {paginatedPrompts.map((prompt) => (
                 <TeamPromptCard
                   key={prompt.id}
                   prompt={prompt}
                   teamId={teamId}
                   categories={categories}
-                  members={members}
                   userRole={userRole}
                   currentUserId={currentUser?.id || ''}
                   onDeleted={loadData}
                   onClick={() => setSelectedPrompt(prompt)}
                   onEdit={() => setSelectedPrompt(prompt)}
                 />
-              ))}
-            </div>
+                ))}
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-8">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="btn-secondary disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-gray-600 px-4">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="btn-secondary disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -384,6 +424,8 @@ export default function TeamPromptsPage() {
           prompt={selectedPrompt}
           teamId={teamId}
           categories={categories}
+          members={members}
+          currentUserId={currentUser?.id || ''}
           onClose={() => setSelectedPrompt(null)}
           onSaved={loadData}
         />
@@ -395,6 +437,8 @@ export default function TeamPromptsPage() {
           prompt={null}
           teamId={teamId}
           categories={categories}
+          members={members}
+          currentUserId={currentUser?.id || ''}
           isCreating={true}
           onClose={() => setIsCreatingPrompt(false)}
           onSaved={loadData}
