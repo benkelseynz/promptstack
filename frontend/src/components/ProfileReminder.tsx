@@ -12,6 +12,7 @@ export default function ProfileReminder({ variant = 'banner' }: ProfileReminderP
   const { user, profileStatus } = useAuth();
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const displayFirstName = user?.firstName?.trim() || user?.email?.split('@')[0] || 'there';
 
   // Check localStorage for dismissed state
   useEffect(() => {
@@ -69,7 +70,7 @@ export default function ProfileReminder({ variant = 'banner' }: ProfileReminderP
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-semibold mb-1">
-                Welcome to PromptStack, {user.name?.split(' ')[0] || 'there'}!
+                Welcome to PromptStack, {displayFirstName}!
               </h3>
               <p className="text-primary-100 text-sm mb-4">
                 Complete your profile to get personalized prompts that match your role,

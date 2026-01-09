@@ -9,6 +9,7 @@ const { AppError } = require('../middleware/errorHandler');
 const { getUserById, getUserByEmail, getUserByStripeCustomerId, updateUser } = require('../services/userStorage');
 const { sendEmail, sendEmailWithAttachments } = require('../services/email');
 const { generateInvoice, generateInvoiceNumber, formatDate } = require('../services/invoiceGenerator');
+const { getUserDisplayName } = require('../utils/user');
 
 // Load pricing config
 const pricingPath = path.join(__dirname, '../../config/pricing.json');
@@ -515,6 +516,7 @@ async function handlePaymentSucceeded(invoice) {
   const tierConfig = pricingConfig.tiers.find(t => t.id === tier);
   const tierName = tierConfig?.name || 'Premium';
   const tierPrice = tierConfig?.monthlyPrice || (invoice.amount_paid / 100);
+  const displayName = getUserDisplayName(user);
 
   // Generate invoice PDF
   const invoiceNumber = generateInvoiceNumber();
@@ -526,7 +528,7 @@ async function handlePaymentSucceeded(invoice) {
       invoiceNumber,
       date: new Date(),
       customer: {
-        name: user.name,
+        name: displayName,
         email: user.email,
       },
       items: [
@@ -597,6 +599,7 @@ async function sendSubscriptionConfirmationEmail(user, tier) {
   const tierConfig = pricingConfig.tiers.find(t => t.id === tier);
   const tierName = tierConfig?.name || 'Premium';
   const tierPrice = tierConfig?.monthlyPrice || 29;
+  const displayName = getUserDisplayName(user);
 
   // Generate invoice PDF
   const invoiceNumber = generateInvoiceNumber();
@@ -621,7 +624,7 @@ async function sendSubscriptionConfirmationEmail(user, tier) {
         </div>
 
         <div style="background: #f7fafc; border-radius: 8px; padding: 30px; margin-bottom: 20px;">
-          <h2 style="margin-top: 0; color: #2d3748;">Welcome to ${tierName}, ${user.name || 'there'}!</h2>
+          <h2 style="margin-top: 0; color: #2d3748;">Welcome to ${tierName}, ${displayName || 'there'}!</h2>
           <p>Thank you for subscribing to PromptStack ${tierName}. Your payment has been confirmed and all premium features are now unlocked.</p>
 
           <h3 style="color: #2d3748;">Your Subscription Details</h3>
@@ -662,7 +665,7 @@ async function sendSubscriptionConfirmationEmail(user, tier) {
   `;
 
   const textContent = `
-Welcome to PromptStack ${tierName}, ${user.name || 'there'}!
+Welcome to PromptStack ${tierName}, ${displayName || 'there'}!
 
 Thank you for subscribing to PromptStack ${tierName}. Your payment has been confirmed and all premium features are now unlocked.
 
@@ -687,7 +690,7 @@ PromptStack - Built by Kiwis, for Kiwis
       invoiceNumber,
       date: new Date(),
       customer: {
-        name: user.name,
+        name: displayName,
         email: user.email,
       },
       items: [
@@ -724,6 +727,7 @@ PromptStack - Built by Kiwis, for Kiwis
 
 // Send subscription cancellation email (when subscription period ends)
 async function sendSubscriptionCancellationEmail(user) {
+  const displayName = getUserDisplayName(user);
   const html = `
     <!DOCTYPE html>
     <html>
@@ -740,7 +744,7 @@ async function sendSubscriptionCancellationEmail(user) {
 
         <div style="background: #f7fafc; border-radius: 8px; padding: 30px; margin-bottom: 20px;">
           <h2 style="margin-top: 0; color: #2d3748;">Your Subscription Has Ended</h2>
-          <p>Hi ${user.name || 'there'},</p>
+          <p>Hi ${displayName || 'there'},</p>
 
           <p>Your PromptStack subscription has ended and your account has been moved to the free tier.</p>
 
@@ -768,7 +772,7 @@ async function sendSubscriptionCancellationEmail(user) {
   const textContent = `
 Your Subscription Has Ended
 
-Hi ${user.name || 'there'},
+Hi ${displayName || 'there'},
 
 Your PromptStack subscription has ended and your account has been moved to the free tier.
 
@@ -799,6 +803,7 @@ PromptStack - Built by Kiwis, for Kiwis
 function generateWelcomeInvoiceEmailHtml(user, tierConfig, invoiceNumber) {
   const tierName = tierConfig?.name || 'Premium';
   const tierPrice = tierConfig?.monthlyPrice || 29;
+  const displayName = getUserDisplayName(user);
 
   return `
     <!DOCTYPE html>
@@ -815,7 +820,7 @@ function generateWelcomeInvoiceEmailHtml(user, tierConfig, invoiceNumber) {
         </div>
 
         <div style="background: #f7fafc; border-radius: 8px; padding: 30px; margin-bottom: 20px;">
-          <h2 style="margin-top: 0; color: #2d3748;">Welcome to ${tierName}, ${user.name || 'there'}!</h2>
+          <h2 style="margin-top: 0; color: #2d3748;">Welcome to ${tierName}, ${displayName || 'there'}!</h2>
           <p>Thank you for subscribing to PromptStack ${tierName}. Your payment has been confirmed and all premium features are now unlocked.</p>
 
           <h3 style="color: #2d3748;">Your Subscription Details</h3>
@@ -856,6 +861,7 @@ function generateWelcomeInvoiceEmailHtml(user, tierConfig, invoiceNumber) {
 
 // Generate monthly invoice email HTML (for webhooks)
 function generateMonthlyInvoiceEmailHtml(user, tierName, tierPrice, periodStart, periodEnd, invoiceNumber) {
+  const displayName = getUserDisplayName(user);
   return `
     <!DOCTYPE html>
     <html>
@@ -872,7 +878,7 @@ function generateMonthlyInvoiceEmailHtml(user, tierName, tierPrice, periodStart,
 
         <div style="background: #f7fafc; border-radius: 8px; padding: 30px; margin-bottom: 20px;">
           <h2 style="margin-top: 0; color: #2d3748;">Your Monthly Invoice</h2>
-          <p>Hi ${user.name || 'there'},</p>
+          <p>Hi ${displayName || 'there'},</p>
 
           <p>Thank you for being a PromptStack ${tierName} subscriber! Your monthly payment has been processed successfully.</p>
 
@@ -909,6 +915,7 @@ function generateMonthlyInvoiceEmailHtml(user, tierName, tierPrice, periodStart,
 // Send cancellation scheduled email (subscription still active until end of period)
 async function sendCancellationScheduledEmail(user, endDate) {
   const formattedEndDate = formatDate(endDate);
+  const displayName = getUserDisplayName(user);
 
   const html = `
     <!DOCTYPE html>
@@ -926,7 +933,7 @@ async function sendCancellationScheduledEmail(user, endDate) {
 
         <div style="background: #f7fafc; border-radius: 8px; padding: 30px; margin-bottom: 20px;">
           <h2 style="margin-top: 0; color: #2d3748;">Cancellation Confirmed</h2>
-          <p>Hi ${user.name || 'there'},</p>
+          <p>Hi ${displayName || 'there'},</p>
 
           <p>We've received your cancellation request. Your subscription has been scheduled for cancellation.</p>
 
@@ -969,7 +976,7 @@ async function sendCancellationScheduledEmail(user, endDate) {
   const textContent = `
 Cancellation Confirmed
 
-Hi ${user.name || 'there'},
+Hi ${displayName || 'there'},
 
 We've received your cancellation request. Your subscription has been scheduled for cancellation.
 
@@ -1004,6 +1011,7 @@ PromptStack - Built by Kiwis, for Kiwis
 
 // Send payment failed email
 async function sendPaymentFailedEmail(user) {
+  const displayName = getUserDisplayName(user);
   const html = `
     <!DOCTYPE html>
     <html>
@@ -1020,7 +1028,7 @@ async function sendPaymentFailedEmail(user) {
 
         <div style="background: #f7fafc; border-radius: 8px; padding: 30px; margin-bottom: 20px;">
           <h2 style="margin-top: 0; color: #2d3748;">Payment Failed</h2>
-          <p>Hi ${user.name || 'there'},</p>
+          <p>Hi ${displayName || 'there'},</p>
 
           <p>We were unable to process your payment for your PromptStack subscription. This could be due to:</p>
 
@@ -1053,7 +1061,7 @@ async function sendPaymentFailedEmail(user) {
   const textContent = `
 Payment Failed
 
-Hi ${user.name || 'there'},
+Hi ${displayName || 'there'},
 
 We were unable to process your payment for your PromptStack subscription. This could be due to:
 - Insufficient funds

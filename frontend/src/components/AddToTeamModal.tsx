@@ -345,16 +345,16 @@ export default function AddToTeamModal({
                   <button
                     onClick={handleSubmit}
                     disabled={submitting}
-                    className="btn-primary flex-1 disabled:opacity-50"
+                    className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     {submitting ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        <Loader2 className="w-4 h-4 animate-spin" />
                         Adding...
                       </>
                     ) : (
                       <>
-                        <Plus className="w-4 h-4 mr-2" />
+                        <Plus className="w-4 h-4" />
                         Add to Team
                       </>
                     )}

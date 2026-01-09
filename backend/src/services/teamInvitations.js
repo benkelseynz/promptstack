@@ -8,6 +8,7 @@ const {
 } = require('./fileStorage');
 const { getTeamById } = require('./teamStorage');
 const { getUserByEmail, getUserById } = require('./userStorage');
+const { getUserDisplayName } = require('../utils/user');
 
 const INVITATIONS_FILE = path.join(TEAMS_DIR, '_invitations.json');
 const INVITATION_EXPIRY_DAYS = 7;
@@ -71,7 +72,7 @@ async function createInvitation({ teamId, email, invitedById, role = 'member' })
     teamCode: team.code,
     email: email.toLowerCase(),
     invitedBy: invitedById,
-    invitedByName: inviter.name || inviter.email,
+    invitedByName: getUserDisplayName(inviter),
     invitedByEmail: inviter.email,
     role,
     createdAt: now.toISOString(),

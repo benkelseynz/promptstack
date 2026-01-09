@@ -1,7 +1,8 @@
 {
   "id": "44edcc96-a99a-4934-8a23-3d31220a3108",
   "email": "islaestephenson@gmail.com",
-  "name": "Isla Stephenson",
+  "firstName": "Isla",
+  "lastName": "Stephenson",
   "passwordHash": "$2b$12$ORt06F70nxMjnW138Cys5eXfZ7QXdAKFJCw/Z5O4BBnsEPOEWcKnW",
   "emailVerified": true,
   "tier": "enterprise",

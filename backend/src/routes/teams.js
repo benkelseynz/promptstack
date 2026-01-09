@@ -46,6 +46,7 @@ const {
   logPromptTagged,
   logCategoryCreated,
 } = require('../services/activityLogger');
+const { getUserDisplayName } = require('../utils/user');
 
 // All routes require authentication
 router.use(authenticate);
@@ -151,7 +152,7 @@ router.post('/join', async (req, res, next) => {
     }
 
     // Log activity
-    await logMemberJoined(result.team.id, req.user, req.user.name || req.user.email);
+    await logMemberJoined(result.team.id, req.user, getUserDisplayName(req.user));
 
     res.json({
       message: 'Successfully joined team',
@@ -168,7 +169,7 @@ router.post('/leave/:id', async (req, res, next) => {
     const { id } = req.params;
 
     // Log activity before leaving (so we still have access)
-    await logMemberLeft(id, req.user, req.user.name || req.user.email);
+    await logMemberLeft(id, req.user, getUserDisplayName(req.user));
 
     const result = await leaveTeam(req.user.id, id);
 
@@ -834,7 +835,7 @@ router.post('/:id/prompts', async (req, res, next) => {
       role: role || null,
       notes: notes || '',
       addedBy: req.user.id,
-      addedByName: req.user.name || req.user.email,
+      addedByName: getUserDisplayName(req.user),
       addedAt: new Date().toISOString(),
       tags: []
     };
@@ -1320,7 +1321,7 @@ router.post('/:id/questions', async (req, res, next) => {
       categoryId: categoryId || null,
       tags: questionTags || [],
       addedBy: req.user.id,
-      addedByName: req.user.name || req.user.email,
+      addedByName: getUserDisplayName(req.user),
       addedAt: new Date().toISOString(),
       notes: notes || '',
       memberTags: [] // Tags to teammates
@@ -1527,7 +1528,7 @@ router.patch('/:id/prompts/:promptId/notes', async (req, res, next) => {
     // Update notes
     prompt.notes = notes || '';
     prompt.notesUpdatedBy = req.user.id;
-    prompt.notesUpdatedByName = req.user.name || req.user.email;
+    prompt.notesUpdatedByName = getUserDisplayName(req.user);
     prompt.notesUpdatedAt = new Date().toISOString();
     team.updatedAt = new Date().toISOString();
 
@@ -1569,7 +1570,7 @@ router.patch('/:id/questions/:qId/notes', async (req, res, next) => {
     // Update notes
     question.notes = notes || '';
     question.notesUpdatedBy = req.user.id;
-    question.notesUpdatedByName = req.user.name || req.user.email;
+    question.notesUpdatedByName = getUserDisplayName(req.user);
     question.notesUpdatedAt = new Date().toISOString();
     team.updatedAt = new Date().toISOString();
 
@@ -1685,7 +1686,7 @@ router.post('/:id/workflows', async (req, res, next) => {
       description: description || '',
       categoryId: categoryId || null,
       createdBy: req.user.id,
-      createdByName: req.user.name || req.user.email,
+      createdByName: getUserDisplayName(req.user),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       steps: [],

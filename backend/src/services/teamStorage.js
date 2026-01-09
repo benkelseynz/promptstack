@@ -11,6 +11,7 @@ const {
   listFiles
 } = require('./fileStorage');
 const { getUserById, updateUser } = require('./userStorage');
+const { getUserDisplayName } = require('../utils/user');
 
 const MAX_TEAM_MEMBERS = 50;
 
@@ -89,7 +90,7 @@ async function createTeam({ name, ownerId }) {
       {
         userId: ownerId,
         email: owner.email,
-        name: owner.name || owner.email,
+        name: getUserDisplayName(owner),
         role: 'owner',
         joinedAt: now,
         invitedBy: null
@@ -104,7 +105,7 @@ async function createTeam({ name, ownerId }) {
         id: uuidv4(),
         type: 'member_joined',
         actorId: ownerId,
-        actorName: owner.name || owner.email,
+        actorName: getUserDisplayName(owner),
         metadata: { role: 'owner', action: 'created_team' },
         createdAt: now
       }
@@ -280,7 +281,7 @@ async function joinTeam({ userId, teamName, teamCode }) {
   team.members.push({
     userId,
     email: user.email,
-    name: user.name || user.email,
+    name: getUserDisplayName(user),
     role: team.settings.defaultRole || 'member',
     joinedAt: now,
     invitedBy: null // Self-joined with code
@@ -291,7 +292,7 @@ async function joinTeam({ userId, teamName, teamCode }) {
     id: uuidv4(),
     type: 'member_joined',
     actorId: userId,
-    actorName: user.name || user.email,
+    actorName: getUserDisplayName(user),
     metadata: { role: 'member' },
     createdAt: now
   });

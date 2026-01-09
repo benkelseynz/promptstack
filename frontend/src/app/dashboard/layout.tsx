@@ -46,6 +46,10 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const [resendLoading, setResendLoading] = useState(false);
   const [resendMessage, setResendMessage] = useState('');
+  const displayName = [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim();
+  const avatarInitial = (
+    user?.firstName?.[0] || user?.lastName?.[0] || user?.email?.[0] || 'U'
+  ).toUpperCase();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -129,12 +133,12 @@ export default function DashboardLayout({
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
               <span className="text-primary-700 font-medium">
-                {user.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
+                {avatarInitial}
               </span>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">
-                {user.name || 'User'}
+                {displayName || 'User'}
               </p>
               <p className="text-xs text-gray-500 truncate">{user.email}</p>
             </div>

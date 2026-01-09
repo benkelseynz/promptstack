@@ -4,7 +4,7 @@
   "code": "KXCU-MVNU",
   "ownerId": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
   "createdAt": "2026-01-04T07:12:40.490Z",
-  "updatedAt": "2026-01-06T05:34:29.767Z",
+  "updatedAt": "2026-01-09T06:42:43.226Z",
   "settings": {
     "allowMemberInvites": false,
     "requireApproval": false,
@@ -136,6 +136,24 @@
       "addedAt": "2026-01-05T06:38:21.957Z",
       "notes": "",
       "memberTags": []
+    },
+    {
+      "id": "490853db-3cee-4768-9221-c1395fb8ff8f",
+      "sourceType": "library",
+      "sourceId": "q-stakeholder-1",
+      "question": "How might different stakeholders (e.g., customers, employees, investors, regulators) view this differently?",
+      "context": "Use for business decisions or strategies",
+      "categoryId": "85bf5320-8c9c-432e-a2f8-3047f94b0f28",
+      "tags": [
+        "stakeholders",
+        "perspectives",
+        "impact"
+      ],
+      "addedBy": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+      "addedByName": "ben.kelsey.nz@gmail.com",
+      "addedAt": "2026-01-09T06:42:43.222Z",
+      "notes": "",
+      "memberTags": []
     }
   ],
   "workflows": [
@@ -172,6 +190,17 @@
     }
   ],
   "activity": [
+    {
+      "id": "6a2410ae-8fc7-4812-99a2-583d55af6ab2",
+      "type": "question_added",
+      "actorId": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
+      "actorName": "ben.kelsey.nz@gmail.com",
+      "targetId": null,
+      "targetName": "How might different stakeholders (e.g., customers,...",
+      "metadata": {},
+      "createdAt": "2026-01-09T06:42:43.225Z",
+      "readBy": []
+    },
     {
       "id": "22e90ad9-778f-4112-874b-ec60e73bd336",
       "type": "prompt_added",

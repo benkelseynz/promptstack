@@ -13,9 +13,13 @@ const signupSchema = z.object({
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
       'Password must contain at least one lowercase letter, one uppercase letter, and one number'
     ),
-  name: z.string()
-    .min(1, 'Name is required')
-    .max(100, 'Name must be less than 100 characters')
+  firstName: z.string()
+    .min(1, 'First name is required')
+    .max(50, 'First name must be less than 50 characters')
+    .trim(),
+  lastName: z.string()
+    .min(1, 'Last name is required')
+    .max(50, 'Last name must be less than 50 characters')
     .trim()
 });
 

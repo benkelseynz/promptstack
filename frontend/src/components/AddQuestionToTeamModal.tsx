@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import {
   X,
-  Users,
-  Check,
   Loader2,
-  ChevronRight,
+  Users,
+  CheckCircle,
+  AlertCircle,
   FolderPlus,
-  HelpCircle,
+  Plus,
 } from 'lucide-react';
 import type { Question, TeamSummary, TeamCategory } from '@/types';
 
@@ -31,43 +31,25 @@ export default function AddQuestionToTeamModal({
   const [categories, setCategories] = useState<TeamCategory[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<TeamSummary | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [notes, setNotes] = useState('');
+  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // New category creation
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
-  const [newCategoryColor, setNewCategoryColor] = useState('#6366f1');
-  const [creatingCategory, setCreatingCategory] = useState(false);
 
-  const colors = [
-    '#6366f1', '#8b5cf6', '#ec4899', '#ef4444',
-    '#f97316', '#eab308', '#22c55e', '#06b6d4',
-  ];
-
-  // Load teams when modal opens
   useEffect(() => {
     if (isOpen) {
       loadTeams();
-    } else {
-      // Reset state when modal closes
-      setStep('select-team');
-      setSelectedTeam(null);
-      setSelectedCategory(null);
-      setCategories([]);
-      setError(null);
-      setShowNewCategory(false);
-      setNewCategoryName('');
     }
   }, [isOpen]);
 
   const loadTeams = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const data = await api.getMyTeams();
-      setTeams(data.teams);
+      const result = await api.getMyTeams();
+      setTeams(result.teams);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load teams');
     } finally {
@@ -76,20 +58,20 @@ export default function AddQuestionToTeamModal({
   };
 
   const loadCategories = async (teamId: string) => {
-    setLoadingCategories(true);
+    setLoading(true);
+    setError(null);
     try {
-      const data = await api.getTeamCategories(teamId);
-      setCategories(data.categories);
+      const result = await api.getTeamCategories(teamId);
+      setCategories(result.categories);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load categories');
     } finally {
-      setLoadingCategories(false);
+      setLoading(false);
     }
   };
 
   const handleSelectTeam = async (team: TeamSummary) => {
     setSelectedTeam(team);
-    setError(null);
     await loadCategories(team.id);
     setStep('select-category');
   };
@@ -97,20 +79,21 @@ export default function AddQuestionToTeamModal({
   const handleCreateCategory = async () => {
     if (!selectedTeam || !newCategoryName.trim()) return;
 
-    setCreatingCategory(true);
+    setSubmitting(true);
+    setError(null);
+
     try {
       const result = await api.createTeamCategory(selectedTeam.id, {
         name: newCategoryName.trim(),
-        color: newCategoryColor,
       });
       setCategories([...categories, result.category]);
       setSelectedCategory(result.category.id);
-      setShowNewCategory(false);
       setNewCategoryName('');
+      setShowNewCategory(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create category');
     } finally {
-      setCreatingCategory(false);
+      setSubmitting(false);
     }
   };
 
@@ -128,6 +111,7 @@ export default function AddQuestionToTeamModal({
         context: question.context,
         categoryId: selectedCategory || undefined,
         tags: question.tags,
+        notes: notes.trim() || undefined,
       });
       setStep('success');
     } catch (err) {
@@ -138,6 +122,14 @@ export default function AddQuestionToTeamModal({
   };
 
   const handleClose = () => {
+    setStep('select-team');
+    setSelectedTeam(null);
+    setSelectedCategory(null);
+    setCategories([]);
+    setNotes('');
+    setError(null);
+    setShowNewCategory(false);
+    setNewCategoryName('');
     onClose();
   };
 
@@ -148,15 +140,12 @@ export default function AddQuestionToTeamModal({
       <div className="fixed inset-0 bg-black/50" onClick={handleClose} />
 
       <div className="relative min-h-full flex items-center justify-center p-4">
-        <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden">
+        <div className="relative bg-white rounded-xl shadow-xl max-w-lg w-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b">
-            <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-primary-600" />
-              <h2 className="text-lg font-semibold text-gray-900">
-                Add to Team
-              </h2>
-            </div>
+          <div className="flex items-center justify-between p-6 border-b">
+            <h2 className="text-xl font-bold text-gray-900">
+              {step === 'success' ? 'Added to Team!' : 'Add to Team'}
+            </h2>
             <button
               onClick={handleClose}
               className="text-gray-400 hover:text-gray-600"
@@ -166,64 +155,48 @@ export default function AddQuestionToTeamModal({
           </div>
 
           {/* Content */}
-          <div className="p-4">
-            {step === 'success' ? (
-              <div className="text-center py-8">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Check className="w-8 h-8 text-green-600" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Question Added!
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  This question has been added to {selectedTeam?.name}.
-                </p>
-                <button onClick={handleClose} className="btn-primary">
-                  Done
-                </button>
+          <div className="p-6">
+            {loading && (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
               </div>
-            ) : step === 'select-team' ? (
+            )}
+
+            {error && (
+              <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg mb-4">
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <p className="text-red-700 text-sm">{error}</p>
+              </div>
+            )}
+
+            {/* Step 1: Select Team */}
+            {step === 'select-team' && !loading && (
               <>
-                {/* Question preview */}
-                <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <HelpCircle className="w-4 h-4 text-primary-600" />
-                    <span className="text-sm font-medium text-gray-700">Question</span>
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Users className="w-8 h-8 text-primary-600" />
                   </div>
-                  <p className="text-sm text-gray-900 line-clamp-2">
-                    &ldquo;{question.question}&rdquo;
+                  <p className="text-gray-600">
+                    Select which team to add this question to
                   </p>
                 </div>
 
-                {error && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-                    <p className="text-sm text-red-700">{error}</p>
-                  </div>
-                )}
-
-                <h3 className="text-sm font-medium text-gray-700 mb-3">
-                  Select a team
-                </h3>
-
-                {loading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
-                  </div>
-                ) : teams.length === 0 ? (
+                {teams.length === 0 ? (
                   <div className="text-center py-8">
-                    <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-2">You&apos;re not in any teams yet.</p>
-                    <p className="text-sm text-gray-500">
-                      Create or join a team to share questions.
+                    <p className="text-gray-500 mb-4">
+                      You&apos;re not a member of any teams yet.
                     </p>
+                    <button onClick={handleClose} className="btn-secondary">
+                      Close
+                    </button>
                   </div>
                 ) : (
-                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                  <div className="space-y-2">
                     {teams.map((team) => (
                       <button
                         key={team.id}
                         onClick={() => handleSelectTeam(team)}
-                        className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-primary-50 rounded-lg transition-colors text-left"
+                        className="w-full p-4 text-left border border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-colors"
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
@@ -236,158 +209,179 @@ export default function AddQuestionToTeamModal({
                             </p>
                           </div>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-gray-400" />
                       </button>
                     ))}
                   </div>
                 )}
               </>
-            ) : (
+            )}
+
+            {/* Step 2: Select Category */}
+            {step === 'select-category' && !loading && selectedTeam && (
               <>
-                {/* Back button */}
-                <button
-                  onClick={() => setStep('select-team')}
-                  className="text-sm text-gray-600 hover:text-gray-900 mb-4 flex items-center gap-1"
-                >
-                  <ChevronRight className="w-4 h-4 rotate-180" />
-                  Back to teams
-                </button>
+                <div className="mb-6">
+                  <button
+                    onClick={() => {
+                      setStep('select-team');
+                      setSelectedTeam(null);
+                      setSelectedCategory(null);
+                    }}
+                    className="text-sm text-gray-500 hover:text-gray-700"
+                  >
+                    &larr; Back to teams
+                  </button>
+                </div>
 
-                <h3 className="text-sm font-medium text-gray-700 mb-3">
-                  Select a category (optional)
-                </h3>
+                <div className="mb-4">
+                  <p className="text-gray-600">
+                    Adding to <span className="font-medium">{selectedTeam.name}</span>
+                  </p>
+                </div>
 
-                {error && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-                    <p className="text-sm text-red-700">{error}</p>
-                  </div>
-                )}
-
-                {loadingCategories ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
-                  </div>
-                ) : (
-                  <>
-                    <div className="space-y-2 max-h-48 overflow-y-auto mb-4">
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Category (optional)
+                  </label>
+                  {categories.length > 0 ? (
+                    <div className="space-y-2 mb-3">
                       <button
                         onClick={() => setSelectedCategory(null)}
-                        className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left ${
+                        className={`w-full p-3 text-left border rounded-lg transition-colors ${
                           selectedCategory === null
-                            ? 'bg-primary-50 ring-2 ring-primary-500'
-                            : 'bg-gray-50 hover:bg-gray-100'
+                            ? 'border-primary-500 bg-primary-50'
+                            : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
-                        <div className="w-4 h-4 rounded-full bg-gray-300" />
-                        <span className="text-gray-700">No category</span>
+                        <span className="text-gray-600">No category</span>
                       </button>
-
-                      {categories.map((category) => (
+                      {categories.map((cat) => (
                         <button
-                          key={category.id}
-                          onClick={() => setSelectedCategory(category.id)}
-                          className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left ${
-                            selectedCategory === category.id
-                              ? 'bg-primary-50 ring-2 ring-primary-500'
-                              : 'bg-gray-50 hover:bg-gray-100'
+                          key={cat.id}
+                          onClick={() => setSelectedCategory(cat.id)}
+                          className={`w-full p-3 text-left border rounded-lg transition-colors ${
+                            selectedCategory === cat.id
+                              ? 'border-primary-500 bg-primary-50'
+                              : 'border-gray-200 hover:border-gray-300'
                           }`}
                         >
-                          <div
-                            className="w-4 h-4 rounded-full"
-                            style={{ backgroundColor: category.color }}
-                          />
-                          <span className="text-gray-700">{category.name}</span>
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: cat.color }}
+                            />
+                            <span className="text-gray-900">{cat.name}</span>
+                          </div>
                         </button>
                       ))}
                     </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 mb-3">
+                      No categories yet. Create one below or add without a category.
+                    </p>
+                  )}
 
-                    {/* Create new category */}
-                    {!showNewCategory ? (
+                  {showNewCategory ? (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        placeholder="Category name"
+                        className="input-field flex-1"
+                        maxLength={50}
+                        autoFocus
+                      />
                       <button
-                        onClick={() => setShowNewCategory(true)}
-                        className="w-full flex items-center gap-2 p-3 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                        onClick={handleCreateCategory}
+                        disabled={submitting || !newCategoryName.trim()}
+                        className="btn-primary px-4 disabled:opacity-50"
                       >
-                        <FolderPlus className="w-4 h-4" />
-                        <span className="text-sm font-medium">Create new category</span>
+                        {submitting ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          'Add'
+                        )}
                       </button>
+                      <button
+                        onClick={() => {
+                          setShowNewCategory(false);
+                          setNewCategoryName('');
+                        }}
+                        className="btn-secondary px-3"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setShowNewCategory(true)}
+                      className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1"
+                    >
+                      <FolderPlus className="w-4 h-4" />
+                      Create new category
+                    </button>
+                  )}
+                </div>
+
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Notes (optional)
+                  </label>
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Add any notes for your team about this question..."
+                    className="input-field h-24 resize-none"
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <button onClick={handleClose} className="btn-secondary flex-1">
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSubmit}
+                    disabled={submitting}
+                    className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {submitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Adding...
+                      </>
                     ) : (
-                      <div className="border border-gray-200 rounded-lg p-3 space-y-3">
-                        <input
-                          type="text"
-                          value={newCategoryName}
-                          onChange={(e) => setNewCategoryName(e.target.value)}
-                          placeholder="Category name"
-                          className="input-field text-sm"
-                          autoFocus
-                        />
-                        <div className="flex gap-2">
-                          {colors.map((color) => (
-                            <button
-                              key={color}
-                              onClick={() => setNewCategoryColor(color)}
-                              className={`w-6 h-6 rounded-full ${
-                                newCategoryColor === color ? 'ring-2 ring-offset-2 ring-gray-400' : ''
-                              }`}
-                              style={{ backgroundColor: color }}
-                            />
-                          ))}
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setShowNewCategory(false)}
-                            className="btn-secondary text-sm flex-1"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            onClick={handleCreateCategory}
-                            disabled={!newCategoryName.trim() || creatingCategory}
-                            className="btn-primary text-sm flex-1"
-                          >
-                            {creatingCategory ? (
-                              <Loader2 className="w-4 h-4 animate-spin mx-auto" />
-                            ) : (
-                              'Create'
-                            )}
-                          </button>
-                        </div>
-                      </div>
+                      <>
+                        <Plus className="w-4 h-4" />
+                        Add to Team
+                      </>
                     )}
-                  </>
-                )}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Step 3: Success */}
+            {step === 'success' && selectedTeam && (
+              <>
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Question Added!
+                  </h3>
+                  <p className="text-gray-600">
+                    This question has been added to{' '}
+                    <span className="font-medium">{selectedTeam.name}</span>
+                  </p>
+                </div>
+
+                <button onClick={handleClose} className="btn-primary w-full">
+                  Done
+                </button>
               </>
             )}
           </div>
-
-          {/* Footer */}
-          {step === 'select-category' && (
-            <div className="flex items-center justify-end gap-3 p-4 border-t bg-gray-50">
-              <button
-                onClick={handleClose}
-                className="btn-secondary"
-                disabled={submitting}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSubmit}
-                disabled={submitting}
-                className="btn-primary flex items-center gap-2"
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Adding...
-                  </>
-                ) : (
-                  <>
-                    <Check className="w-4 h-4" />
-                    Add to Team
-                  </>
-                )}
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </div>

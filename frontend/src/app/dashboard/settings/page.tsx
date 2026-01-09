@@ -22,6 +22,8 @@ export default function SettingsPage() {
   const [resendMessage, setResendMessage] = useState('');
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [editingSection, setEditingSection] = useState<number | null>(null);
+  const firstName = user?.firstName?.trim() || '';
+  const lastName = user?.lastName?.trim() || '';
 
   const handleResendVerification = async () => {
     if (!user?.email) return;
@@ -53,17 +55,30 @@ export default function SettingsPage() {
         </div>
 
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Name
-            </label>
-            <input
-              type="text"
-              value={user?.name || ''}
-              className="input-field bg-gray-50"
-              disabled
-            />
-            <p className="text-xs text-gray-500 mt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                First Name
+              </label>
+              <input
+                type="text"
+                value={firstName || ''}
+                className="input-field bg-gray-50"
+                disabled
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Last Name
+              </label>
+              <input
+                type="text"
+                value={lastName || ''}
+                className="input-field bg-gray-50"
+                disabled
+              />
+            </div>
+            <p className="text-xs text-gray-500 sm:col-span-2">
               Contact support to update your name
             </p>
           </div>

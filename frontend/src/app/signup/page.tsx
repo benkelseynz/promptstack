@@ -9,7 +9,8 @@ import { Sparkles, Eye, EyeOff, Loader2, CheckCircle } from 'lucide-react';
 export default function SignupPage() {
   const router = useRouter();
   const { signup } = useAuth();
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -29,7 +30,7 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      await signup(email, password, name);
+      await signup(email, password, firstName, lastName);
       router.push('/dashboard?welcome=true');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed');
@@ -96,19 +97,35 @@ export default function SignupPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Full name
-              </label>
-              <input
-                id="name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="input-field"
-                placeholder="John Smith"
-                required
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+                  First name
+                </label>
+                <input
+                  id="firstName"
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="input-field"
+                  placeholder="John"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+                  Last name
+                </label>
+                <input
+                  id="lastName"
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="input-field"
+                  placeholder="Smith"
+                  required
+                />
+              </div>
             </div>
 
             <div>

@@ -177,102 +177,6 @@ export default function UpgradePage() {
         </div>
       )}
 
-      {/* Subscription management for existing subscribers */}
-      {hasPaidSubscription && (
-        <div className="mb-8 p-6 bg-gradient-to-r from-primary-50 to-purple-50 border border-primary-200 rounded-xl">
-          {/* Cancellation pending notice */}
-          {subscriptionInfo?.subscription?.cancelAtPeriodEnd && (
-            <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
-              <XCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-amber-800 font-medium">Cancellation Scheduled</p>
-                <p className="text-amber-700 text-sm mt-1">
-                  Your subscription will end on{' '}
-                  <strong>
-                    {new Date(subscriptionInfo.subscription.currentPeriodEnd).toLocaleDateString('en-NZ', {
-                      weekday: 'long',
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
-                    })}
-                  </strong>
-                  . You'll retain access to premium features until then.
-                </p>
-              </div>
-              <button
-                onClick={handleReactivate}
-                disabled={reactivating}
-                className="btn-primary text-sm flex items-center gap-2"
-              >
-                {reactivating ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Reactivating...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="w-4 h-4" />
-                    Keep Subscription
-                  </>
-                )}
-              </button>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-                <CreditCard className="w-6 h-6 text-primary-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">Your Subscription</h3>
-                <p className="text-gray-600 text-sm">
-                  {subscriptionInfo?.subscription?.cancelAtPeriodEnd
-                    ? 'Your subscription is scheduled for cancellation'
-                    : 'Manage billing, update payment method, or cancel subscription'}
-                </p>
-                {subscriptionInfo?.subscription && !subscriptionInfo.subscription.cancelAtPeriodEnd && (
-                  <p className="text-gray-500 text-xs mt-1 flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    Next billing:{' '}
-                    {new Date(subscriptionInfo.subscription.currentPeriodEnd).toLocaleDateString('en-NZ', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
-                    })}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              {!subscriptionInfo?.subscription?.cancelAtPeriodEnd && (
-                <button
-                  onClick={() => setShowCancelModal(true)}
-                  className="text-gray-500 hover:text-red-600 text-sm font-medium transition-colors"
-                >
-                  Cancel Subscription
-                </button>
-              )}
-              <button
-                onClick={handleManageSubscription}
-                className="btn-secondary flex items-center gap-2"
-              >
-                <Settings className="w-4 h-4" />
-                Manage Billing
-                <ExternalLink className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Cancellation modal */}
-      <CancelSubscriptionModal
-        isOpen={showCancelModal}
-        onClose={() => setShowCancelModal(false)}
-        onCancelled={handleCancelled}
-      />
-
       {/* Billing toggle */}
       <div className="flex items-center justify-center gap-4 mb-8">
         <button
@@ -382,6 +286,102 @@ export default function UpgradePage() {
           Coming soon features are currently in development
         </p>
       </div>
+
+      {/* Subscription management for existing subscribers */}
+      {hasPaidSubscription && (
+        <div className="mt-8 p-6 bg-gradient-to-r from-primary-50 to-purple-50 border border-primary-200 rounded-xl">
+          {/* Cancellation pending notice */}
+          {subscriptionInfo?.subscription?.cancelAtPeriodEnd && (
+            <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
+              <XCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-amber-800 font-medium">Cancellation Scheduled</p>
+                <p className="text-amber-700 text-sm mt-1">
+                  Your subscription will end on{' '}
+                  <strong>
+                    {new Date(subscriptionInfo.subscription.currentPeriodEnd).toLocaleDateString('en-NZ', {
+                      weekday: 'long',
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                  </strong>
+                  . You'll retain access to premium features until then.
+                </p>
+              </div>
+              <button
+                onClick={handleReactivate}
+                disabled={reactivating}
+                className="btn-primary text-sm flex items-center gap-2"
+              >
+                {reactivating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Reactivating...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4" />
+                    Keep Subscription
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                <CreditCard className="w-6 h-6 text-primary-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Your Subscription</h3>
+                <p className="text-gray-600 text-sm">
+                  {subscriptionInfo?.subscription?.cancelAtPeriodEnd
+                    ? 'Your subscription is scheduled for cancellation'
+                    : 'Manage billing, update payment method, or cancel subscription'}
+                </p>
+                {subscriptionInfo?.subscription && !subscriptionInfo.subscription.cancelAtPeriodEnd && (
+                  <p className="text-gray-500 text-xs mt-1 flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    Next billing:{' '}
+                    {new Date(subscriptionInfo.subscription.currentPeriodEnd).toLocaleDateString('en-NZ', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {!subscriptionInfo?.subscription?.cancelAtPeriodEnd && (
+                <button
+                  onClick={() => setShowCancelModal(true)}
+                  className="text-gray-500 hover:text-red-600 text-sm font-medium transition-colors"
+                >
+                  Cancel Subscription
+                </button>
+              )}
+              <button
+                onClick={handleManageSubscription}
+                className="btn-secondary flex items-center gap-2"
+              >
+                <Settings className="w-4 h-4" />
+                Manage Billing
+                <ExternalLink className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancellation modal */}
+      <CancelSubscriptionModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onCancelled={handleCancelled}
+      />
 
       {/* Refund policy */}
       <div className="text-center mt-8 text-gray-500 text-sm">

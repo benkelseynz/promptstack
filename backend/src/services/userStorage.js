@@ -93,7 +93,7 @@ async function saveEmailIndex(index) {
 }
 
 // Create new user
-async function createUser({ email, password, name }) {
+async function createUser({ email, password, firstName, lastName }) {
   await ensureDirectories();
   
   // Check if email already exists
@@ -108,7 +108,8 @@ async function createUser({ email, password, name }) {
   const userData = {
     id: userId,
     email,
-    name,
+    firstName: firstName?.trim() || '',
+    lastName: lastName?.trim() || '',
     passwordHash: hashedPassword,
     emailVerified: false,
     tier: 'free',

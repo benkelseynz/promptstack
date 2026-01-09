@@ -1,7 +1,8 @@
 {
   "id": "66bbe07b-ee17-4c15-8d54-3a5ce3918cb5",
   "email": "ben.kelsey.nz@gmail.com",
-  "name": "Ben Kelsey",
+  "firstName": "Ben",
+  "lastName": "Kelsey",
   "passwordHash": "$2b$12$WwxOsUpE4.gq4mAsNkDV6OV5rZ7ORW9uL2i1k/54yWrrSToRqQnCG",
   "emailVerified": true,
   "tier": "enterprise",
@@ -20,9 +21,10 @@
         "event"
       ],
       "createdAt": "2025-12-21T08:46:47.067Z",
-      "updatedAt": "2025-12-21T09:31:40.303Z",
+      "updatedAt": "2026-01-09T06:41:11.368Z",
       "industry": "finance",
-      "role": "Financial Analyst"
+      "role": "Financial Analyst",
+      "categoryId": "2ccab4e3-37fc-4453-83b9-1d20a22ff84a"
     },
     {
       "id": "54c33d13-ea54-4894-8e11-bcbc51ff6d57",
@@ -37,9 +39,10 @@
         "NZ"
       ],
       "createdAt": "2026-01-06T03:49:13.157Z",
-      "updatedAt": "2026-01-06T03:55:12.997Z",
+      "updatedAt": "2026-01-09T06:41:16.653Z",
       "industry": "finance",
-      "role": "Investment Advisor"
+      "role": "Investment Advisor",
+      "categoryId": "2ccab4e3-37fc-4453-83b9-1d20a22ff84a"
     }
   ],
   "savedPrompts": [
@@ -53,7 +56,7 @@
     },
     {
       "id": "fin-004",
-      "categoryId": null
+      "categoryId": "2ccab4e3-37fc-4453-83b9-1d20a22ff84a"
     },
     {
       "id": "fin-003",

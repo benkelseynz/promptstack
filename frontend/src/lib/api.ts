@@ -83,12 +83,12 @@ class ApiClient {
   }
 
   // Auth endpoints
-  async signup(email: string, password: string, name: string) {
+  async signup(email: string, password: string, firstName: string, lastName: string) {
     const data = await this.request<{ user: User; token: string; message: string }>(
       '/api/auth/signup',
       {
         method: 'POST',
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({ email, password, firstName, lastName }),
       }
     );
     this.setToken(data.token);

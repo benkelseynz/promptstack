@@ -9,7 +9,7 @@ interface AuthContextType {
   profileStatus: ProfileStatus | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name: string) => Promise<void>;
+  signup: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   refreshProfileStatus: () => Promise<void>;
@@ -71,8 +71,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signup = async (email: string, password: string, name: string) => {
-    const data = await api.signup(email, password, name);
+  const signup = async (email: string, password: string, firstName: string, lastName: string) => {
+    const data = await api.signup(email, password, firstName, lastName);
     setUser(data.user);
     // New users start with empty profile
     setProfileStatus({

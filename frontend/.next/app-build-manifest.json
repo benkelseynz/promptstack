@@ -6,16 +6,6 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/dashboard/layout": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/dashboard/layout.js"
-    ],
-    "/dashboard/saved/prompts/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/dashboard/saved/prompts/page.js"
-    ],
     "/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -26,10 +16,25 @@
       "static/chunks/main-app.js",
       "static/chunks/app/dashboard/page.js"
     ],
+    "/dashboard/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/dashboard/layout.js"
+    ],
+    "/dashboard/workflows/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/dashboard/workflows/page.js"
+    ],
     "/dashboard/saved/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/dashboard/saved/page.js"
+    ],
+    "/dashboard/saved/prompts/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/dashboard/saved/prompts/page.js"
     ],
     "/dashboard/team/page": [
       "static/chunks/webpack.js",
@@ -46,15 +51,60 @@
       "static/chunks/main-app.js",
       "static/chunks/app/dashboard/team/[teamId]/prompts/page.js"
     ],
+    "/dashboard/settings/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/dashboard/settings/page.js"
+    ],
+    "/dashboard/upgrade/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/dashboard/upgrade/page.js"
+    ],
+    "/dashboard/questions/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/dashboard/questions/page.js"
+    ],
+    "/dashboard/workflows/[workflowId]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/dashboard/workflows/[workflowId]/page.js"
+    ],
     "/dashboard/saved/questions/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/dashboard/saved/questions/page.js"
     ],
-    "/dashboard/workflows/page": [
+    "/dashboard/team/[teamId]/analytics/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/dashboard/workflows/page.js"
+      "static/chunks/app/dashboard/team/[teamId]/analytics/page.js"
+    ],
+    "/dashboard/team/[teamId]/questions/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/dashboard/team/[teamId]/questions/page.js"
+    ],
+    "/dashboard/team/[teamId]/workflows/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/dashboard/team/[teamId]/workflows/page.js"
+    ],
+    "/dashboard/team/[teamId]/workflows/[workflowId]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/dashboard/team/[teamId]/workflows/[workflowId]/page.js"
+    ],
+    "/login/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/login/page.js"
+    ],
+    "/signup/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/signup/page.js"
     ]
   }
 }

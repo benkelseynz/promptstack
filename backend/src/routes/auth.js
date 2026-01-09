@@ -24,6 +24,7 @@ const {
   resendVerificationSchema 
 } = require('../schemas/validation');
 const { AppError } = require('../middleware/errorHandler');
+const { getUserDisplayName } = require('../utils/user');
 
 // Generate JWT token
 function generateToken(userId) {
@@ -47,21 +48,22 @@ function setAuthCookie(res, token) {
 // POST /api/auth/signup
 router.post('/signup', signupRateLimiter, validate(signupSchema), async (req, res, next) => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, firstName, lastName } = req.body;
     
-    const result = await createUser({ email, password, name });
+    const result = await createUser({ email, password, firstName, lastName });
     
     if (result.error) {
       throw new AppError(result.error, 400);
     }
     
     const { user } = result;
+    const displayName = getUserDisplayName({ ...user, email });
     
     // Create verification token
     const verificationToken = await createVerificationToken(user.id, email);
     
     // Send verification email
-    const emailResult = await sendVerificationEmail(email, name, verificationToken);
+    const emailResult = await sendVerificationEmail(email, displayName, verificationToken);
     
     if (!emailResult.success) {
       console.error('Failed to send verification email:', emailResult.error);
@@ -140,7 +142,7 @@ router.get('/verify', async (req, res, next) => {
     }
     
     // Send welcome email
-    await sendWelcomeEmail(user.email, user.name);
+    await sendWelcomeEmail(user.email, getUserDisplayName(user));
     
     res.json({
       message: 'Email verified successfully',
@@ -175,7 +177,7 @@ router.post('/resend-verification', resendRateLimiter, validate(resendVerificati
     const verificationToken = await createVerificationToken(user.id, email);
     
     // Send verification email
-    await sendVerificationEmail(email, user.name, verificationToken);
+    await sendVerificationEmail(email, getUserDisplayName(user), verificationToken);
     
     res.json({
       message: 'If an account exists with this email, a verification link has been sent.'

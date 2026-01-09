@@ -1,5 +1,7 @@
 const { v4: uuidv4 } = require('uuid');
+const { getUserDisplayName } = require('../utils/user');
 const teamStorage = require('./teamStorage');
+const { getUserById } = require('./userStorage');
 
 /**
  * Activity types supported by the system
@@ -75,6 +77,31 @@ async function logActivity(teamId, { type, actorId, actorName, targetId, targetN
   }
 }
 
+async function buildActorNameMap(activities) {
+  const actorIds = Array.from(
+    new Set(activities.map((activity) => activity.actorId).filter(Boolean))
+  );
+
+  if (actorIds.length === 0) {
+    return new Map();
+  }
+
+  const users = await Promise.all(actorIds.map((id) => getUserById(id)));
+  const nameMap = new Map();
+
+  actorIds.forEach((id, index) => {
+    const user = users[index];
+    if (user) {
+      const displayName = getUserDisplayName(user);
+      if (displayName) {
+        nameMap.set(id, displayName);
+      }
+    }
+  });
+
+  return nameMap;
+}
+
 /**
  * Get activity feed for a team
  * @param {string} teamId - The team ID
@@ -99,9 +126,14 @@ async function getActivityFeed(teamId, { limit = 50, offset = 0, type } = {}) {
 
   const total = activities.length;
   const paginatedActivities = activities.slice(offset, offset + limit);
+  const actorNameMap = await buildActorNameMap(paginatedActivities);
+  const hydratedActivities = paginatedActivities.map((activity) => ({
+    ...activity,
+    actorName: actorNameMap.get(activity.actorId) || activity.actorName,
+  }));
 
   return {
-    activities: paginatedActivities,
+    activities: hydratedActivities,
     total,
     limit,
     offset,
@@ -210,12 +242,13 @@ async function getTeamAnalytics(teamId) {
   });
 
   // Most active members (last 30 days)
+  const actorNameMap = await buildActorNameMap(recentActivities);
   const memberActivity = {};
   recentActivities.forEach(a => {
     if (a.actorId) {
       memberActivity[a.actorId] = memberActivity[a.actorId] || {
         userId: a.actorId,
-        name: a.actorName,
+        name: actorNameMap.get(a.actorId) || a.actorName,
         count: 0,
       };
       memberActivity[a.actorId].count++;
@@ -291,7 +324,7 @@ const logMemberJoined = (teamId, actor, memberName) =>
   logActivity(teamId, {
     type: ActivityTypes.MEMBER_JOINED,
     actorId: actor.id,
-    actorName: actor.name || actor.email,
+    actorName: getUserDisplayName(actor),
     targetName: memberName,
   });
 
@@ -299,7 +332,7 @@ const logMemberLeft = (teamId, actor, memberName) =>
   logActivity(teamId, {
     type: ActivityTypes.MEMBER_LEFT,
     actorId: actor.id,
-    actorName: actor.name || actor.email,
+    actorName: getUserDisplayName(actor),
     targetName: memberName,
   });
 
@@ -307,7 +340,7 @@ const logMemberInvited = (teamId, actor, email, role) =>
   logActivity(teamId, {
     type: ActivityTypes.MEMBER_INVITED,
     actorId: actor.id,
-    actorName: actor.name || actor.email,
+    actorName: getUserDisplayName(actor),
     targetName: email,
     metadata: { role },
   });
@@ -316,7 +349,7 @@ const logPromptAdded = (teamId, actor, promptTitle) =>
   logActivity(teamId, {
     type: ActivityTypes.PROMPT_ADDED,
     actorId: actor.id,
-    actorName: actor.name || actor.email,
+    actorName: getUserDisplayName(actor),
     targetName: promptTitle,
   });
 
@@ -324,7 +357,7 @@ const logPromptRemoved = (teamId, actor, promptTitle) =>
   logActivity(teamId, {
     type: ActivityTypes.PROMPT_REMOVED,
     actorId: actor.id,
-    actorName: actor.name || actor.email,
+    actorName: getUserDisplayName(actor),
     targetName: promptTitle,
   });
 
@@ -332,7 +365,7 @@ const logQuestionAdded = (teamId, actor, question) =>
   logActivity(teamId, {
     type: ActivityTypes.QUESTION_ADDED,
     actorId: actor.id,
-    actorName: actor.name || actor.email,
+    actorName: getUserDisplayName(actor),
     targetName: question.substring(0, 50) + (question.length > 50 ? '...' : ''),
   });
 
@@ -340,7 +373,7 @@ const logQuestionRemoved = (teamId, actor, question) =>
   logActivity(teamId, {
     type: ActivityTypes.QUESTION_REMOVED,
     actorId: actor.id,
-    actorName: actor.name || actor.email,
+    actorName: getUserDisplayName(actor),
     targetName: question.substring(0, 50) + (question.length > 50 ? '...' : ''),
   });
 
@@ -348,7 +381,7 @@ const logWorkflowCreated = (teamId, actor, workflowName) =>
   logActivity(teamId, {
     type: ActivityTypes.WORKFLOW_CREATED,
     actorId: actor.id,
-    actorName: actor.name || actor.email,
+    actorName: getUserDisplayName(actor),
     targetName: workflowName,
   });
 
@@ -356,7 +389,7 @@ const logWorkflowDeleted = (teamId, actor, workflowName) =>
   logActivity(teamId, {
     type: ActivityTypes.WORKFLOW_DELETED,
     actorId: actor.id,
-    actorName: actor.name || actor.email,
+    actorName: getUserDisplayName(actor),
     targetName: workflowName,
   });
 
@@ -364,7 +397,7 @@ const logPromptTagged = (teamId, actor, promptTitle, taggedUserName) =>
   logActivity(teamId, {
     type: ActivityTypes.PROMPT_TAGGED,
     actorId: actor.id,
-    actorName: actor.name || actor.email,
+    actorName: getUserDisplayName(actor),
     targetName: promptTitle,
     metadata: { taggedUser: taggedUserName },
   });
@@ -373,7 +406,7 @@ const logCategoryCreated = (teamId, actor, categoryName) =>
   logActivity(teamId, {
     type: ActivityTypes.CATEGORY_CREATED,
     actorId: actor.id,
-    actorName: actor.name || actor.email,
+    actorName: getUserDisplayName(actor),
     targetName: categoryName,
   });
 
