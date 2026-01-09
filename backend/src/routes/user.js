@@ -9,22 +9,25 @@ const {
   addCustomPrompt,
   updateCustomPrompt,
   deleteCustomPrompt,
+  getSavedPromptEntries,
+  updateSavedPromptCategory,
   saveLibraryPrompt,
   removeSavedPrompt,
-  getUserById,
   getUserProfile,
   updateUserProfile,
   getProfileCompletionStatus,
   // Saved questions
   saveLibraryQuestion,
   removeSavedQuestion,
-  getSavedQuestionIds,
+  getSavedQuestionEntries,
+  updateSavedQuestionCategory,
   // Custom questions
   addCustomQuestion,
   updateCustomQuestion,
   deleteCustomQuestion,
   getUserCustomQuestions
 } = require('../services/userStorage');
+const workflowStorage = require('../services/workflowStorage');
 const { getPromptById, applyPremiumGating } = require('../services/searchIndex');
 
 // Load questions data for saved questions functionality
@@ -59,6 +62,19 @@ function applyQuestionGating(question, userTier) {
     isLocked,
   };
 }
+
+async function validatePersonalCategory(userId, categoryId) {
+  if (!categoryId) {
+    return null;
+  }
+
+  const categories = await workflowStorage.getWorkflowCategories(userId);
+  const exists = categories.some((c) => c.id === categoryId);
+  if (!exists) {
+    throw new AppError('Invalid category', 400);
+  }
+  return categoryId;
+}
 const {
   validate,
   createPromptSchema,
@@ -89,12 +105,14 @@ router.get('/prompts', async (req, res, next) => {
 // POST /api/user/prompts - Create custom prompt
 router.post('/prompts', validate(createPromptSchema), async (req, res, next) => {
   try {
-    const { title, content, keywords } = req.body;
+    const { title, content, keywords, categoryId } = req.body;
+    const validatedCategoryId = await validatePersonalCategory(req.user.id, categoryId);
     
     const prompt = await addCustomPrompt(req.user.id, {
       title,
       content,
-      keywords
+      keywords,
+      categoryId: validatedCategoryId
     });
     
     if (!prompt) {
@@ -114,7 +132,11 @@ router.post('/prompts', validate(createPromptSchema), async (req, res, next) => 
 router.put('/prompts/:id', validate(updatePromptSchema), async (req, res, next) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+    const updates = { ...req.body };
+
+    if (updates.categoryId !== undefined) {
+      updates.categoryId = await validatePersonalCategory(req.user.id, updates.categoryId);
+    }
     
     const prompt = await updateCustomPrompt(req.user.id, id, updates);
     
@@ -153,15 +175,25 @@ router.delete('/prompts/:id', async (req, res, next) => {
 // GET /api/user/saved - List saved library prompts
 router.get('/saved', async (req, res, next) => {
   try {
-    const userData = await getUserById(req.user.id);
-    const savedIds = userData?.savedPrompts || [];
+    const savedEntries = await getSavedPromptEntries(req.user.id);
     const userTier = req.user?.tier || 'free';
     
     // Get full prompt data for saved prompts
-    const savedPrompts = savedIds
-      .map(id => getPromptById(id))
+    const savedPrompts = savedEntries
+      .map(entry => ({
+        entry,
+        prompt: getPromptById(entry.id)
+      }))
+      .filter(item => item.prompt)
+      .map(({ entry, prompt }) => {
+        const gated = applyPremiumGating(prompt, userTier);
+        if (!gated) return null;
+        return {
+          ...gated,
+          categoryId: entry.categoryId || null
+        };
+      })
       .filter(Boolean)
-      .map(prompt => applyPremiumGating(prompt, userTier));
     
     res.json({
       prompts: savedPrompts,
@@ -210,6 +242,28 @@ router.delete('/saved/:id', async (req, res, next) => {
   }
 });
 
+// PATCH /api/user/saved/:id/category - Update saved prompt category
+router.patch('/saved/:id/category', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { categoryId } = req.body;
+
+    const validatedCategoryId = await validatePersonalCategory(req.user.id, categoryId);
+    const entry = await updateSavedPromptCategory(req.user.id, id, validatedCategoryId);
+
+    if (!entry) {
+      throw new AppError('Saved prompt not found', 404);
+    }
+
+    res.json({
+      message: 'Saved prompt category updated',
+      categoryId: entry.categoryId
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // =====================
 // Saved Questions Routes
 // =====================
@@ -217,14 +271,24 @@ router.delete('/saved/:id', async (req, res, next) => {
 // GET /api/user/saved-questions - List saved library questions
 router.get('/saved-questions', async (req, res, next) => {
   try {
-    const savedIds = await getSavedQuestionIds(req.user.id);
+    const savedEntries = await getSavedQuestionEntries(req.user.id);
     const userTier = req.user?.tier || 'free';
 
     // Get full question data for saved questions
-    const savedQuestions = savedIds
-      .map(id => getQuestionById(id))
+    const savedQuestions = savedEntries
+      .map(entry => ({
+        entry,
+        question: getQuestionById(entry.id)
+      }))
+      .filter(item => item.question)
+      .map(({ entry, question }) => {
+        const gated = applyQuestionGating(question, userTier);
+        return {
+          ...gated,
+          categoryId: entry.categoryId || null
+        };
+      })
       .filter(Boolean)
-      .map(question => applyQuestionGating(question, userTier));
 
     res.json({
       questions: savedQuestions,
@@ -273,6 +337,28 @@ router.delete('/saved-questions/:id', async (req, res, next) => {
   }
 });
 
+// PATCH /api/user/saved-questions/:id/category - Update saved question category
+router.patch('/saved-questions/:id/category', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { categoryId } = req.body;
+
+    const validatedCategoryId = await validatePersonalCategory(req.user.id, categoryId);
+    const entry = await updateSavedQuestionCategory(req.user.id, id, validatedCategoryId);
+
+    if (!entry) {
+      throw new AppError('Saved question not found', 404);
+    }
+
+    res.json({
+      message: 'Saved question category updated',
+      categoryId: entry.categoryId
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // =====================
 // Custom Questions Routes
 // =====================
@@ -294,7 +380,8 @@ router.get('/questions', async (req, res, next) => {
 // POST /api/user/questions - Create custom question
 router.post('/questions', async (req, res, next) => {
   try {
-    const { question, context, category, tags } = req.body;
+    const { question, context, category, tags, categoryId } = req.body;
+    const validatedCategoryId = await validatePersonalCategory(req.user.id, categoryId);
 
     if (!question || !question.trim()) {
       throw new AppError('Question text is required', 400);
@@ -304,7 +391,8 @@ router.post('/questions', async (req, res, next) => {
       question: question.trim(),
       context: context?.trim() || '',
       category: category || 'custom',
-      tags: tags || []
+      tags: tags || [],
+      categoryId: validatedCategoryId
     });
 
     if (!newQuestion) {
@@ -324,7 +412,11 @@ router.post('/questions', async (req, res, next) => {
 router.put('/questions/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+    const updates = { ...req.body };
+
+    if (updates.categoryId !== undefined) {
+      updates.categoryId = await validatePersonalCategory(req.user.id, updates.categoryId);
+    }
 
     const question = await updateCustomQuestion(req.user.id, id, updates);
 

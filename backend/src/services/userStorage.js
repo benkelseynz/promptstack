@@ -242,6 +242,7 @@ async function addCustomPrompt(userId, promptData) {
   const newPrompt = {
     id: uuidv4(),
     ...promptData,
+    categoryId: promptData.categoryId || null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
@@ -309,6 +310,33 @@ async function getUserCustomPrompts(userId) {
   return userData?.customPrompts || [];
 }
 
+function normalizeSavedEntries(entries) {
+  if (!Array.isArray(entries)) {
+    return [];
+  }
+
+  return entries
+    .map((entry) => {
+      if (typeof entry === 'string') {
+        return { id: entry, categoryId: null };
+      }
+      if (entry && typeof entry === 'object') {
+        return {
+          id: entry.id,
+          categoryId: entry.categoryId || null
+        };
+      }
+      return null;
+    })
+    .filter(Boolean);
+}
+
+// Get saved prompt entries with category metadata
+async function getSavedPromptEntries(userId) {
+  const userData = await getUserById(userId);
+  return normalizeSavedEntries(userData?.savedPrompts);
+}
+
 // Save library prompt reference
 async function saveLibraryPrompt(userId, promptId) {
   const userData = await getUserById(userId);
@@ -317,16 +345,17 @@ async function saveLibraryPrompt(userId, promptId) {
     return null;
   }
 
-  userData.savedPrompts = userData.savedPrompts || [];
-  
-  if (!userData.savedPrompts.includes(promptId)) {
-    userData.savedPrompts.push(promptId);
-    
+  const savedEntries = normalizeSavedEntries(userData.savedPrompts);
+
+  if (!savedEntries.some(entry => entry.id === promptId)) {
+    savedEntries.push({ id: promptId, categoryId: null });
+    userData.savedPrompts = savedEntries;
+
     const userFilePath = getUserFilePath(userId);
     await atomicWrite(userFilePath, userData);
   }
 
-  return userData.savedPrompts;
+  return savedEntries;
 }
 
 // Remove saved library prompt
@@ -337,13 +366,37 @@ async function removeSavedPrompt(userId, promptId) {
     return null;
   }
 
-  userData.savedPrompts = userData.savedPrompts || [];
-  userData.savedPrompts = userData.savedPrompts.filter(id => id !== promptId);
+  const savedEntries = normalizeSavedEntries(userData.savedPrompts);
+  userData.savedPrompts = savedEntries.filter(entry => entry.id !== promptId);
 
   const userFilePath = getUserFilePath(userId);
   await atomicWrite(userFilePath, userData);
 
   return userData.savedPrompts;
+}
+
+// Update saved prompt category
+async function updateSavedPromptCategory(userId, promptId, categoryId) {
+  const userData = await getUserById(userId);
+
+  if (!userData) {
+    return null;
+  }
+
+  const savedEntries = normalizeSavedEntries(userData.savedPrompts);
+  const entry = savedEntries.find(item => item.id === promptId);
+
+  if (!entry) {
+    return null;
+  }
+
+  entry.categoryId = categoryId || null;
+  userData.savedPrompts = savedEntries;
+
+  const userFilePath = getUserFilePath(userId);
+  await atomicWrite(userFilePath, userData);
+
+  return entry;
 }
 
 // =====================
@@ -358,16 +411,17 @@ async function saveLibraryQuestion(userId, questionId) {
     return null;
   }
 
-  userData.savedQuestions = userData.savedQuestions || [];
+  const savedEntries = normalizeSavedEntries(userData.savedQuestions);
 
-  if (!userData.savedQuestions.includes(questionId)) {
-    userData.savedQuestions.push(questionId);
+  if (!savedEntries.some(entry => entry.id === questionId)) {
+    savedEntries.push({ id: questionId, categoryId: null });
+    userData.savedQuestions = savedEntries;
 
     const userFilePath = getUserFilePath(userId);
     await atomicWrite(userFilePath, userData);
   }
 
-  return userData.savedQuestions;
+  return savedEntries;
 }
 
 // Remove saved library question
@@ -378,8 +432,8 @@ async function removeSavedQuestion(userId, questionId) {
     return null;
   }
 
-  userData.savedQuestions = userData.savedQuestions || [];
-  userData.savedQuestions = userData.savedQuestions.filter(id => id !== questionId);
+  const savedEntries = normalizeSavedEntries(userData.savedQuestions);
+  userData.savedQuestions = savedEntries.filter(entry => entry.id !== questionId);
 
   const userFilePath = getUserFilePath(userId);
   await atomicWrite(userFilePath, userData);
@@ -390,7 +444,37 @@ async function removeSavedQuestion(userId, questionId) {
 // Get user's saved question IDs
 async function getSavedQuestionIds(userId) {
   const userData = await getUserById(userId);
-  return userData?.savedQuestions || [];
+  return normalizeSavedEntries(userData?.savedQuestions).map(entry => entry.id);
+}
+
+// Get saved question entries with category metadata
+async function getSavedQuestionEntries(userId) {
+  const userData = await getUserById(userId);
+  return normalizeSavedEntries(userData?.savedQuestions);
+}
+
+// Update saved question category
+async function updateSavedQuestionCategory(userId, questionId, categoryId) {
+  const userData = await getUserById(userId);
+
+  if (!userData) {
+    return null;
+  }
+
+  const savedEntries = normalizeSavedEntries(userData.savedQuestions);
+  const entry = savedEntries.find(item => item.id === questionId);
+
+  if (!entry) {
+    return null;
+  }
+
+  entry.categoryId = categoryId || null;
+  userData.savedQuestions = savedEntries;
+
+  const userFilePath = getUserFilePath(userId);
+  await atomicWrite(userFilePath, userData);
+
+  return entry;
 }
 
 // =====================
@@ -408,6 +492,7 @@ async function addCustomQuestion(userId, questionData) {
   const newQuestion = {
     id: uuidv4(),
     ...questionData,
+    categoryId: questionData.categoryId || null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
@@ -620,12 +705,16 @@ module.exports = {
   deleteCustomPrompt,
   getUserCustomPrompts,
   // Saved prompts
+  getSavedPromptEntries,
   saveLibraryPrompt,
   removeSavedPrompt,
+  updateSavedPromptCategory,
   // Saved questions
   saveLibraryQuestion,
   removeSavedQuestion,
   getSavedQuestionIds,
+  getSavedQuestionEntries,
+  updateSavedQuestionCategory,
   // Custom questions
   addCustomQuestion,
   updateCustomQuestion,

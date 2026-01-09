@@ -166,7 +166,14 @@ class ApiClient {
     );
   }
 
-  async createUserPrompt(data: { title: string; content: string; keywords?: string[]; industry?: string; role?: string }) {
+  async createUserPrompt(data: {
+    title: string;
+    content: string;
+    keywords?: string[];
+    industry?: string;
+    role?: string;
+    categoryId?: string | null;
+  }) {
     return this.request<{ prompt: CustomPrompt; message: string }>(
       '/api/user/prompts',
       {
@@ -178,7 +185,14 @@ class ApiClient {
 
   async updateUserPrompt(
     id: string,
-    data: { title?: string; content?: string; keywords?: string[]; industry?: string; role?: string }
+    data: {
+      title?: string;
+      content?: string;
+      keywords?: string[];
+      industry?: string;
+      role?: string;
+      categoryId?: string | null;
+    }
   ) {
     return this.request<{ prompt: CustomPrompt; message: string }>(
       `/api/user/prompts/${id}`,
@@ -210,6 +224,16 @@ class ApiClient {
     return this.request<{ message: string; savedCount: number }>(
       `/api/user/saved/${id}`,
       { method: 'DELETE' }
+    );
+  }
+
+  async updateSavedPromptCategory(id: string, categoryId: string | null) {
+    return this.request<{ message: string; categoryId: string | null }>(
+      `/api/user/saved/${id}/category`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ categoryId }),
+      }
     );
   }
 
@@ -300,6 +324,16 @@ class ApiClient {
     );
   }
 
+  async updateSavedQuestionCategory(id: string, categoryId: string | null) {
+    return this.request<{ message: string; categoryId: string | null }>(
+      `/api/user/saved-questions/${id}/category`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ categoryId }),
+      }
+    );
+  }
+
   // Custom Questions endpoints
   async getUserQuestions() {
     return this.request<{ questions: CustomQuestion[]; total: number }>(
@@ -307,7 +341,13 @@ class ApiClient {
     );
   }
 
-  async createUserQuestion(data: { question: string; context?: string; category?: string; tags?: string[] }) {
+  async createUserQuestion(data: {
+    question: string;
+    context?: string;
+    category?: string;
+    tags?: string[];
+    categoryId?: string | null;
+  }) {
     return this.request<{ question: CustomQuestion; message: string }>(
       '/api/user/questions',
       {
@@ -319,7 +359,13 @@ class ApiClient {
 
   async updateUserQuestion(
     id: string,
-    data: { question?: string; context?: string; category?: string; tags?: string[] }
+    data: {
+      question?: string;
+      context?: string;
+      category?: string;
+      tags?: string[];
+      categoryId?: string | null;
+    }
   ) {
     return this.request<{ question: CustomQuestion; message: string }>(
       `/api/user/questions/${id}`,

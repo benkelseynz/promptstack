@@ -44,7 +44,8 @@ const createPromptSchema = z.object({
     .max(10000, 'Content must be less than 10000 characters'),
   keywords: z.array(z.string().max(50)).max(20).optional().default([]),
   industry: z.string().max(100).optional().default('general'),
-  role: z.string().max(100).optional().default('General')
+  role: z.string().max(100).optional().default('General'),
+  categoryId: z.string().max(100).nullable().optional()
 });
 
 const updatePromptSchema = z.object({
@@ -59,7 +60,8 @@ const updatePromptSchema = z.object({
     .optional(),
   keywords: z.array(z.string().max(50)).max(20).optional(),
   industry: z.string().max(100).optional(),
-  role: z.string().max(100).optional()
+  role: z.string().max(100).optional(),
+  categoryId: z.string().max(100).nullable().optional()
 });
 
 // Search/filter schemas

@@ -6,25 +6,30 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/dashboard/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/dashboard/page.js"
-    ],
     "/dashboard/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/dashboard/layout.js"
     ],
-    "/dashboard/workflows/page": [
+    "/dashboard/saved/prompts/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/dashboard/workflows/page.js"
+      "static/chunks/app/dashboard/saved/prompts/page.js"
     ],
-    "/dashboard/workflows/[workflowId]/page": [
+    "/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/dashboard/workflows/[workflowId]/page.js"
+      "static/chunks/app/page.js"
+    ],
+    "/dashboard/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/dashboard/page.js"
+    ],
+    "/dashboard/saved/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/dashboard/saved/page.js"
     ],
     "/dashboard/team/page": [
       "static/chunks/webpack.js",
@@ -41,25 +46,15 @@
       "static/chunks/main-app.js",
       "static/chunks/app/dashboard/team/[teamId]/prompts/page.js"
     ],
-    "/dashboard/questions/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/dashboard/questions/page.js"
-    ],
-    "/dashboard/saved/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/dashboard/saved/page.js"
-    ],
     "/dashboard/saved/questions/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/dashboard/saved/questions/page.js"
     ],
-    "/dashboard/saved/prompts/page": [
+    "/dashboard/workflows/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/dashboard/saved/prompts/page.js"
+      "static/chunks/app/dashboard/workflows/page.js"
     ]
   }
 }

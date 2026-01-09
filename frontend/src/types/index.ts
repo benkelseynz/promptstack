@@ -17,6 +17,7 @@ export interface Prompt {
   industryName: string;
   role?: string;
   category?: string;
+  categoryId?: string | null;
   keywords: string[];
   placeholders?: string[];
   isLocked: boolean;
@@ -31,6 +32,7 @@ export interface CustomPrompt {
   industry: string;
   industryName?: string;
   role: string;
+  categoryId?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -190,6 +192,7 @@ export interface Question {
   tags: string[];
   access: 'free' | 'premium';
   isLocked?: boolean;
+  categoryId?: string | null;
 }
 
 export interface CustomQuestion {
@@ -198,6 +201,7 @@ export interface CustomQuestion {
   context: string;
   category: string;
   tags: string[];
+  categoryId?: string | null;
   createdAt: string;
   updatedAt: string;
 }

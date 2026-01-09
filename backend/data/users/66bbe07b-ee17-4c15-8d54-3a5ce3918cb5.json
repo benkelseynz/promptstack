@@ -43,10 +43,22 @@
     }
   ],
   "savedPrompts": [
-    "gen-005",
-    "fin-002",
-    "fin-004",
-    "fin-003"
+    {
+      "id": "gen-005",
+      "categoryId": "2ccab4e3-37fc-4453-83b9-1d20a22ff84a"
+    },
+    {
+      "id": "fin-002",
+      "categoryId": "0939fc5b-064a-4ad8-b305-03f88c07762d"
+    },
+    {
+      "id": "fin-004",
+      "categoryId": null
+    },
+    {
+      "id": "fin-003",
+      "categoryId": null
+    }
   ],
   "profile": {
     "completed": true,
@@ -126,7 +138,8 @@
         "Assumptions"
       ],
       "createdAt": "2026-01-06T04:54:29.178Z",
-      "updatedAt": "2026-01-08T08:27:55.188Z"
+      "updatedAt": "2026-01-09T02:00:43.163Z",
+      "categoryId": "2ccab4e3-37fc-4453-83b9-1d20a22ff84a"
     }
   ]
 }
