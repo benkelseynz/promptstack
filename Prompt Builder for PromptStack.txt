@@ -1,0 +1,247 @@
+# Prompt Builder for PromptStack: Research & Design Recommendations
+
+In a market where **95% of enterprise AI pilots fail** and only **28% of employees know how to use their company's AI tools**, PromptStack's Prompt Builder can address a critical gap. This research synthesizes findings from Anthropic, OpenAI, and Google's official documentation, competitive analysis of 10+ tools, and extensive user research to inform a genuinely differentiated product for NZ corporate professionals.
+
+## The core problem isn't AI capability—it's the communication gap
+
+Research across Reddit, enterprise studies, and prompt engineering literature reveals a consistent pattern: users fail not because AI can't help them, but because they can't articulate what they need. **80% of prompts fail for the same five predictable reasons**: vague language, missing context, overloaded requests, unspecified formats, and one-shot expectations. The most revealing insight from enterprise adoption research: the average prompt editing session takes **43.3 minutes** with iterations roughly every 50 seconds—yet most users give up after their first attempt.
+
+Corporate professionals face additional layers of complexity. A WalkMe 2025 study found companies average **200 AI tools** but struggle with integration, while 61% report their data assets aren't ready for generative AI. The "prompt paranoia" phenomenon—where the term "engineering" makes users feel they need technical expertise—creates unnecessary barriers for otherwise capable professionals.
+
+---
+
+## Consensus best practices from major AI labs
+
+Anthropic, OpenAI, and Google's documentation converges on **eight universal principles** that should be embedded into the Prompt Builder's architecture:
+
+| Principle | Implementation Implication |
+|-----------|---------------------------|
+| **Be specific and direct** | Guide users to add who, what, why, for whom |
+| **Provide 3-5 examples** | Build example libraries for each use case |
+| **Use structured formatting** | XML tags, delimiters, clear sections |
+| **Break complex tasks down** | Prompt chaining for multi-step workflows |
+| **Chain-of-thought reasoning** | "Think step by step" toggle for analysis |
+| **Define role/persona** | Pre-built role selector for corporate contexts |
+| **Specify output format** | Format dropdown (bullets, table, narrative) |
+| **Iterate and refine** | Version tracking and comparison views |
+
+A critical finding from DeepMind's OPRO research: the phrase **"Take a deep breath and work on this problem step by step"** achieved 80.2% accuracy on reasoning tasks versus 34% with no prompting. Small structural changes yield dramatic improvements—this is precisely what a well-designed Prompt Builder can automate.
+
+---
+
+## Which prompting techniques matter most for corporate professionals
+
+Not all prompting techniques are equally valuable for non-technical users. Based on complexity, business impact, and learning curve, here's the recommended hierarchy:
+
+**Tier 1 - Essential for all users:**
+- **Few-Shot Prompting**: Provide 2-3 examples of desired output. Ensures consistency across team outputs and reduces revision cycles. *"Like showing a new hire samples of past work."*
+- **Role-Based Prompting**: Assign expertise ("You are a senior marketing strategist"). Dramatically improves tone and relevance for communications.
+- **Structured Output**: Specify format explicitly (bullets, tables, JSON). Reduces "wall of text" frustrations.
+
+**Tier 2 - For analytical work:**
+- **Chain-of-Thought**: Add "Let's think step by step" for complex reasoning. Essential for reports, decision analysis, financial work.
+- **Self-Consistency**: Run multiple times, select consensus. For high-stakes decisions requiring verification.
+
+**Tier 3 - Advanced users only:**
+- **Tree of Thoughts**: Explore multiple approaches before deciding. For strategic planning sessions.
+- **Prompt Chaining**: Sequential prompts for complex workflows. For report generation pipelines.
+
+The recommended **user-facing categorization** should map to goals, not techniques:
+
+```
+🎯 What's your goal?
+├── ✉️ Communication (Emails, Messages) → Role-Based + Instructions
+├── 📊 Analysis (Data, Reports) → Chain-of-Thought + Structured
+├── 💡 Ideation (Brainstorming, Planning) → Tree of Thoughts
+├── 📝 Documentation (Processes, Guides) → Few-Shot + Structured
+├── 🔍 Research (Finding Information) → ReAct/Chaining
+└── ⚡ Quick Task (Simple, Direct) → Zero-Shot
+```
+
+---
+
+## The top 10 user pain points the Prompt Builder must solve
+
+| Pain Point | Severity | Solution Approach |
+|------------|----------|-------------------|
+| **Vague prompts → generic outputs** | ⭐⭐⭐⭐⭐ | Guided context fields, completeness indicators |
+| **One-shot expectations** | ⭐⭐⭐⭐⭐ | Iteration encouragement, refinement UI |
+| **Missing context** | ⭐⭐⭐⭐⭐ | Required fields, contextual prompts |
+| **Hallucinations/inaccuracies** | ⭐⭐⭐⭐ | Grounding instructions, source requests |
+| **Inconsistent results** | ⭐⭐⭐⭐ | Template versioning, saved prompts |
+| **Overloaded single prompts** | ⭐⭐⭐⭐ | Task decomposition, one-goal prompts |
+| **Format not respected** | ⭐⭐⭐ | Explicit format selectors |
+| **Context window limits** | ⭐⭐⭐ | Context optimization, chunking |
+| **"Prompt paranoia"** | ⭐⭐⭐ | Beginner-friendly language, low-pressure UI |
+| **Don't know where to start** | ⭐⭐⭐ | Templates, suggestions, examples |
+
+The corporate-specific struggles center on **integration with existing workflows**, **compliance concerns**, and **skills gap resistance**. A tool positioned as "making AI accessible, not technical" addresses the psychological barrier that stops many professionals from even trying.
+
+---
+
+## Competitive landscape reveals major differentiation opportunity
+
+The prompt tool market splits into four segments, each with significant gaps:
+
+**Marketplaces (PromptBase, FlowGPT)**: Consumer-focused, variable quality, no optimization
+**Browser Extensions (AIPRM)**: Convenient but pricing criticized, limited enterprise features  
+**Developer Tools (LangChain, PromptLayer)**: Powerful but require coding knowledge
+**Enterprise Platforms (Dust.tt)**: Complex setup, steep learning curves
+
+**Critical finding: No existing tool offers voice/audio-to-prompt functionality.** This represents a unique differentiation opportunity, especially for time-pressed professionals who can articulate ideas verbally faster than typing.
+
+Other unmet needs identified:
+- Industry/role-specific templates (HR, legal, finance, marketing)
+- Prompt performance analytics and ROI tracking
+- Governance and compliance features (audit trails, brand voice enforcement)
+- AI-assisted prompt improvement with explanations
+- Beginner-friendly interfaces that don't sacrifice power user capabilities
+
+---
+
+## UX architecture: progressive disclosure with dual-audience design
+
+Research from Nielsen Norman Group and AI UX pattern libraries indicates the optimal approach combines **progressive disclosure** (simple by default, complexity on demand) with **guided workflows** for beginners and **direct access** for experts.
+
+**Key design principles:**
+- Maximum **2 disclosure levels**—more creates confusion
+- Start with wizard for new users, offer "Skip to Advanced" for experts
+- **5-6 steps maximum** for any wizard flow
+- Show progress indicators and allow back navigation
+- Recognition over recall: show options rather than requiring vocabulary knowledge
+
+**Audio input UX pattern** (unique to PromptStack):
+1. One-click microphone activation with prominent button
+2. Visual waveform feedback during recording
+3. Real-time transcription preview as user speaks
+4. Post-recording options: "Use as-is" / "Clean up" / "Transform to prompt"
+5. Editable text area with re-record option
+
+**Iteration patterns to implement:**
+- Version sidebar showing all attempts
+- Side-by-side comparison view
+- "Improve this" one-click action
+- Thumbs up/down quick feedback
+- "Why did this work better?" learning explanations
+
+---
+
+## System prompt architecture for the prompt improvement engine
+
+The Prompt Builder's backend should use a **meta-prompting pipeline** that analyzes, critiques, and improves user prompts. Based on research into SELF-REFINE, PromptWizard, and Anthropic's context engineering guidance, here's the recommended architecture:
+
+```
+User Input (text or audio transcription)
+        ↓
+[Context Analyzer] → Detect missing information, score completeness
+        ↓
+[Clarification Handler] → Generate specific questions if critical gaps
+        ↓
+[Prompt Enhancer] → Apply best practices, add structure
+        ↓
+[Template Engine] → Assemble final prompt with role, context, format
+        ↓
+[Quality Evaluator] → Score across clarity, completeness, specificity
+        ↓
+[Explanation Generator] → Show before/after with reasoning
+        ↓
+Final Optimized Prompt
+```
+
+**The meta-prompt for prompt improvement:**
+```
+Analyze this prompt for effectiveness:
+<prompt>{user_prompt}</prompt>
+
+Evaluate:
+1. Clarity: Is the task clearly defined? (1-5)
+2. Completeness: Is necessary context provided? (1-5)  
+3. Structure: Is it well-organized? (1-5)
+4. Specificity: Are expectations explicit? (1-5)
+
+For each gap found:
+- Identify the specific issue
+- Suggest concrete improvement
+- Explain WHY this matters
+
+Return improved prompt with brief explanation of changes.
+```
+
+**Context detection system prompt pattern:**
+```
+When the request is ambiguous or missing critical information:
+1. Identify what's missing (audience, purpose, format, constraints)
+2. Generate 2-3 specific clarifying questions (max)
+3. Provide reasonable default assumptions
+4. Format: "Before I optimize this, I'd like to clarify: [questions]
+   Or I can proceed assuming [defaults]."
+```
+
+---
+
+## Recommended page structure and user flow
+
+Based on all research, here's the proposed structure for the Prompt Builder page:
+
+### Section 1: Entry point with goal selection
+**Purpose**: Reduce blank canvas paralysis, guide users to appropriate workflow
+
+- Large, friendly headline: "What would you like AI to help you with?"
+- **6 goal tiles** with icons: Communication, Analysis, Ideation, Documentation, Research, Quick Task
+- "Or paste an existing prompt to improve" text link below
+- Audio recording button: "Prefer to speak? 🎤"
+
+### Section 2: The Builder (adaptive based on entry)
+**Purpose**: Structured prompt construction with progressive disclosure
+
+**Simple Mode (default):**
+- Role selector dropdown: "AI should act as..." (10-15 pre-built options)
+- Task input: "What do you need?" (free text with character count)
+- Context expander: "Add background information" (collapsible)
+- Output format selector: Bullets / Paragraph / Table / Custom
+- **"Generate Prompt" primary CTA**
+
+**Advanced Mode (toggle):**
+- All simple mode fields plus:
+- Examples section: "Show an example of good output"
+- Constraints field: "Any limitations or requirements?"
+- Thinking mode toggle: "Show reasoning" (adds CoT)
+- Temperature/creativity slider
+
+**Visual completeness indicator**: Progress bar showing prompt quality score with specific suggestions ("Add audience context to improve 15%")
+
+### Section 3: Audio-to-Prompt (unique feature)
+**Purpose**: Differentiated input method for verbal thinkers
+
+- Record button with "Just tell me what you need"
+- Live transcription as user speaks
+- Post-recording: Raw transcript → "Transform to Prompt" button
+- Side-by-side: original speech vs. structured prompt
+- Edit capability before finalizing
+
+### Section 4: Prompt improvement & explanation
+**Purpose**: Education through example, building user capability over time
+
+- Before/after comparison with highlighted changes
+- Collapsible explanations: "Why this works better"
+- **Quality scores** across dimensions (clarity, completeness, specificity)
+- "Learn more" links to brief educational content
+- Copy to clipboard with one click
+
+### Section 5: Refinement zone
+**Purpose**: Support iteration without frustration
+
+- Version history sidebar (expandable)
+- "Try again" with single-click regeneration
+- "Tweak and improve" with modification options:
+  - "Make it shorter" / "Make it more detailed"
+  - "Change tone to..." dropdown
+  - "Add more examples"
+- Compare versions side-by-side
+
+---
+
+
+The research strongly supports building for **simplicity first**—the biggest competitor isn't another tool, it's users giving up before they start. A Prompt Builder that makes the first successful prompt feel effortless will win adoption; advanced features can follow once users trust the platform.
+
+---

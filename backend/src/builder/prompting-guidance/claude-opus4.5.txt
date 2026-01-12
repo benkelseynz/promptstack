@@ -1,0 +1,16 @@
+# Claude Opus 4.5 Prompting Guidance
+
+## Overview
+This file contains model-specific prompting guidance for Anthropic's Claude Opus 4.5.
+
+## Best Practices
+[To be populated with official Anthropic documentation and best practices]
+
+## Recommended Patterns
+- Use XML tags for structured input/output
+- Include thinking tags for complex reasoning tasks
+- Provide clear role definitions
+- Use examples for few-shot learning
+
+## Things to Avoid
+[To be populated]

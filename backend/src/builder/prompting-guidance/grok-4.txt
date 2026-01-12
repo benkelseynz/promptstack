@@ -1,0 +1,13 @@
+# Grok 4 Prompting Guidance
+
+## Overview
+This file contains model-specific prompting guidance for xAI's Grok 4.
+
+## Best Practices
+[To be populated with official xAI documentation and best practices]
+
+## Recommended Patterns
+[To be populated]
+
+## Things to Avoid
+[To be populated]

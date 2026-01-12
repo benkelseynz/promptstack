@@ -24,15 +24,25 @@ import { api } from '@/lib/api';
 import { useState } from 'react';
 import ProfileReminder from '@/components/ProfileReminder';
 import NotificationBell from '@/components/NotificationBell';
+import type { LucideIcon } from 'lucide-react';
 
-const navigation = [
+interface NavItem {
+  name: string;
+  href: string;
+  icon: LucideIcon;
+  requiresPremium?: boolean;
+  requiresEnterprise?: boolean;
+  comingSoon?: boolean;
+}
+
+const navigation: NavItem[] = [
   { name: 'Prompt Library', href: '/dashboard', icon: Library },
   { name: 'Questions', href: '/dashboard/questions', icon: HelpCircle },
   { name: 'Workflows', href: '/dashboard/workflows', icon: GitBranch, requiresPremium: true },
   { name: 'Saved', href: '/dashboard/saved', icon: Bookmark },
   { name: 'Upgrade', href: '/dashboard/upgrade', icon: CreditCard },
   { name: 'Team Features', href: '/dashboard/team', icon: Users, requiresEnterprise: true },
-  { name: 'Prompt Builder', href: '/dashboard/builder', icon: Wand2, comingSoon: true },
+  { name: 'Prompt Builder', href: '/dashboard/builder', icon: Wand2 },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 

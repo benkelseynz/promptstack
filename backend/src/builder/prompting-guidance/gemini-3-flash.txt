@@ -1,0 +1,13 @@
+# Gemini 3 Flash Prompting Guidance
+
+## Overview
+This file contains model-specific prompting guidance for Google's Gemini 3 Flash.
+
+## Best Practices
+[To be populated with official Google documentation and best practices]
+
+## Recommended Patterns
+[To be populated]
+
+## Things to Avoid
+[To be populated]

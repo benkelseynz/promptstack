@@ -1,0 +1,16 @@
+# Claude Haiku 4.5 Prompting Guidance
+
+## Overview
+This file contains model-specific prompting guidance for Anthropic's Claude Haiku 4.5.
+
+## Best Practices
+[To be populated with official Anthropic documentation and best practices]
+
+## Recommended Patterns
+- Use XML tags for structured input/output
+- Be concise - Haiku excels at quick, focused tasks
+- Provide clear instructions upfront
+- Use examples for consistency
+
+## Things to Avoid
+[To be populated]

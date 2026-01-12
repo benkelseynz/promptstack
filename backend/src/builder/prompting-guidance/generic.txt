@@ -1,0 +1,44 @@
+# Generic Prompting Guidance
+
+## Overview
+This file contains generic prompting guidance that works well across most AI systems.
+Used when the user selects "Don't know" as their model choice.
+
+## Universal Best Practices
+
+### Structure
+- Start with a clear role or persona assignment
+- Provide context before the task
+- Be specific about expected output format
+- Include constraints and requirements explicitly
+
+### Clarity
+- Use simple, direct language
+- Break complex tasks into steps
+- Avoid ambiguous terms
+- Specify what to include AND what to avoid
+
+### Output Format
+- Request structured responses when appropriate
+- Specify length expectations
+- Ask for examples if helpful
+- Define terminology if domain-specific
+
+## Recommended Patterns
+
+### Role-Based Prompting
+"You are a [role] with expertise in [domain]. Your task is to..."
+
+### Task-Context-Format
+1. Context: Background information
+2. Task: What needs to be done
+3. Format: How to structure the response
+
+### Constraints First
+State limitations and requirements upfront to avoid unwanted outputs.
+
+## Things to Avoid
+- Overly long prompts without clear structure
+- Vague or ambiguous instructions
+- Assuming the AI knows context it wasn't given
+- Multiple unrelated tasks in a single prompt

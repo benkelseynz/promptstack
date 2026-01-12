@@ -1,0 +1,13 @@
+# Mistral Large Prompting Guidance
+
+## Overview
+This file contains model-specific prompting guidance for Mistral Large.
+
+## Best Practices
+[To be populated with official Mistral documentation and best practices]
+
+## Recommended Patterns
+[To be populated]
+
+## Things to Avoid
+[To be populated]

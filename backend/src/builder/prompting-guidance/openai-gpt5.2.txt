@@ -1,0 +1,13 @@
+# GPT-5.2 Prompting Guidance
+
+## Overview
+This file contains model-specific prompting guidance for OpenAI's GPT-5.2.
+
+## Best Practices
+[To be populated with official OpenAI documentation and best practices]
+
+## Recommended Patterns
+[To be populated]
+
+## Things to Avoid
+[To be populated]
