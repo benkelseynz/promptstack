@@ -1,13 +1,81 @@
 # Gemini 3 Pro Prompting Guidance
 
 ## Overview
-This file contains model-specific prompting guidance for Google's Gemini 3 Pro.
+Gemini 3 Pro is Google's professional-tier model, offering strong performance across reasoning, generation, and multimodal tasks. It excels at following structured, step-by-step instructions and produces well-organised output when given explicit formatting guidance. Gemini 3 Pro works well with numbered sections, clear output schemas, and task decomposition. It handles long-context inputs effectively and is a strong choice for analytical, creative, and technical tasks.
 
 ## Best Practices
-[To be populated with official Google documentation and best practices]
+- Use numbered sections and step-by-step instructions. Gemini 3 Pro follows sequential instructions with high fidelity.
+- Define the expected output format explicitly. Include schema definitions, example structures, or format templates.
+- Provide clear context before the task. Gemini processes information most effectively when context precedes instructions.
+- Use markdown formatting (headers, numbered lists, bold text) to organise both the prompt and the expected response.
+- Break complex tasks into discrete, labelled steps. This improves both accuracy and output structure.
+- Specify evaluation criteria when asking for analysis. Tell the model what dimensions to assess.
+- Use role-setting to establish expertise and tone (e.g., "You are a data analyst specialising in...").
 
 ## Recommended Patterns
-[To be populated]
+
+### Numbered Step Pattern
+```
+Complete the following analysis in order:
+
+1. **Data Summary**: Describe the key characteristics of the dataset.
+2. **Trend Identification**: Identify 3-5 notable trends.
+3. **Anomaly Detection**: Flag any outliers or unexpected values.
+4. **Recommendations**: Provide 2-3 actionable recommendations based on your findings.
+
+Dataset:
+[data]
+```
+
+### Output Schema Pattern
+```
+Analyse the following text and return structured results in this exact format:
+
+**Topic:** [main topic]
+**Sentiment:** [positive / negative / neutral]
+**Key Points:**
+- [point 1]
+- [point 2]
+- [point 3]
+**Confidence:** [high / medium / low]
+
+Text: [input text]
+```
+
+### Context-Task-Format Pattern
+```
+**Context:** [background information and relevant details]
+
+**Task:** [what you need the model to do]
+
+**Format:** [how the response should be structured]
+
+**Constraints:**
+- [constraint 1]
+- [constraint 2]
+```
+
+### Comparative Analysis Pattern
+```
+Compare the following two options across these dimensions:
+
+| Dimension | Option A | Option B |
+|-----------|----------|----------|
+| Cost | | |
+| Scalability | | |
+| Ease of use | | |
+
+Then provide a summary recommendation explaining which option is better suited for [specific use case].
+
+Option A: [details]
+Option B: [details]
+```
 
 ## Things to Avoid
-[To be populated]
+- Avoid unstructured, stream-of-consciousness prompts. Gemini 3 Pro performs significantly better with organised input.
+- Do not omit the output format. Without explicit formatting guidance, responses may be inconsistently structured.
+- Avoid placing instructions before context. Provide background information first, then state the task.
+- Do not combine many unrelated tasks in a single prompt. Separate distinct tasks for better results.
+- Avoid vague instructions like "analyse this" without specifying what aspects to analyse and how to present findings.
+- Do not use XML tags as the primary structural device — Gemini responds better to markdown and numbered sections.
+- Avoid assuming the model will infer your preferred response length. State word or paragraph limits explicitly.

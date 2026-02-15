@@ -1056,6 +1056,208 @@ class ApiClient {
       }
     );
   }
+
+  // Transcription endpoints (for audio file uploads)
+  async transcribeAudio(audioBlob: Blob): Promise<{
+    success: boolean;
+    fileId: string;
+    transcription: string;
+    message: string;
+  }> {
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'recording.webm');
+
+    const headers: HeadersInit = {};
+    if (this.token) {
+      headers['Authorization'] = `Bearer ${this.token}`;
+    }
+
+    const response = await fetch(`${API_URL}/api/transcription/upload`, {
+      method: 'POST',
+      headers,
+      credentials: 'include',
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Transcription failed');
+    }
+
+    return data;
+  }
+
+  async appendTranscription(
+    audioBlob: Blob,
+    existingTranscription: string
+  ): Promise<{
+    success: boolean;
+    fileId: string;
+    transcription: string;
+    newSegment: string;
+    message: string;
+  }> {
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'recording.webm');
+    formData.append('existingTranscription', existingTranscription);
+
+    const headers: HeadersInit = {};
+    if (this.token) {
+      headers['Authorization'] = `Bearer ${this.token}`;
+    }
+
+    const response = await fetch(`${API_URL}/api/transcription/append`, {
+      method: 'POST',
+      headers,
+      credentials: 'include',
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Transcription append failed');
+    }
+
+    return data;
+  }
+
+  // ─── Prompt Builder endpoints (SSE streaming) ───
+
+  /**
+   * Helper: make a POST request that returns an SSE stream.
+   * Calls onChunk for each text chunk, onDone when complete.
+   */
+  private async streamRequest(
+    endpoint: string,
+    body: Record<string, unknown>,
+    onChunk: (text: string) => void,
+    onDone: (result: { fullText: string; qualityScore: QualityScore }) => void,
+    onError: (error: string) => void
+  ): Promise<void> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (this.token) {
+      headers['Authorization'] = `Bearer ${this.token}`;
+    }
+
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      method: 'POST',
+      headers,
+      credentials: 'include',
+      body: JSON.stringify(body),
+    });
+
+    // If the response is not SSE (e.g., validation error), handle as JSON
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('text/event-stream')) {
+      const data = await response.json();
+      throw new Error(data.error || 'Generation failed');
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('No response stream available');
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let fullText = '';
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        // Process complete SSE events from buffer
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+
+              if (data.error) {
+                onError(data.error);
+                return;
+              }
+
+              if (data.done) {
+                onDone({
+                  fullText: data.fullText || fullText,
+                  qualityScore: data.qualityScore,
+                });
+                return;
+              }
+
+              if (data.text) {
+                fullText += data.text;
+                onChunk(data.text);
+              }
+            } catch {
+              // Skip malformed JSON lines
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  }
+
+  async generatePrompt(
+    params: {
+      type: 'form' | 'freeform';
+      modelId: string;
+      goalCategory: string;
+      inputs: Record<string, unknown>;
+    },
+    onChunk: (text: string) => void,
+    onDone: (result: { fullText: string; qualityScore: QualityScore }) => void,
+    onError: (error: string) => void
+  ): Promise<void> {
+    return this.streamRequest('/api/builder/generate', params, onChunk, onDone, onError);
+  }
+
+  async improvePrompt(
+    params: {
+      existingPrompt: string;
+      modelId: string;
+      goalCategory: string;
+    },
+    onChunk: (text: string) => void,
+    onDone: (result: { fullText: string; qualityScore: QualityScore }) => void,
+    onError: (error: string) => void
+  ): Promise<void> {
+    return this.streamRequest('/api/builder/improve', params, onChunk, onDone, onError);
+  }
+
+  async refinePrompt(
+    params: {
+      currentPrompt: string;
+      refinementType: string;
+      modelId: string;
+    },
+    onChunk: (text: string) => void,
+    onDone: (result: { fullText: string; qualityScore: QualityScore }) => void,
+    onError: (error: string) => void
+  ): Promise<void> {
+    return this.streamRequest('/api/builder/refine', params, onChunk, onDone, onError);
+  }
+}
+
+// QualityScore type for builder responses
+interface QualityScore {
+  clarity: number;
+  completeness: number;
+  specificity: number;
+  structure: number;
+  overall: number;
 }
 
 export const api = new ApiClient();

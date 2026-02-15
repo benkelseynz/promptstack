@@ -1,13 +1,88 @@
 # Mistral Large Prompting Guidance
 
 ## Overview
-This file contains model-specific prompting guidance for Mistral Large.
+Mistral Large is Mistral AI's most capable model and a leader among open-weight models. It excels at instruction-following, structured output generation (particularly JSON), multilingual tasks, and technical content. Mistral Large responds well to clear system/user message separation, precise constraints, and well-decomposed tasks. It is particularly effective for tasks requiring strict output formatting, data transformation, and domain-specific analysis.
 
 ## Best Practices
-[To be populated with official Mistral documentation and best practices]
+- Separate system and user messages clearly. Use the system message for role, rules, and format; the user message for the specific task.
+- Decompose complex tasks into explicitly numbered sub-tasks. Mistral Large follows step-by-step instructions reliably.
+- When requesting JSON output, provide a precise schema or example. Mistral Large generates valid JSON consistently when given a clear template.
+- State constraints explicitly and early in the prompt. Include format, length, tone, and scope requirements upfront.
+- Use clear, imperative language. Direct instructions ("List the top three...", "Compare X and Y...") work better than abstract descriptions of what you want.
+- For multilingual tasks, specify both the input and output language explicitly.
+- Provide one or two examples for tasks requiring specific formatting patterns.
 
 ## Recommended Patterns
-[To be populated]
+
+### System/User Separation Pattern
+```
+System: You are a data analyst. Always respond in structured JSON. Include a "confidence" field (0-1) with every analysis. Use NZ/UK English for any text fields.
+
+User: Analyse the following sales data and identify the top-performing region.
+[data]
+```
+
+### JSON Output Pattern
+```
+Process the following text and return a JSON object matching this schema:
+
+{
+  "title": "string",
+  "summary": "string (max 100 words)",
+  "tags": ["string array"],
+  "sentiment": "positive | negative | neutral",
+  "confidence": "number (0-1)"
+}
+
+Text: [input text]
+
+Return only the JSON object, no additional commentary.
+```
+
+### Task Decomposition Pattern
+```
+Complete the following tasks in order:
+
+1. Summarise the key points from the provided document (3-5 bullet points).
+2. Identify any gaps or missing information.
+3. Suggest three questions that should be asked to fill those gaps.
+4. Rate the document's completeness on a scale of 1-10 with justification.
+
+Document:
+[document text]
+```
+
+### Precise Constraints Pattern
+```
+Write a product description with these exact constraints:
+- Length: 80-120 words
+- Tone: professional but approachable
+- Must include: key features, target audience, one call to action
+- Must not include: pricing, competitor comparisons, superlatives
+- Language: NZ/UK English
+- Format: single paragraph
+
+Product details: [details]
+```
+
+### Data Transformation Pattern
+```
+Convert the following unstructured text into a structured table with these columns:
+| Name | Role | Department | Start Date |
+
+Rules:
+- Use ISO 8601 format for dates
+- If a field is missing, use "N/A"
+- Sort by start date, earliest first
+
+Text: [unstructured input]
+```
 
 ## Things to Avoid
-[To be populated]
+- Avoid omitting the system message. Mistral Large performs best with a clear system/user message distinction.
+- Do not use vague output format descriptions. Be precise — specify JSON schemas, table structures, or exact heading formats.
+- Avoid mixing multiple output formats in one request (e.g., "give me JSON and also a summary paragraph"). Pick one format per response.
+- Do not write overly conversational prompts. Mistral Large responds best to clear, structured instructions.
+- Avoid very long prompts without internal structure. Use numbered lists or sections to organise complex requests.
+- Do not assume the model will choose the optimal output format. Always specify it explicitly.
+- Avoid requesting creative, open-ended content without guardrails. Provide tone, length, audience, and style constraints.

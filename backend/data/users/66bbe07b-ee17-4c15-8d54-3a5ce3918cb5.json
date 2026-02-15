@@ -43,6 +43,21 @@
       "industry": "finance",
       "role": "Investment Advisor",
       "categoryId": "2ccab4e3-37fc-4453-83b9-1d20a22ff84a"
+    },
+    {
+      "id": "cb693af0-0027-47f9-8d50-abf8969c291b",
+      "title": "Professional Email Response (Copy)",
+      "content": "Write a professional email response to the following message. The response should be from [Your Name] at [Company Name], maintaining a [Tone: formal/friendly/assertive] tone.\n\nOriginal message:\n[Paste Original Email]\n\nKey points to address:\n[List Key Points]\n\nDesired outcome:\n[Desired Outcome]",
+      "keywords": [
+        "email",
+        "response",
+        "professional",
+        "communication",
+        "business"
+      ],
+      "categoryId": null,
+      "createdAt": "2026-01-13T05:46:05.976Z",
+      "updatedAt": "2026-01-13T05:46:05.976Z"
     }
   ],
   "savedPrompts": [

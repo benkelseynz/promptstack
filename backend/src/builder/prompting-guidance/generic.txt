@@ -1,8 +1,8 @@
 # Generic Prompting Guidance
 
 ## Overview
-This file contains generic prompting guidance that works well across most AI systems.
-Used when the user selects "Don't know" as their model choice.
+This file contains universal prompting guidance that works well across most AI models.
+Used when the user selects "Don't know" as their model choice, or when model-specific guidance is unavailable. The principles below are grounded in established prompting frameworks and apply broadly regardless of the underlying model.
 
 ## Universal Best Practices
 
@@ -11,23 +11,68 @@ Used when the user selects "Don't know" as their model choice.
 - Provide context before the task
 - Be specific about expected output format
 - Include constraints and requirements explicitly
+- Separate instructions from input data with clear labels or delimiters
 
 ### Clarity
 - Use simple, direct language
-- Break complex tasks into steps
-- Avoid ambiguous terms
+- Break complex tasks into numbered steps
+- Avoid ambiguous terms — define any domain-specific terminology
 - Specify what to include AND what to avoid
+- Front-load the most important instructions
 
 ### Output Format
-- Request structured responses when appropriate
-- Specify length expectations
+- Request structured responses when appropriate (lists, tables, JSON)
+- Specify length expectations (word count, paragraph count, or number of items)
 - Ask for examples if helpful
 - Define terminology if domain-specific
+- State whether you want reasoning shown or just the final answer
+
+## Prompting Frameworks
+
+### CO-STAR Framework
+A structured approach for crafting comprehensive prompts:
+- **C**ontext: Background information the model needs to understand the task
+- **O**bjective: The specific task or goal you want accomplished
+- **S**tyle: The writing style or approach (e.g., formal, technical, conversational)
+- **T**one: The emotional quality of the response (e.g., professional, empathetic, authoritative)
+- **A**udience: Who will read or use the output
+- **R**esponse format: How the output should be structured (e.g., bullet points, essay, JSON)
+
+Example using CO-STAR:
+```
+Context: We are a Wellington-based SaaS company launching a new project management tool.
+Objective: Write a launch announcement for our existing customer base.
+Style: Professional but approachable, avoiding jargon.
+Tone: Enthusiastic and confident.
+Audience: Existing customers who use our current product suite.
+Response format: Email format with subject line, greeting, 3-4 paragraphs, and a call-to-action button text.
+```
+
+### RISEN Framework
+An alternative structure for task-oriented prompts:
+- **R**ole: Who should the AI act as (e.g., "You are a senior data analyst")
+- **I**nstructions: The specific task to perform
+- **S**teps: The sequence of actions to follow
+- **E**nd goal: What the final deliverable should look like
+- **N**arrowing: Constraints, exclusions, and boundaries
+
+Example using RISEN:
+```
+Role: You are an experienced technical writer.
+Instructions: Create a user guide for our API authentication system.
+Steps:
+1. Explain the authentication flow at a high level
+2. Provide step-by-step setup instructions
+3. Include code examples in Python and JavaScript
+4. Add a troubleshooting section for common errors
+End goal: A clear, self-contained guide that a junior developer could follow independently.
+Narrowing: Do not cover OAuth flows (out of scope). Keep under 1,500 words. Use NZ/UK English.
+```
 
 ## Recommended Patterns
 
 ### Role-Based Prompting
-"You are a [role] with expertise in [domain]. Your task is to..."
+"You are a [role] with expertise in [domain]. Your audience is [target]. Your task is to..."
 
 ### Task-Context-Format
 1. Context: Background information
@@ -37,8 +82,45 @@ Used when the user selects "Don't know" as their model choice.
 ### Constraints First
 State limitations and requirements upfront to avoid unwanted outputs.
 
+### Few-Shot Example Pattern
+Provide 1-2 examples of the desired input-output mapping, then present the actual task. This establishes the expected format and quality level.
+
+### Iterative Refinement Pattern
+Ask the model to produce a draft, then evaluate it against stated criteria, then produce an improved version. This works well for high-quality content generation.
+
+## NZ/UK English Conventions
+When generating prompts for a New Zealand or United Kingdom audience, ensure the following spelling and language conventions are applied:
+
+### Spelling
+- Use "-ise" not "-ize" (e.g., organise, optimise, summarise, analyse, recognise)
+- Use "-our" not "-or" (e.g., colour, behaviour, favour, honour, labour)
+- Use "-re" not "-er" (e.g., centre, metre, fibre, litre)
+- Use "-ence" not "-ense" for nouns (e.g., licence, defence, offence)
+- Use "-lled/-lling" not "-led/-ling" (e.g., travelled, modelling, labelled, cancelled)
+- Use "programme" (not "program") for non-computer contexts
+- Use "enquiry" for general questions, "inquiry" for formal investigations
+
+### Vocabulary
+- Use "rubbish" not "trash" or "garbage"
+- Use "flat" or "apartment" not "condo"
+- Use "holiday" not "vacation"
+- Use "autumn" not "fall" (season)
+- Use "mobile" not "cell phone"
+- Use "CV" not "resume"
+
+### Date Formats
+- Use DD/MM/YYYY or "15 February 2026" (day before month)
+- Avoid US-style MM/DD/YYYY
+
+### General Style
+- Include these conventions in your prompt's constraints section when the output will be read by a NZ/UK audience.
+- Example constraint: "Use NZ/UK English spelling conventions throughout (e.g., organise, colour, centre)."
+
 ## Things to Avoid
-- Overly long prompts without clear structure
-- Vague or ambiguous instructions
-- Assuming the AI knows context it wasn't given
-- Multiple unrelated tasks in a single prompt
+- Overly long prompts without clear structure or section breaks
+- Vague or ambiguous instructions that leave room for misinterpretation
+- Assuming the AI knows context it was not given
+- Multiple unrelated tasks in a single prompt without clear separation
+- Omitting output format specifications
+- Using jargon or abbreviations without defining them
+- Placing critical instructions at the very end of a long prompt

@@ -1,16 +1,88 @@
 # Claude Opus 4.5 Prompting Guidance
 
 ## Overview
-This file contains model-specific prompting guidance for Anthropic's Claude Opus 4.5.
+Claude Opus 4.5 is Anthropic's most capable model, excelling at nuanced analysis, complex reasoning, long-context tasks, and carefully structured output. It handles very long inputs with strong comprehension and can maintain coherence across extensive outputs. Opus 4.5 responds exceptionally well to XML-tagged prompt structures, clear role definitions, and explicit reasoning scaffolding. It is the ideal choice for tasks requiring depth, subtlety, and thorough analysis.
 
 ## Best Practices
-[To be populated with official Anthropic documentation and best practices]
+- Use XML tags to structure your prompt into distinct sections. Opus 4.5 parses XML-structured prompts with high fidelity and produces more organised responses as a result.
+- Define the assistant's role clearly at the start of the prompt. Include domain expertise, tone, and audience.
+- For complex reasoning tasks, use thinking blocks (e.g., `<thinking>` tags) to encourage the model to reason through problems before presenting a final answer.
+- Provide few-shot examples wrapped in XML tags to establish consistent output formatting and style.
+- Leverage the long context window by including comprehensive reference material — Opus 4.5 handles large documents, codebases, and datasets effectively.
+- Be explicit about what constitutes a good vs poor response. Opus responds well to evaluation criteria stated upfront.
+- Use numbered or lettered lists for multi-part tasks to ensure every element is addressed.
 
 ## Recommended Patterns
-- Use XML tags for structured input/output
-- Include thinking tags for complex reasoning tasks
-- Provide clear role definitions
-- Use examples for few-shot learning
+
+### XML-Structured Prompt Pattern
+```
+<role>You are a senior policy analyst with expertise in public health.</role>
+
+<context>
+[Background information, reference documents, or data]
+</context>
+
+<task>
+Analyse the provided policy document and produce:
+1. A summary of key provisions
+2. An assessment of likely impacts
+3. Recommendations for improvement
+</task>
+
+<format>
+Use markdown headers for each section. Include specific references to the source material.
+</format>
+
+<constraints>
+- Write in NZ/UK English
+- Keep the total response under 800 words
+- Focus on practical, actionable insights
+</constraints>
+```
+
+### Thinking Block Pattern
+```
+<task>Determine the optimal pricing strategy for the following product.</task>
+
+<data>[product and market data]</data>
+
+<instructions>
+Before giving your final recommendation, think through the problem step by step inside <thinking> tags. Consider at least three different approaches, evaluate their trade-offs, and then present your recommendation.
+</instructions>
+```
+
+### Few-Shot with XML Pattern
+```
+<examples>
+<example>
+<input>Annual revenue increased by 12% while costs rose by 8%.</input>
+<output>
+<metric>Revenue Growth</metric>
+<value>12%</value>
+<assessment>Positive — outpacing cost increases, indicating improving margins.</assessment>
+</output>
+</example>
+</examples>
+
+<task>Now analyse the following: [new input]</task>
+```
+
+### Long-Context Analysis Pattern
+```
+<documents>
+[Include full reference documents here — Opus handles extensive context well]
+</documents>
+
+<task>
+Based solely on the documents provided above, answer the following questions. For each answer, cite the specific document and section you are drawing from.
+</task>
+```
 
 ## Things to Avoid
-[To be populated]
+- Avoid unstructured, free-form prompts for complex tasks. Opus 4.5 benefits significantly from XML-tagged organisation.
+- Do not use markdown headers inside prompts as the primary structural device — XML tags work better for Claude models.
+- Avoid asking for brevity when the task genuinely requires depth. Opus excels at thorough analysis; let it work to its strengths.
+- Do not omit constraints. Without explicit boundaries, Opus may produce very thorough but overly long responses.
+- Avoid vague evaluation criteria like "be good" or "be helpful." Specify what dimensions matter (accuracy, actionability, clarity, etc.).
+- Do not place critical instructions at the very end of a long prompt. Put key constraints near the top or in a dedicated `<constraints>` section.
+- Avoid redundant or contradictory instructions across different XML sections. Ensure consistency throughout the prompt.

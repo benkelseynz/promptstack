@@ -1,16 +1,75 @@
 # Claude Haiku 4.5 Prompting Guidance
 
 ## Overview
-This file contains model-specific prompting guidance for Anthropic's Claude Haiku 4.5.
+Claude Haiku 4.5 is Anthropic's fastest and most efficient model, optimised for quick responses and high-throughput tasks. It excels at classification, extraction, summarisation, and straightforward generation tasks. Haiku responds best to clear, direct prompts with minimal complexity. While it supports XML tags, keep structures simple. This model is ideal for production pipelines, real-time applications, and tasks where speed and cost-efficiency are priorities.
 
 ## Best Practices
-[To be populated with official Anthropic documentation and best practices]
+- Be concise. Haiku performs best with short, direct instructions. Remove any unnecessary preamble or elaboration.
+- Place the most important instruction first. Haiku prioritises early content in the prompt.
+- Use simple XML tags sparingly — `<task>` and `<format>` are usually sufficient. Avoid deeply nested structures.
+- Provide one clear example if you need consistent formatting. One example is usually enough for Haiku.
+- Specify the output format explicitly and simply (e.g., "Respond with only the category name" or "Return JSON").
+- Use constraints to keep responses focused. Haiku works well with strict scope boundaries.
+- For classification tasks, list the valid categories explicitly and instruct the model to choose exactly one.
 
 ## Recommended Patterns
-- Use XML tags for structured input/output
-- Be concise - Haiku excels at quick, focused tasks
-- Provide clear instructions upfront
-- Use examples for consistency
+
+### Direct Task Pattern
+```
+Summarise the following text in 2-3 sentences:
+
+[text to summarise]
+```
+
+### Simple XML Pattern
+```
+<task>Extract the person's name, email, and company from the text below.</task>
+
+<format>Return as JSON: { "name": "", "email": "", "company": "" }</format>
+
+<text>[input text]</text>
+```
+
+### Classification Pattern
+```
+Classify this support ticket into one category.
+
+Categories: billing, technical, account, feature_request, other
+
+Ticket: [ticket text]
+
+Category:
+```
+
+### Extraction Pattern
+```
+From the following email, extract:
+1. Action items (as a bullet list)
+2. Deadlines mentioned (as dates)
+3. People mentioned (as a comma-separated list)
+
+Email: [email text]
+```
+
+### Yes/No Decision Pattern
+```
+Based on the following criteria, determine if this application should be approved.
+
+Criteria:
+- [criterion 1]
+- [criterion 2]
+- [criterion 3]
+
+Application: [application details]
+
+Respond with "Approved" or "Declined" followed by a one-sentence justification.
+```
 
 ## Things to Avoid
-[To be populated]
+- Avoid long, elaborate prompts. Haiku is not designed for complex multi-page instructions — keep it focused.
+- Do not request lengthy, detailed analysis. Use Sonnet or Opus for tasks requiring depth and nuance.
+- Avoid multiple nested XML tag levels. Stick to one level of nesting maximum.
+- Do not include more than one example unless absolutely necessary. Multiple examples waste tokens on a speed-optimised model.
+- Avoid open-ended tasks without clear boundaries. Always specify scope, format, and length.
+- Do not use Haiku for tasks requiring extended multi-step reasoning. It is optimised for focused, single-step operations.
+- Avoid ambiguous instructions. Haiku benefits from precise, unambiguous directives more than larger models do.

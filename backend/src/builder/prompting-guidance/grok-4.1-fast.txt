@@ -1,13 +1,56 @@
 # Grok 4.1 Fast Prompting Guidance
 
 ## Overview
-This file contains model-specific prompting guidance for xAI's Grok 4.1 Fast.
+Grok 4.1 Fast is xAI's speed-optimised model, offering rapid responses while retaining access to real-time knowledge. It shares Grok 4's direct interaction style but is tuned for faster turnaround, making it ideal for iterative tasks, quick lookups, and production pipelines. Favour concise, focused prompts that get straight to the point. This model is best suited for tasks where speed is prioritised over exhaustive depth.
 
 ## Best Practices
-[To be populated with official xAI documentation and best practices]
+- Be concise and direct. State the task in as few words as are needed for clarity.
+- Front-load the instruction. Place the core task in the first sentence, then add constraints.
+- Specify the output format briefly (e.g., "Respond in JSON", "Use bullet points", "One paragraph only").
+- For classification or extraction tasks, list valid options explicitly and request a single-choice response.
+- Provide one example if consistent formatting is needed. Keep examples short.
+- Use this model for rapid iteration — draft quickly, then escalate to Grok 4 for deeper work.
+- Leverage real-time knowledge when relevant, but keep the request focused and specific.
 
 ## Recommended Patterns
-[To be populated]
+
+### Quick Task Pattern
+```
+Summarise this in 2-3 sentences: [text]
+```
+
+### Fast Extraction Pattern
+```
+Extract the company name, date, and key figure from this text.
+Return as: Company: [x], Date: [x], Figure: [x]
+
+Text: [input]
+```
+
+### Rapid Classification Pattern
+```
+Classify as: positive, negative, or neutral.
+
+Text: [input]
+
+Sentiment:
+```
+
+### Concise Research Pattern
+```
+What are the 3 most important recent developments in [topic]? One sentence each.
+```
+
+### Quick Comparison Pattern
+```
+In 3-4 bullet points, compare [A] and [B] for [specific use case].
+```
 
 ## Things to Avoid
-[To be populated]
+- Avoid lengthy, multi-section prompts. Keep instructions short and task-specific.
+- Do not request detailed, long-form analysis. Use Grok 4 for tasks requiring depth.
+- Avoid including more than one example. Extra examples slow down the fast-response workflow.
+- Do not leave output format unspecified. Without clear format guidance, responses may be unnecessarily verbose.
+- Avoid complex multi-step reasoning chains in a single prompt. Break them into sequential requests if needed.
+- Do not use elaborate structural scaffolding (XML tags, deeply nested headers). Keep the prompt flat and direct.
+- Avoid open-ended questions without scope limits. Constrain every request.

@@ -1,16 +1,82 @@
 # Claude Sonnet 4.5 Prompting Guidance
 
 ## Overview
-This file contains model-specific prompting guidance for Anthropic's Claude Sonnet 4.5.
+Claude Sonnet 4.5 is Anthropic's balanced model, offering a strong combination of speed and capability. It handles a wide range of tasks well — from analysis and writing to code generation and structured data extraction. Sonnet 4.5 responds well to XML-tagged prompts, benefits from concise and well-organised instructions, and produces consistent output when given clear examples. It is well-suited for production use cases where both quality and response time matter.
 
 ## Best Practices
-[To be populated with official Anthropic documentation and best practices]
+- Use XML tags to structure your prompts. Sonnet 4.5 reliably parses `<role>`, `<context>`, `<task>`, and `<format>` sections.
+- Keep instructions concise but complete. Sonnet performs best when instructions are clear without being over-elaborate.
+- Provide 1-2 few-shot examples for tasks requiring specific formatting or tone consistency.
+- Define the output format explicitly. Sonnet follows format specifications closely when they are clearly stated.
+- Front-load critical instructions. Place the most important constraints and requirements near the beginning of the prompt.
+- Use numbered lists for multi-step tasks to ensure complete coverage.
+- Specify tone and audience to get appropriately calibrated responses.
 
 ## Recommended Patterns
-- Use XML tags for structured input/output
-- Include thinking tags for complex reasoning tasks
-- Provide clear role definitions
-- Use examples for few-shot learning
+
+### Concise XML Pattern
+```
+<role>Technical writer for a developer audience.</role>
+
+<task>
+Write a concise explanation of [concept] covering:
+1. What it is
+2. Why it matters
+3. A practical example
+</task>
+
+<constraints>
+- Under 300 words
+- Use code snippets where appropriate
+- NZ/UK English
+</constraints>
+```
+
+### Example-Driven Consistency Pattern
+```
+<task>Categorise the following items using the format shown in the example.</task>
+
+<example>
+Input: "The deployment failed due to a timeout error"
+Output: { "category": "infrastructure", "severity": "high", "action": "investigate" }
+</example>
+
+<items>
+[list of items to categorise]
+</items>
+```
+
+### Focused Analysis Pattern
+```
+<context>[Background material]</context>
+
+<task>
+Analyse the above and provide:
+- **Key Takeaway** (1-2 sentences)
+- **Supporting Points** (3-4 bullet points)
+- **Recommended Action** (1 sentence)
+</task>
+```
+
+### Role + Guardrails Pattern
+```
+<role>You are a customer support specialist for a SaaS product.</role>
+
+<guardrails>
+- Only answer questions related to the product
+- If unsure, say so rather than guessing
+- Keep responses friendly but professional
+- Always suggest next steps
+</guardrails>
+
+<query>[Customer question]</query>
+```
 
 ## Things to Avoid
-[To be populated]
+- Avoid overly long, verbose prompts. Sonnet works efficiently with streamlined instructions — remove padding.
+- Do not skip output format specification. Without it, response structure may vary between requests.
+- Avoid deeply nested XML structures with more than 2-3 levels. Keep the tag hierarchy flat and clear.
+- Do not include more than 2-3 few-shot examples unless the task is highly unusual — Sonnet generalises well.
+- Avoid mixing structural approaches (e.g., XML tags and markdown headers for the same organisational purpose). Pick one and be consistent.
+- Do not place critical constraints at the very end of the prompt where they may receive less attention.
+- Avoid open-ended prompts without scope boundaries. Specify what to include and what to exclude.

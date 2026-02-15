@@ -1,13 +1,78 @@
 # Grok 4 Prompting Guidance
 
 ## Overview
-This file contains model-specific prompting guidance for xAI's Grok 4.
+Grok 4 is xAI's flagship model, distinguished by its access to real-time knowledge and a direct, conversational interaction style. It excels at tasks that benefit from current information, clear task framing, and explicit output formatting. Grok handles direct, no-nonsense prompting well and responds effectively to structured requests. It is a strong choice for research, analysis involving recent developments, and tasks requiring factual grounding.
 
 ## Best Practices
-[To be populated with official xAI documentation and best practices]
+- Use a direct, conversational prompting style. Grok responds well to clear, straightforward instructions without excessive formality.
+- Frame tasks explicitly. State what you want, what format to use, and what constraints apply — all upfront.
+- When relevant, reference the need for current or recent information. Grok can draw on real-time knowledge to ground its responses.
+- Specify output formatting clearly. Use explicit format descriptions (e.g., "Use bullet points", "Return as a numbered list", "Format as a table").
+- Break complex tasks into clearly labelled parts. Number each sub-task for reliable coverage.
+- Provide context and background before stating the task, but keep it focused — avoid excessive padding.
+- Use constraints to manage response scope and length (e.g., "Keep your response under 200 words").
 
 ## Recommended Patterns
-[To be populated]
+
+### Direct Task Framing Pattern
+```
+I need you to [specific task]. Here is the context:
+
+[Context and background]
+
+Requirements:
+- [Requirement 1]
+- [Requirement 2]
+- [Requirement 3]
+
+Format: [How to structure the response]
+```
+
+### Current Knowledge Pattern
+```
+Based on the latest available information, provide an analysis of [topic].
+
+Cover the following:
+1. Current state of affairs
+2. Key recent developments
+3. Implications and outlook
+
+Keep the response factual and cite specific events or data points where possible.
+```
+
+### Structured Analysis Pattern
+```
+Analyse the following from these perspectives:
+
+**Technical:** [What are the technical implications?]
+**Commercial:** [What are the business implications?]
+**Risk:** [What risks should be considered?]
+
+Input: [data or situation to analyse]
+
+Provide a brief summary recommendation at the end.
+```
+
+### Fact-Grounded Research Pattern
+```
+Research the following topic and provide a structured briefing:
+
+Topic: [topic]
+
+Structure:
+- Background (2-3 sentences)
+- Key Facts (bullet points)
+- Current Status (2-3 sentences)
+- Open Questions (bullet list)
+
+Prioritise accuracy and specificity. Flag any areas of uncertainty.
+```
 
 ## Things to Avoid
-[To be populated]
+- Avoid overly formal or stilted prompting language. Grok works best with direct, natural instructions.
+- Do not assume the model will structure its output without guidance. Always specify the desired format.
+- Avoid very long, dense prompts without clear structure. Use headers or numbered sections to organise complex requests.
+- Do not ask Grok to role-play as other specific AI systems. Frame roles in terms of expertise areas instead.
+- Avoid vague, unbounded tasks. Always include scope constraints (what to cover, how much to write, what format).
+- Do not combine many unrelated questions in a single prompt. Separate distinct topics for clearer responses.
+- Avoid ignoring Grok's real-time knowledge capability — when timeliness matters, explicitly ask for current information.

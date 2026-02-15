@@ -974,9 +974,6 @@ video {
 .w-0\.5 {
   width: 0.125rem;
 }
-.w-1 {
-  width: 0.25rem;
-}
 .w-10 {
   width: 2.5rem;
 }
@@ -1078,6 +1075,9 @@ video {
 }
 .max-w-sm {
   max-width: 24rem;
+}
+.max-w-xl {
+  max-width: 36rem;
 }
 .flex-1 {
   flex: 1 1 0%;
@@ -2107,6 +2107,9 @@ video {
 }
 .duration-300 {
   transition-duration: 300ms;
+}
+.duration-75 {
+  transition-duration: 75ms;
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');

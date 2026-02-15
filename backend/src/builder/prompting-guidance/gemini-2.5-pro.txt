@@ -1,13 +1,76 @@
 # Gemini 2.5 Pro Prompting Guidance
 
 ## Overview
-This file contains model-specific prompting guidance for Google's Gemini 2.5 Pro.
+Gemini 2.5 Pro is Google's previous-generation professional model. It is a solid all-rounder capable of handling analytical, generative, and structured tasks effectively. While it shares many capabilities with Gemini 3 Pro, it may require more explicit and detailed instructions to achieve equivalent results. Gemini 2.5 Pro responds well to clearly structured prompts, step-by-step breakdowns, and explicit output formatting. It is a reliable choice for production workloads where consistency matters.
 
 ## Best Practices
-[To be populated with official Google documentation and best practices]
+- Be more explicit with instructions than you might be with newer models. Spell out each step clearly.
+- Use numbered sections to organise multi-step tasks. Gemini 2.5 Pro follows sequential instructions well when they are clearly delineated.
+- Provide concrete examples of desired output format. This model benefits from having a template to follow.
+- Specify output structure explicitly — include section headers, bullet point expectations, and length guidance.
+- Place context before instructions. Gemini 2.5 Pro processes information best when background is established first.
+- Use clear, direct language. Avoid abstract meta-instructions and favour concrete directives.
+- For complex tasks, consider breaking them into multiple sequential prompts rather than one large prompt.
 
 ## Recommended Patterns
-[To be populated]
+
+### Explicit Step-by-Step Pattern
+```
+I need you to complete the following task in exactly this order:
+
+Step 1: Read the provided text carefully.
+Step 2: Identify the three most important themes.
+Step 3: For each theme, write a 2-3 sentence explanation.
+Step 4: Conclude with a one-sentence overall summary.
+
+Text:
+[input text]
+```
+
+### Template-Driven Output Pattern
+```
+Analyse the following and respond using this exact template:
+
+**Subject:** [what this is about]
+**Key Finding:** [single most important insight]
+**Evidence:** [2-3 supporting points as bullets]
+**Recommendation:** [one actionable next step]
+
+Input: [data or text to analyse]
+```
+
+### Context-First Pattern
+```
+Background:
+[Provide all relevant context, data, and reference material here]
+
+Given the above background, complete the following task:
+[Clear, specific instruction]
+
+Format your response as:
+[Explicit format specification]
+```
+
+### Guided Comparison Pattern
+```
+Compare the following two items. For each comparison point, state which item is stronger and why.
+
+Comparison points:
+1. [Dimension A]
+2. [Dimension B]
+3. [Dimension C]
+
+Item 1: [details]
+Item 2: [details]
+
+End with a clear recommendation.
+```
 
 ## Things to Avoid
-[To be populated]
+- Avoid assuming the model will infer implicit instructions. Be thorough and explicit with every requirement.
+- Do not use overly terse prompts. Gemini 2.5 Pro benefits from more detail than newer models might need.
+- Avoid mixing multiple tasks in one prompt without clear section boundaries.
+- Do not skip output format specification. Without a template or format guide, responses may vary in structure.
+- Avoid complex XML tag structures — Gemini models respond better to markdown and numbered sections.
+- Do not rely on single-word instructions like "Analyse" or "Summarise" without specifying what to focus on, how to structure the output, and how long it should be.
+- Avoid placing the task instruction after a very long context block without a clear label or separator.

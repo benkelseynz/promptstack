@@ -1,13 +1,62 @@
 # GPT-4o Prompting Guidance
 
 ## Overview
-This file contains model-specific prompting guidance for OpenAI's GPT-4o.
+GPT-4o is OpenAI's speed-optimised model, designed for fast responses without sacrificing too much capability. It excels at structured output generation, function-calling patterns, concise analysis, and tasks that benefit from rapid iteration. GPT-4o responds well to direct, well-organised prompts and is particularly strong at generating JSON, following schemas, and handling classification tasks. Favour clarity and conciseness when prompting this model.
 
 ## Best Practices
-[To be populated with official OpenAI documentation and best practices]
+- Keep prompts concise and direct. GPT-4o performs best when instructions are clear and not over-elaborated.
+- Use markdown headers (##, ###) to organise prompt sections — this helps the model parse your intent quickly.
+- Leverage structured output requests (JSON, tables, lists) — GPT-4o handles these formats reliably and efficiently.
+- Place the most important instructions at the beginning of the prompt. Front-load critical constraints.
+- Use the system message for persistent rules and the user message for the specific query. Keep the system message focused.
+- For repetitive tasks, provide one clear example rather than multiple — GPT-4o generalises well from minimal examples.
+- When using function-calling patterns, define function schemas precisely with clear parameter descriptions and types.
 
 ## Recommended Patterns
-[To be populated]
+
+### Direct Instruction Pattern
+```
+System: You are a concise technical writer. Respond in bullet points unless asked otherwise.
+
+User: Summarise the key differences between REST and GraphQL APIs.
+```
+
+### Structured Output Pattern
+```
+Extract the following information from the text below and return as JSON:
+{
+  "name": "string",
+  "date": "ISO 8601 string",
+  "category": "one of: bug, feature, improvement",
+  "priority": "one of: low, medium, high"
+}
+
+Text: [input text]
+```
+
+### Classification Pattern
+```
+Classify the following customer message into exactly one category:
+Categories: billing, technical_support, feature_request, complaint, general_inquiry
+
+Message: [customer message]
+
+Respond with only the category name.
+```
+
+### Concise Analysis Pattern
+```
+Analyse the following in under 150 words. Structure your response as:
+**Key Finding:** [one sentence]
+**Supporting Evidence:** [2-3 bullet points]
+**Recommendation:** [one sentence]
+```
 
 ## Things to Avoid
-[To be populated]
+- Avoid overly verbose prompts. GPT-4o works best with streamlined instructions — trim unnecessary preamble.
+- Do not include excessive examples (more than 2-3) unless the task format is highly unusual.
+- Avoid open-ended prompts without constraints. Always specify format, length, or scope expectations.
+- Do not request extremely long-form output in a single response — break it into sequential requests if needed.
+- Avoid complex nested conditional logic in a single prompt. Simplify decision trees into separate, clear instructions.
+- Do not omit output format specifications. Without them, GPT-4o may default to verbose prose when you wanted structured data.
+- Avoid using GPT-4o for tasks requiring deep, multi-step reasoning chains — consider GPT-5.x for those tasks instead.

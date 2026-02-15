@@ -1,13 +1,65 @@
 # GPT-5.1 Prompting Guidance
 
 ## Overview
-This file contains model-specific prompting guidance for OpenAI's GPT-5.1.
+GPT-5.1 is OpenAI's previous-generation flagship model, well-proven and stable in production environments. It shares many strengths with GPT-5.2, including strong instruction-following, structured output generation, and effective system message handling. GPT-5.1 is a reliable choice when consistency and predictability are priorities. The same core prompting patterns that work for GPT-5.2 apply here, with this model being particularly well-tested across a wide range of use cases.
 
 ## Best Practices
-[To be populated with official OpenAI documentation and best practices]
+- Use the system message to set role, constraints, and output format. GPT-5.1 adheres closely to well-structured system prompts.
+- Break complex tasks into clearly numbered steps. Explicit sequencing improves output quality significantly.
+- Provide few-shot examples when you need consistent formatting or style across responses.
+- Use markdown formatting (headers, lists, bold text) to structure both your prompts and expected outputs.
+- Be explicit about output length, tone, and audience. GPT-5.1 follows these constraints reliably when stated upfront.
+- For classification or structured tasks, define the categories or schema in the system message and reference them in the user message.
+- When asking for analysis, specify the dimensions or criteria you want covered (e.g., "Evaluate based on cost, feasibility, and impact").
 
 ## Recommended Patterns
-[To be populated]
+
+### System + User Message Separation
+```
+System: You are an expert business analyst. Always structure your responses with:
+- Executive Summary (2-3 sentences)
+- Key Findings (bullet points)
+- Recommendations (numbered list)
+Use professional but accessible language.
+
+User: Analyse the following quarterly results and identify areas for improvement: [data]
+```
+
+### Few-Shot Consistency Pattern
+```
+Here are examples of the format I need:
+
+Input: "The project was delayed by two weeks"
+Output: { "event": "delay", "duration": "2 weeks", "sentiment": "negative" }
+
+Input: "We completed the migration ahead of schedule"
+Output: { "event": "migration", "duration": "ahead of schedule", "sentiment": "positive" }
+
+Now process this input: [new input]
+```
+
+### Explicit Constraints Pattern
+```
+Write a [deliverable] with the following constraints:
+- Length: [specific word/paragraph count]
+- Tone: [formal/casual/technical]
+- Audience: [who will read this]
+- Must include: [required elements]
+- Must avoid: [excluded elements]
+```
+
+### Iterative Refinement Pattern
+```
+First, draft a [deliverable].
+Then, review your draft against these criteria: [criteria list].
+Finally, produce a revised version incorporating any improvements.
+```
 
 ## Things to Avoid
-[To be populated]
+- Avoid leaving the system message empty or minimal. GPT-5.1 performs best with well-defined system instructions.
+- Do not mix multiple distinct tasks in one prompt without clear separation. Use numbered tasks or section headers.
+- Avoid ambiguous phrasing like "make it better" — specify what "better" means (more concise, more detailed, different tone, etc.).
+- Do not assume the model will infer your preferred output format. Always specify it explicitly.
+- Avoid extremely long, unstructured prompts. If your prompt exceeds a few paragraphs, organise it with headers or numbered sections.
+- Do not rely on the model to maintain state across separate API calls. Include all relevant context in each request.
+- Avoid conflicting instructions — if the system message says "be brief" but the user message asks for "thorough analysis," the model may produce inconsistent results.

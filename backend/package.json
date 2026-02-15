@@ -18,6 +18,7 @@
   "author": "PromptStack",
   "license": "PROPRIETARY",
   "dependencies": {
+    "@google/genai": "^1.41.0",
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
@@ -27,6 +28,8 @@
     "googleapis": "^128.0.0",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
+    "openai": "^6.16.0",
     "pdfkit": "^0.15.2",
     "stripe": "^17.4.0",
     "uuid": "^9.0.1",

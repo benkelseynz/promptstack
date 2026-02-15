@@ -1,13 +1,94 @@
 # DeepSeek V3 Prompting Guidance
 
 ## Overview
-This file contains model-specific prompting guidance for DeepSeek V3.
+DeepSeek V3 is an advanced reasoning model that excels at complex analytical tasks, mathematical problem-solving, code generation, and multi-step logical reasoning. It responds exceptionally well to chain-of-thought prompting, explicit reasoning scaffolding, and structured problem breakdowns. When crafting prompts for DeepSeek V3, invest in clear step-by-step frameworks and reasoning instructions — this model produces its best work when encouraged to think through problems systematically before concluding.
 
 ## Best Practices
-[To be populated with official DeepSeek documentation and best practices]
+- Use chain-of-thought prompting for complex tasks. Explicitly instruct the model to reason step by step before providing a final answer.
+- Provide reasoning scaffolding: tell the model what stages of thinking to go through (e.g., "First, identify the key variables. Then, consider their relationships. Finally, draw your conclusion.").
+- Structure prompts with clear sections for context, task, reasoning expectations, and output format.
+- For mathematical or logical tasks, specify whether you want the working shown or just the final answer.
+- Use numbered steps for multi-part problems to ensure every component is addressed.
+- Request structured output (JSON, tables, formatted lists) when appropriate — DeepSeek V3 handles these well.
+- For code generation tasks, specify the language, framework, style conventions, and edge cases to handle.
 
 ## Recommended Patterns
-[To be populated]
+
+### Chain-of-Thought Pattern
+```
+Solve the following problem. Show your reasoning step by step before giving your final answer.
+
+Problem: [problem statement]
+
+Reasoning:
+[Let the model work through the logic here]
+
+Final Answer:
+[Concise answer]
+```
+
+### Reasoning Scaffolding Pattern
+```
+Analyse the following situation using this framework:
+
+1. **Identify**: What are the key factors at play?
+2. **Analyse**: How do these factors interact?
+3. **Evaluate**: What are the strengths and weaknesses of each option?
+4. **Conclude**: What is the best course of action and why?
+
+Situation: [details]
+```
+
+### Structured Problem Decomposition Pattern
+```
+Break down the following complex problem into sub-problems, solve each one, then synthesise a final answer.
+
+Problem: [complex problem]
+
+For each sub-problem, provide:
+- Sub-problem statement
+- Approach
+- Solution
+- Confidence level (high/medium/low)
+
+Then provide a synthesised final answer.
+```
+
+### Code Generation with Reasoning Pattern
+```
+Write a [language] function that [task description].
+
+Before writing the code:
+1. Outline your approach
+2. Identify edge cases
+3. Note any assumptions
+
+Then provide the implementation with inline comments explaining key decisions.
+
+Requirements:
+- [Requirement 1]
+- [Requirement 2]
+- Handle these edge cases: [list]
+```
+
+### Verification Pattern
+```
+Solve the following, then verify your answer by checking it from a different angle.
+
+Problem: [problem]
+
+Steps:
+1. Solve the problem
+2. Verify using an alternative method
+3. If the answers disagree, reconcile them
+4. State your final, verified answer
+```
 
 ## Things to Avoid
-[To be populated]
+- Avoid asking for answers without requesting reasoning. DeepSeek V3's strength is in its reasoning process — leverage it.
+- Do not use overly terse prompts for complex tasks. This model benefits from explicit reasoning instructions.
+- Avoid vague problem statements. Be precise about what is given, what is asked, and what format the answer should take.
+- Do not skip output format specification. Without clear format guidance, the model may produce unstructured streams of reasoning.
+- Avoid asking the model to skip its reasoning process. Phrases like "just give me the answer" undermine its core strength.
+- Do not combine fundamentally different types of tasks (e.g., creative writing and mathematical proof) in a single prompt.
+- Avoid assuming the model will self-verify. If accuracy is critical, explicitly request a verification step.

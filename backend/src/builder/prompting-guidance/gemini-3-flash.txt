@@ -1,13 +1,67 @@
 # Gemini 3 Flash Prompting Guidance
 
 ## Overview
-This file contains model-specific prompting guidance for Google's Gemini 3 Flash.
+Gemini 3 Flash is Google's speed-optimised model, designed for ultra-fast responses and high-throughput workloads. It handles straightforward tasks efficiently — classification, extraction, summarisation, and quick generation. Flash excels when prompts are direct and focused, with minimal structural overhead. It is ideal for real-time applications, iterative workflows, and tasks where rapid turnaround matters more than exhaustive depth.
 
 ## Best Practices
-[To be populated with official Google documentation and best practices]
+- Keep prompts short and focused. Flash performs best with direct, unambiguous instructions.
+- State the task immediately. Minimise preamble and get to the point quickly.
+- Use simple formatting: numbered lists or brief markdown headers. Avoid elaborate structural scaffolding.
+- Specify the output format in one clear sentence (e.g., "Return a JSON object" or "Respond in 2-3 bullet points").
+- For classification or extraction, list valid options explicitly and instruct the model to select from them.
+- Provide one example if formatting consistency is important. One example is usually sufficient.
+- Use Flash for rapid iteration — draft quickly, then refine with a more capable model if needed.
 
 ## Recommended Patterns
-[To be populated]
+
+### Quick Extraction Pattern
+```
+Extract the following from the text: name, date, and amount.
+Return as: Name: [name], Date: [date], Amount: [amount]
+
+Text: [input]
+```
+
+### Fast Classification Pattern
+```
+Classify this message as one of: question, complaint, feedback, request.
+
+Message: [input]
+
+Category:
+```
+
+### Brief Summary Pattern
+```
+Summarise in one sentence: [text to summarise]
+```
+
+### Simple Q&A Pattern
+```
+Answer the following question in 2-3 sentences based on the context provided.
+
+Context: [context]
+
+Question: [question]
+
+Answer:
+```
+
+### Structured Quick Response Pattern
+```
+For the following item, provide:
+1. Category (one word)
+2. Priority (high/medium/low)
+3. Summary (one sentence)
+
+Item: [input]
+```
 
 ## Things to Avoid
-[To be populated]
+- Avoid long, complex prompts with multiple nested instructions. Flash is not optimised for elaborate multi-step reasoning.
+- Do not include more than one example. Excessive examples waste tokens and slow down the workflow.
+- Avoid open-ended tasks without scope limits. Always constrain the expected output length and format.
+- Do not request lengthy analytical output. Use Gemini 3 Pro for tasks requiring depth.
+- Avoid complex XML or deeply structured prompt formats. Keep the structure flat and simple.
+- Do not expect nuanced, multi-perspective analysis. Flash is designed for speed, not exhaustive exploration.
+- Avoid placing the actual task instruction at the end of a long context block. State the task first or use a clear label.

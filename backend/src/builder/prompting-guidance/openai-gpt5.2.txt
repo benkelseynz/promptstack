@@ -1,13 +1,66 @@
 # GPT-5.2 Prompting Guidance
 
 ## Overview
-This file contains model-specific prompting guidance for OpenAI's GPT-5.2.
+GPT-5.2 is OpenAI's latest flagship model. It excels at following complex, multi-step instructions with high fidelity, producing well-structured long-form output, and handling sophisticated reasoning tasks. It responds exceptionally well to detailed system prompts and supports nuanced task decomposition. When crafting prompts for GPT-5.2, invest in clear structure and explicit formatting expectations — this model rewards thoroughness.
 
 ## Best Practices
-[To be populated with official OpenAI documentation and best practices]
+- Use a detailed system message to establish role, tone, constraints, and output format before the user message.
+- Decompose complex tasks into numbered steps within the prompt. GPT-5.2 follows multi-step instructions reliably when each step is explicit.
+- Provide concrete examples of desired output (few-shot prompting) for tasks requiring specific formatting or style.
+- Use markdown formatting (headers, bullet points, numbered lists) to organise prompt structure — the model mirrors this organisation in its responses.
+- Specify output length expectations explicitly (e.g., "Respond in 3-5 paragraphs" or "Keep your answer under 200 words").
+- When requesting structured data, define the schema clearly in the system message (e.g., JSON keys, field types, required vs optional).
+- Leverage the system message for persistent instructions and the user message for the specific task or query.
 
 ## Recommended Patterns
-[To be populated]
+
+### Structured System Message Pattern
+```
+System: You are a [role] specialising in [domain]. Follow these rules:
+1. [Constraint one]
+2. [Constraint two]
+3. Always respond in the following format:
+   ## Summary
+   [Brief overview]
+   ## Detail
+   [Thorough analysis]
+   ## Recommendations
+   [Actionable next steps]
+```
+
+### Task Decomposition Pattern
+```
+Complete the following task step by step:
+Step 1: [First action]
+Step 2: [Second action]
+Step 3: [Third action]
+Present your work for each step under a clearly labelled heading.
+```
+
+### Structured Output Pattern
+```
+Respond with valid JSON matching this schema:
+{
+  "analysis": "string — your detailed analysis",
+  "confidence": "number — 0 to 1",
+  "recommendations": ["string array — actionable items"]
+}
+```
+
+### Persona + Constraints Pattern
+```
+You are a senior [role]. Your audience is [target].
+Constraints:
+- Use NZ/UK English spelling conventions
+- Avoid jargon unless you define it
+- Include at least one concrete example per section
+```
 
 ## Things to Avoid
-[To be populated]
+- Avoid vague, one-line prompts — GPT-5.2 performs significantly better with structured, detailed instructions.
+- Do not overload a single prompt with multiple unrelated tasks. Split them into separate messages for better results.
+- Avoid contradictory instructions between the system and user messages. Ensure they are consistent and complementary.
+- Do not assume the model remembers previous conversations. Provide all necessary context within the current prompt.
+- Avoid leaving output format ambiguous. If you want bullet points, say so. If you want prose, specify that.
+- Do not rely on implicit assumptions about tone or audience — state these explicitly in the system message.
+- Avoid excessively nested instructions. Keep the hierarchy to two levels maximum for reliable adherence.

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { api } from '@/lib/api';
 import {
   Wand2,
   Sparkles,
@@ -33,6 +34,9 @@ import {
   PenLine,
   HelpCircle,
   MoreHorizontal,
+  RotateCcw,
+  Plus,
+  Square,
 } from 'lucide-react';
 
 // Types for the Prompt Builder
@@ -185,6 +189,23 @@ export default function PromptBuilderPage() {
   const [showExistingPrompt, setShowExistingPrompt] = useState(false);
   const [existingPrompt, setExistingPrompt] = useState('');
   const [isImprovingExisting, setIsImprovingExisting] = useState(false);
+  const [showGenerateWarning, setShowGenerateWarning] = useState(false);
+
+  // Audio recording state
+  const [audioTranscription, setAudioTranscription] = useState('');
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [transcriptionError, setTranscriptionError] = useState<string | null>(null);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const [audioLevels, setAudioLevels] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
+  const [microphonePermission, setMicrophonePermission] = useState<'granted' | 'denied' | 'prompt'>('prompt');
+
+  // Audio recording refs
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const audioStreamRef = useRef<MediaStream | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Builder form state
   const [builderForm, setBuilderForm] = useState({
@@ -206,6 +227,198 @@ export default function PromptBuilderPage() {
 
   // Version history (placeholder)
   const [versions, setVersions] = useState<PromptVersion[]>([]);
+
+  // Cleanup audio resources on unmount
+  useEffect(() => {
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+      }
+      if (audioStreamRef.current) {
+        audioStreamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
+  // Format recording duration as MM:SS
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Update audio levels for visualiser
+  const updateAudioLevels = useCallback(() => {
+    if (!analyserRef.current || !isRecording) return;
+
+    const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+    analyserRef.current.getByteFrequencyData(dataArray);
+
+    // Sample 7 frequency bands for the visualiser
+    const bands = 7;
+    const bandSize = Math.floor(dataArray.length / bands);
+    const levels = [];
+
+    for (let i = 0; i < bands; i++) {
+      let sum = 0;
+      for (let j = 0; j < bandSize; j++) {
+        sum += dataArray[i * bandSize + j];
+      }
+      // Normalise to 0-100 range
+      levels.push(Math.min(100, (sum / bandSize / 255) * 100 * 2));
+    }
+
+    setAudioLevels(levels);
+    animationFrameRef.current = requestAnimationFrame(updateAudioLevels);
+  }, [isRecording]);
+
+  // Start recording
+  const startRecording = async () => {
+    try {
+      setTranscriptionError(null);
+
+      // Request microphone access
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 44100,
+        }
+      });
+
+      setMicrophonePermission('granted');
+      audioStreamRef.current = stream;
+
+      // Set up audio analyser for visualisation
+      const audioContext = new AudioContext();
+      const source = audioContext.createMediaStreamSource(stream);
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      source.connect(analyser);
+      analyserRef.current = analyser;
+
+      // Determine best supported format
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : MediaRecorder.isTypeSupported('audio/webm')
+          ? 'audio/webm'
+          : 'audio/mp4';
+
+      // Set up MediaRecorder
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType,
+        audioBitsPerSecond: 128000, // 128kbps
+      });
+
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        // Stop the timer
+        if (recordingTimerRef.current) {
+          clearInterval(recordingTimerRef.current);
+          recordingTimerRef.current = null;
+        }
+
+        // Stop audio level animation
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+          animationFrameRef.current = null;
+        }
+
+        // Stop all tracks
+        stream.getTracks().forEach(track => track.stop());
+
+        // Create blob from chunks
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+
+        // Only transcribe if we have audio data
+        if (audioBlob.size > 0) {
+          await handleTranscription(audioBlob);
+        }
+      };
+
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start(1000); // Collect data every second
+
+      setIsRecording(true);
+      setRecordingDuration(0);
+
+      // Start duration timer
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingDuration(prev => prev + 1);
+      }, 1000);
+
+      // Start audio level updates
+      updateAudioLevels();
+
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      if (error instanceof DOMException && error.name === 'NotAllowedError') {
+        setMicrophonePermission('denied');
+        setTranscriptionError('Microphone access denied. Please allow microphone access in your browser settings.');
+      } else {
+        setTranscriptionError('Failed to start recording. Please check your microphone.');
+      }
+    }
+  };
+
+  // Stop recording
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    setIsRecording(false);
+    setAudioLevels([0, 0, 0, 0, 0, 0, 0]);
+  };
+
+  // Handle transcription API call
+  const handleTranscription = async (audioBlob: Blob) => {
+    setIsTranscribing(true);
+    setTranscriptionError(null);
+
+    try {
+      const result = audioTranscription
+        ? await api.appendTranscription(audioBlob, audioTranscription)
+        : await api.transcribeAudio(audioBlob);
+
+      setAudioTranscription(result.transcription);
+    } catch (error) {
+      console.error('Transcription error:', error);
+      setTranscriptionError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to transcribe audio. Please try again.'
+      );
+    } finally {
+      setIsTranscribing(false);
+      setRecordingDuration(0);
+    }
+  };
+
+  // Toggle recording
+  const toggleRecording = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
+
+  // Start over - clear transcription
+  const handleStartOver = () => {
+    setAudioTranscription('');
+    setTranscriptionError(null);
+    setRecordingDuration(0);
+  };
 
   // Handle scroll to existing prompt section
   const scrollToExistingPrompt = () => {
@@ -232,104 +445,195 @@ export default function PromptBuilderPage() {
   };
 
   // Check if ready to generate
-  const canGenerate = selectedModel && (
+  const canGenerate = selectedGoal && selectedModel && (
     (buildMethod === 'form' && builderForm.task) ||
-    (buildMethod === 'audio')
+    (buildMethod === 'audio' && audioTranscription)
   );
+
+  // Build warning message for generate button
+  const getGenerateWarningMessage = () => {
+    const missing: string[] = [];
+    if (!selectedGoal) missing.push('select a category');
+    if (!selectedModel) missing.push('select an AI model');
+    if (!buildMethod) {
+      missing.push('choose how to build your prompt');
+    } else if (buildMethod === 'form' && !builderForm.task) {
+      missing.push('describe what you need in the template');
+    } else if (buildMethod === 'audio' && !audioTranscription) {
+      missing.push('record your request using the microphone');
+    }
+
+    if (missing.length === 0) return null;
+    if (missing.length === 1) return missing[0];
+    if (missing.length === 2) return `${missing[0]} and ${missing[1]}`;
+    return `${missing.slice(0, -1).join(', ')}, and ${missing[missing.length - 1]}`;
+  };
 
   // Check if ready to improve existing
   const canImprove = selectedModel && existingPrompt.trim().length > 0;
 
-  // Handle generate prompt (placeholder for Phase 3)
+  // Handle generate prompt via API with streaming
   const handleGenerate = async () => {
-    if (!selectedModel) return;
+    if (!selectedModel || !selectedGoal) return;
 
     setIsGenerating(true);
     setIsImprovingExisting(false);
+    setGeneratedPrompt('');
+    setQualityScore(null);
+    scrollToOutput();
 
-    // Placeholder: In Phase 3, this will call the API
-    setTimeout(() => {
-      const samplePrompt = `You are an expert ${builderForm.role || 'business professional'} with deep expertise in ${selectedGoal || 'professional tasks'}.
+    const isAudio = buildMethod === 'audio';
 
-## Context
-${builderForm.context || 'The user requires assistance with a professional task.'}
-
-## Task
-${builderForm.task || 'Please provide guidance based on the context above.'}
-
-## Output Requirements
-- Respond in NZ/UK English
-- Avoid using em-dashes
-- Format the response as ${builderForm.outputFormat || 'clear, professional text'}
-${builderForm.constraints ? `\n## Constraints\n${builderForm.constraints}` : ''}
-${builderForm.thinkingMode ? '\n## Thinking Process\nPlease show your reasoning step by step before providing the final answer.' : ''}`;
-
-      setGeneratedPrompt(samplePrompt);
-      setQualityScore({
-        clarity: 85,
-        completeness: 80,
-        specificity: 78,
-        structure: 90,
-        overall: 83,
-      });
-
-      // Add to version history
-      setVersions(prev => [{
-        id: Date.now().toString(),
-        content: samplePrompt,
-        timestamp: new Date(),
-        qualityScore: 83,
-      }, ...prev]);
-
+    try {
+      await api.generatePrompt(
+        {
+          type: isAudio ? 'freeform' : 'form',
+          modelId: selectedModel,
+          goalCategory: selectedGoal,
+          inputs: isAudio
+            ? { freeformInput: audioTranscription }
+            : {
+                role: builderForm.role,
+                customRole: builderForm.customRole,
+                task: builderForm.task,
+                context: builderForm.context,
+                outputFormat: builderForm.outputFormat,
+                customFormat: builderForm.customFormat,
+                examples: builderForm.examples,
+                constraints: builderForm.constraints,
+                thinkingMode: builderForm.thinkingMode,
+                creativity: builderForm.creativity,
+              },
+        },
+        // onChunk: append streamed text progressively
+        (text) => {
+          setGeneratedPrompt(prev => prev + text);
+        },
+        // onDone: set final quality score and add to version history
+        (result) => {
+          setQualityScore(result.qualityScore);
+          setVersions(prev => [{
+            id: Date.now().toString(),
+            content: result.fullText,
+            timestamp: new Date(),
+            qualityScore: result.qualityScore.overall,
+          }, ...prev]);
+          setIsGenerating(false);
+        },
+        // onError
+        (errorMsg) => {
+          console.error('Generation error:', errorMsg);
+          setGeneratedPrompt(`Error: ${errorMsg}`);
+          setIsGenerating(false);
+        }
+      );
+    } catch (err) {
+      console.error('Generation failed:', err);
+      setGeneratedPrompt(`Error: ${err instanceof Error ? err.message : 'Generation failed. Please try again.'}`);
       setIsGenerating(false);
-      scrollToOutput();
-    }, 1500);
+    }
   };
 
-  // Handle improve existing prompt
+  // Handle improve existing prompt via API with streaming
   const handleImproveExisting = async () => {
-    if (!selectedModel || !existingPrompt.trim()) return;
+    if (!selectedModel || !selectedGoal || !existingPrompt.trim()) return;
 
     setIsGenerating(true);
     setIsImprovingExisting(true);
+    setGeneratedPrompt('');
+    setQualityScore(null);
+    scrollToOutput();
 
-    // Placeholder: In Phase 3, this will call the API
-    setTimeout(() => {
-      const improvedPrompt = `# Improved Prompt
-
-${existingPrompt}
-
-## Enhancements Applied
-- Added clear structure with sections
-- Specified output format requirements
-- Included NZ/UK English language preference
-- Added constraints to avoid common issues
-
-## Output Requirements
-- Respond in NZ/UK English
-- Avoid using em-dashes
-- Provide structured, actionable response`;
-
-      setGeneratedPrompt(improvedPrompt);
-      setQualityScore({
-        clarity: 92,
-        completeness: 88,
-        specificity: 85,
-        structure: 95,
-        overall: 90,
-      });
-
-      // Add to version history
-      setVersions(prev => [{
-        id: Date.now().toString(),
-        content: improvedPrompt,
-        timestamp: new Date(),
-        qualityScore: 90,
-      }, ...prev]);
-
+    try {
+      await api.improvePrompt(
+        {
+          existingPrompt: existingPrompt.trim(),
+          modelId: selectedModel,
+          goalCategory: selectedGoal,
+        },
+        (text) => {
+          setGeneratedPrompt(prev => prev + text);
+        },
+        (result) => {
+          setQualityScore(result.qualityScore);
+          setVersions(prev => [{
+            id: Date.now().toString(),
+            content: result.fullText,
+            timestamp: new Date(),
+            qualityScore: result.qualityScore.overall,
+          }, ...prev]);
+          setIsGenerating(false);
+        },
+        (errorMsg) => {
+          console.error('Improvement error:', errorMsg);
+          setGeneratedPrompt(`Error: ${errorMsg}`);
+          setIsGenerating(false);
+        }
+      );
+    } catch (err) {
+      console.error('Improvement failed:', err);
+      setGeneratedPrompt(`Error: ${err instanceof Error ? err.message : 'Improvement failed. Please try again.'}`);
       setIsGenerating(false);
-      scrollToOutput();
-    }, 1500);
+    }
+  };
+
+  // Handle refine prompt via API with streaming
+  const handleRefine = async (refinementType: string) => {
+    if (!selectedModel || !generatedPrompt) return;
+
+    const promptToRefine = generatedPrompt;
+    setIsGenerating(true);
+    setGeneratedPrompt('');
+    setQualityScore(null);
+
+    try {
+      await api.refinePrompt(
+        {
+          currentPrompt: promptToRefine,
+          refinementType,
+          modelId: selectedModel,
+        },
+        (text) => {
+          setGeneratedPrompt(prev => prev + text);
+        },
+        (result) => {
+          setQualityScore(result.qualityScore);
+          setVersions(prev => [{
+            id: Date.now().toString(),
+            content: result.fullText,
+            timestamp: new Date(),
+            qualityScore: result.qualityScore.overall,
+          }, ...prev]);
+          setIsGenerating(false);
+        },
+        (errorMsg) => {
+          console.error('Refinement error:', errorMsg);
+          setIsGenerating(false);
+        }
+      );
+    } catch (err) {
+      console.error('Refinement failed:', err);
+      setIsGenerating(false);
+    }
+  };
+
+  // Handle save prompt to library
+  const handleSaveToLibrary = async () => {
+    if (!generatedPrompt) return;
+
+    try {
+      await api.createUserPrompt({
+        title: `Generated Prompt - ${new Date().toLocaleDateString('en-NZ')}`,
+        content: generatedPrompt,
+        keywords: [selectedGoal || 'generated', 'prompt-builder'],
+        industry: 'general',
+        role: builderForm.role || 'General',
+      });
+      alert('Prompt saved to your library!');
+    } catch (err) {
+      console.error('Failed to save prompt:', err);
+      alert('Failed to save prompt. Please try again.');
+    }
   };
 
   // Step indicator component
@@ -485,7 +789,7 @@ ${existingPrompt}
         number={3}
         title="How would you like to build your prompt?"
         isActive={!!selectedModel}
-        isComplete={!!buildMethod && (builderForm.task || isRecording)}
+        isComplete={!!buildMethod && !!(builderForm.task || audioTranscription)}
       />
 
       <div className={`transition-opacity ${selectedModel ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
@@ -736,47 +1040,145 @@ ${existingPrompt}
 
         {/* Audio Recording */}
         {buildMethod === 'audio' && (
-          <div className="card bg-gradient-to-r from-primary-50 to-white">
-            <div className="text-center py-8">
-              <button
-                onClick={() => setIsRecording(!isRecording)}
-                className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto transition-all ${
-                  isRecording
-                    ? 'bg-red-500 text-white hover:bg-red-600 animate-pulse'
-                    : 'bg-primary-600 text-white hover:bg-primary-700'
-                }`}
-              >
-                {isRecording ? (
-                  <MicOff className="w-10 h-10" />
-                ) : (
-                  <Mic className="w-10 h-10" />
+          <div className="card">
+            {/* Recording Section */}
+            <div className="bg-gradient-to-r from-primary-50 to-white rounded-lg p-6">
+              <div className="text-center">
+                {/* Microphone Permission Denied */}
+                {microphonePermission === 'denied' && (
+                  <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg mb-6 text-left">
+                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-red-800">Microphone Access Denied</p>
+                      <p className="text-sm text-red-700 mt-1">
+                        Please enable microphone access in your browser settings and refresh the page.
+                      </p>
+                    </div>
+                  </div>
                 )}
-              </button>
 
-              <p className="mt-4 font-medium text-gray-900">
-                {isRecording ? 'Recording... Click to stop' : 'Click to start recording'}
-              </p>
+                {/* Recording Button */}
+                <button
+                  onClick={toggleRecording}
+                  disabled={isTranscribing || microphonePermission === 'denied'}
+                  className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                    isRecording
+                      ? 'bg-red-500 text-white hover:bg-red-600'
+                      : 'bg-primary-600 text-white hover:bg-primary-700'
+                  }`}
+                >
+                  {isRecording ? (
+                    <Square className="w-8 h-8" />
+                  ) : (
+                    <Mic className="w-10 h-10" />
+                  )}
+                </button>
 
-              {isRecording && (
-                <div className="flex justify-center gap-1 mt-4">
-                  {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-                    <div
-                      key={i}
-                      className="w-1 bg-red-500 rounded-full animate-pulse"
-                      style={{
-                        height: `${Math.random() * 30 + 10}px`,
-                        animationDelay: `${i * 0.1}s`,
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
+                {/* Status Text */}
+                <p className="mt-4 font-medium text-gray-900">
+                  {isTranscribing ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Transcribing your recording...
+                    </span>
+                  ) : isRecording ? (
+                    <span className="flex items-center justify-center gap-2 text-red-600">
+                      <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                      Recording... Click to stop
+                    </span>
+                  ) : audioTranscription ? (
+                    'Recording complete'
+                  ) : (
+                    'Click to start recording'
+                  )}
+                </p>
 
-              <p className="text-sm text-gray-500 mt-4 flex items-center justify-center gap-1">
-                <Info className="w-4 h-4" />
-                Audio is processed using OpenAI Whisper. Your recordings are not stored.
-              </p>
+                {/* Recording Duration */}
+                {(isRecording || recordingDuration > 0) && (
+                  <p className="mt-2 text-2xl font-mono text-gray-700">
+                    {formatDuration(recordingDuration)}
+                  </p>
+                )}
+
+                {/* Audio Level Visualiser */}
+                {isRecording && (
+                  <div className="flex justify-center items-end gap-1 mt-4 h-12">
+                    {audioLevels.map((level, i) => (
+                      <div
+                        key={i}
+                        className="w-2 bg-red-500 rounded-full transition-all duration-75"
+                        style={{
+                          height: `${Math.max(8, level * 0.4)}px`,
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Info Text */}
+                {!audioTranscription && !isRecording && !isTranscribing && (
+                  <p className="text-sm text-gray-500 mt-4 flex items-center justify-center gap-1">
+                    <Info className="w-4 h-4" />
+                    Audio is processed using OpenAI. Your recordings are not stored.
+                  </p>
+                )}
+              </div>
             </div>
+
+            {/* Error Message */}
+            {transcriptionError && (
+              <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg mt-4">
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-red-800">Transcription Error</p>
+                  <p className="text-sm text-red-700 mt-1">{transcriptionError}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Transcription Result */}
+            {audioTranscription && (
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Your Transcribed Request
+                  </label>
+                  <span className="text-xs text-gray-500">
+                    {audioTranscription.length} characters
+                  </span>
+                </div>
+                <textarea
+                  value={audioTranscription}
+                  onChange={(e) => setAudioTranscription(e.target.value)}
+                  rows={6}
+                  className="input-field resize-none"
+                  placeholder="Your transcribed audio will appear here..."
+                />
+                <p className="text-sm text-gray-500 mt-2">
+                  You can edit the transcription above if needed before generating your prompt.
+                </p>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-3 mt-4">
+                  <button
+                    onClick={toggleRecording}
+                    disabled={isTranscribing || isRecording}
+                    className="btn-secondary flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Record More
+                  </button>
+                  <button
+                    onClick={handleStartOver}
+                    disabled={isTranscribing || isRecording}
+                    className="btn-secondary flex items-center gap-2 text-sm text-red-600 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    Start Over
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -784,28 +1186,56 @@ ${existingPrompt}
   );
 
   // Render Generate Button
-  const renderGenerateButton = () => (
-    <div className="flex justify-center mb-10">
-      <button
-        onClick={handleGenerate}
-        disabled={!canGenerate || isGenerating}
-        className="btn-primary flex items-center gap-3 px-10 py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {isGenerating && !isImprovingExisting ? (
-          <>
-            <Loader2 className="w-6 h-6 animate-spin" />
-            Generating...
-          </>
-        ) : (
-          <>
-            <Sparkles className="w-6 h-6" />
-            Generate Optimised Prompt
-            <ArrowRight className="w-6 h-6" />
-          </>
+  const renderGenerateButton = () => {
+    const warningMessage = getGenerateWarningMessage();
+    const isDisabled = !canGenerate || isGenerating;
+
+    const handleButtonClick = () => {
+      if (canGenerate && !isGenerating) {
+        handleGenerate();
+      } else if (!isGenerating) {
+        // Show warning when clicking disabled button
+        setShowGenerateWarning(true);
+        setTimeout(() => setShowGenerateWarning(false), 5000);
+      }
+    };
+
+    return (
+      <div className="flex flex-col items-center mb-10">
+        {/* Warning message when prerequisites are missing */}
+        {showGenerateWarning && warningMessage && (
+          <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg mb-4 max-w-xl">
+            <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-amber-700">
+              <span>Before generating your prompt, please </span>
+              <strong>{warningMessage}</strong>
+              <span> above.</span>
+            </div>
+          </div>
         )}
-      </button>
-    </div>
-  );
+
+        <button
+          onClick={handleButtonClick}
+          className={`btn-primary flex items-center gap-3 px-10 py-4 text-lg ${
+            isDisabled ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+        >
+          {isGenerating && !isImprovingExisting ? (
+            <>
+              <Loader2 className="w-6 h-6 animate-spin" />
+              Generating...
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-6 h-6" />
+              Generate Optimised Prompt
+              <ArrowRight className="w-6 h-6" />
+            </>
+          )}
+        </button>
+      </div>
+    );
+  };
 
   // Render generated prompt output
   const renderPromptOutput = () => {
@@ -829,7 +1259,7 @@ ${existingPrompt}
               {copied ? 'Copied!' : 'Copy'}
             </button>
             <button
-              onClick={() => {/* Save to library - Phase 6 */}}
+              onClick={handleSaveToLibrary}
               className="btn-secondary flex items-center gap-2 text-sm"
             >
               <Bookmark className="w-4 h-4" />
@@ -933,19 +1363,35 @@ ${existingPrompt}
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <button className="p-4 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-gray-50 transition-all text-left">
+          <button
+            onClick={() => handleRefine('shorter')}
+            disabled={isGenerating}
+            className="p-4 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-gray-50 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <div className="text-sm font-medium text-gray-900">Make it shorter</div>
             <div className="text-xs text-gray-500">More concise version</div>
           </button>
-          <button className="p-4 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-gray-50 transition-all text-left">
+          <button
+            onClick={() => handleRefine('detailed')}
+            disabled={isGenerating}
+            className="p-4 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-gray-50 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <div className="text-sm font-medium text-gray-900">More detailed</div>
             <div className="text-xs text-gray-500">Add specificity</div>
           </button>
-          <button className="p-4 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-gray-50 transition-all text-left">
+          <button
+            onClick={() => handleRefine('tone')}
+            disabled={isGenerating}
+            className="p-4 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-gray-50 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <div className="text-sm font-medium text-gray-900">Change tone</div>
             <div className="text-xs text-gray-500">Adjust formality</div>
           </button>
-          <button className="p-4 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-gray-50 transition-all text-left">
+          <button
+            onClick={() => handleRefine('examples')}
+            disabled={isGenerating}
+            className="p-4 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-gray-50 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <div className="text-sm font-medium text-gray-900">Add examples</div>
             <div className="text-xs text-gray-500">Include few-shot</div>
           </button>
