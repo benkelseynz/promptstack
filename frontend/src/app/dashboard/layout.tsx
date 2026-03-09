@@ -19,6 +19,7 @@ import {
   HelpCircle,
   Lock,
   GitBranch,
+  Zap,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useState } from 'react';
@@ -38,6 +39,7 @@ interface NavItem {
 const navigation: NavItem[] = [
   { name: 'Prompt Library', href: '/dashboard', icon: Library },
   { name: 'Questions', href: '/dashboard/questions', icon: HelpCircle },
+  { name: 'Skill Library', href: '/dashboard/skills', icon: Zap },
   { name: 'Workflows', href: '/dashboard/workflows', icon: GitBranch, requiresPremium: true },
   { name: 'Saved', href: '/dashboard/saved', icon: Bookmark },
   { name: 'Upgrade', href: '/dashboard/upgrade', icon: CreditCard },

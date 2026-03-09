@@ -25,10 +25,21 @@ const {
   addCustomQuestion,
   updateCustomQuestion,
   deleteCustomQuestion,
-  getUserCustomQuestions
+  getUserCustomQuestions,
+  // Custom skills
+  addCustomSkill,
+  updateCustomSkill,
+  deleteCustomSkill,
+  getUserCustomSkills,
+  // Saved skills
+  saveLibrarySkill,
+  removeSavedSkill,
+  getSavedSkillEntries,
+  updateSavedSkillCategory
 } = require('../services/userStorage');
 const workflowStorage = require('../services/workflowStorage');
 const { getPromptById, applyPremiumGating } = require('../services/searchIndex');
+const { getSkillById, applySkillPremiumGating } = require('../services/skillsIndex');
 
 // Load questions data for saved questions functionality
 let questionsData = null;
@@ -447,6 +458,234 @@ router.delete('/questions/:id', async (req, res, next) => {
     res.json({
       message: 'Question deleted successfully'
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// =====================
+// Custom Skills Routes
+// =====================
+
+// GET /api/user/skills - List user's custom skills
+router.get('/skills', async (req, res, next) => {
+  try {
+    const skills = await getUserCustomSkills(req.user.id);
+
+    res.json({
+      skills,
+      total: skills.length
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/user/skills - Create custom skill
+router.post('/skills', async (req, res, next) => {
+  try {
+    const { title, content, tags, categoryId } = req.body;
+
+    if (!title || !title.trim()) {
+      throw new AppError('Skill title is required', 400);
+    }
+
+    if (!content || !content.trim()) {
+      throw new AppError('Skill content is required', 400);
+    }
+
+    const validatedCategoryId = await validatePersonalCategory(req.user.id, categoryId);
+
+    const skill = await addCustomSkill(req.user.id, {
+      title: title.trim(),
+      content: content.trim(),
+      tags: tags || [],
+      categoryId: validatedCategoryId
+    });
+
+    if (!skill) {
+      throw new AppError('Failed to create skill', 500);
+    }
+
+    res.status(201).json({
+      message: 'Skill created successfully',
+      skill
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// PUT /api/user/skills/:id - Update custom skill
+router.put('/skills/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const updates = { ...req.body };
+
+    if (updates.categoryId !== undefined) {
+      updates.categoryId = await validatePersonalCategory(req.user.id, updates.categoryId);
+    }
+
+    const skill = await updateCustomSkill(req.user.id, id, updates);
+
+    if (!skill) {
+      throw new AppError('Skill not found', 404);
+    }
+
+    res.json({
+      message: 'Skill updated successfully',
+      skill
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE /api/user/skills/:id - Delete custom skill
+router.delete('/skills/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const deleted = await deleteCustomSkill(req.user.id, id);
+
+    if (!deleted) {
+      throw new AppError('Skill not found', 404);
+    }
+
+    res.json({
+      message: 'Skill deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// =====================
+// Saved Skills Routes
+// =====================
+
+// GET /api/user/saved-skills - List saved library skills
+router.get('/saved-skills', async (req, res, next) => {
+  try {
+    const savedEntries = await getSavedSkillEntries(req.user.id);
+    const userTier = req.user?.tier || 'free';
+
+    const savedSkills = savedEntries
+      .map(entry => ({
+        entry,
+        skill: getSkillById(entry.id)
+      }))
+      .filter(item => item.skill)
+      .map(({ entry, skill }) => {
+        const gated = applySkillPremiumGating(skill, userTier);
+        if (!gated) return null;
+        return {
+          ...gated,
+          categoryId: entry.categoryId || null
+        };
+      })
+      .filter(Boolean);
+
+    res.json({
+      skills: savedSkills,
+      total: savedSkills.length
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/user/saved-skills/:id - Save a library skill
+router.post('/saved-skills/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const skill = getSkillById(id);
+    if (!skill) {
+      throw new AppError('Skill not found', 404);
+    }
+
+    const savedSkills = await saveLibrarySkill(req.user.id, id);
+
+    res.json({
+      message: 'Skill saved successfully',
+      savedCount: savedSkills.length
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE /api/user/saved-skills/:id - Remove saved library skill
+router.delete('/saved-skills/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const savedSkills = await removeSavedSkill(req.user.id, id);
+
+    res.json({
+      message: 'Skill removed from saved',
+      savedCount: savedSkills.length
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// PATCH /api/user/saved-skills/:id/category - Update saved skill category
+router.patch('/saved-skills/:id/category', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { categoryId } = req.body;
+
+    const validatedCategoryId = await validatePersonalCategory(req.user.id, categoryId);
+    const entry = await updateSavedSkillCategory(req.user.id, id, validatedCategoryId);
+
+    if (!entry) {
+      throw new AppError('Saved skill not found', 404);
+    }
+
+    res.json({
+      message: 'Saved skill category updated',
+      categoryId: entry.categoryId
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/user/skills/:id/download - Download custom skill as Markdown
+router.get('/skills/:id/download', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const skills = await getUserCustomSkills(req.user.id);
+    const skill = skills.find(s => s.id === id);
+
+    if (!skill) {
+      throw new AppError('Skill not found', 404);
+    }
+
+    const filename = skill.title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+
+    const frontmatter = [
+      '---',
+      `name: ${skill.title}`,
+      `tags: [${(skill.tags || []).join(', ')}]`,
+      `version: "1.0"`,
+      '---',
+      ''
+    ].join('\n');
+
+    const markdown = frontmatter + skill.content;
+
+    res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}.md"`);
+    res.send(markdown);
   } catch (error) {
     next(error);
   }

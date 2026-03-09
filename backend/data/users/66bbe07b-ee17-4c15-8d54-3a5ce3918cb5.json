@@ -58,6 +58,22 @@
       "categoryId": null,
       "createdAt": "2026-01-13T05:46:05.976Z",
       "updatedAt": "2026-01-13T05:46:05.976Z"
+    },
+    {
+      "id": "e8371257-cb1a-497f-8f82-114f0d121ed5",
+      "title": "Investment Portfolio Review (Copy)",
+      "content": "Conduct a comprehensive portfolio review for [Client Name/Type].\n\nPortfolio Value: [Total Value]\nRisk Profile: [Conservative/Balanced/Growth/Aggressive]\nInvestment Horizon: [Timeframe]\n\nCurrent Allocation:\n[List Asset Classes and Percentages]\n\nPerformance Period: [Period]\nBenchmark: [Relevant Benchmark]\n\nNZ-Specific Considerations:\n- PIE tax implications\n- KiwiSaver alignment (if applicable)\n- NZ dollar exposure\n\nProvide:\n1. Performance analysis vs benchmark\n2. Risk assessment\n3. Rebalancing recommendations\n4. Tax efficiency opportunities\n5. Forward outlook",
+      "keywords": [
+        "investment",
+        "portfolio",
+        "review",
+        "KiwiSaver",
+        "PIE",
+        "NZ"
+      ],
+      "categoryId": null,
+      "createdAt": "2026-03-08T05:23:47.147Z",
+      "updatedAt": "2026-03-08T05:23:47.147Z"
     }
   ],
   "savedPrompts": [
@@ -163,6 +179,12 @@
   "savedQuestions": [
     {
       "id": "q-confidence-1",
+      "categoryId": null
+    }
+  ],
+  "savedSkills": [
+    {
+      "id": "skill-excel-best-practices",
       "categoryId": null
     }
   ]

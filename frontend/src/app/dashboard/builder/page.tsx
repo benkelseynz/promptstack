@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { api } from '@/lib/api';
+import { api, AnalysisResult, ExistingAnalysisResult, DiagnosisItem, AIScoreResult, ScoreSuggestion } from '@/lib/api';
 import {
   Wand2,
   Sparkles,
@@ -227,6 +227,23 @@ export default function PromptBuilderPage() {
 
   // Version history (placeholder)
   const [versions, setVersions] = useState<PromptVersion[]>([]);
+
+  // Analysis / refining questions state
+  const [isAnalysing, setIsAnalysing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [questionAnswers, setQuestionAnswers] = useState<Record<string, string>>({});
+
+  // Existing prompt diagnosis state
+  const [isAnalysingExisting, setIsAnalysingExisting] = useState(false);
+  const [existingAnalysis, setExistingAnalysis] = useState<ExistingAnalysisResult | null>(null);
+  const [existingQuestionAnswers, setExistingQuestionAnswers] = useState<Record<string, string>>({});
+
+  // AI scoring state
+  const [isScoring, setIsScoring] = useState(false);
+  const [aiScoreResult, setAiScoreResult] = useState<AIScoreResult | null>(null);
+
+  // Refinement text box state
+  const [refinementText, setRefinementText] = useState('');
 
   // Cleanup audio resources on unmount
   useEffect(() => {
@@ -472,38 +489,82 @@ export default function PromptBuilderPage() {
   // Check if ready to improve existing
   const canImprove = selectedModel && existingPrompt.trim().length > 0;
 
-  // Handle generate prompt via API with streaming
+  // Get the current inputs for API calls
+  const getCurrentInputs = () => {
+    const isAudio = buildMethod === 'audio';
+    return {
+      type: (isAudio ? 'freeform' : 'form') as 'form' | 'freeform',
+      modelId: selectedModel,
+      goalCategory: selectedGoal!,
+      inputs: isAudio
+        ? { freeformInput: audioTranscription }
+        : {
+            role: builderForm.role,
+            customRole: builderForm.customRole,
+            task: builderForm.task,
+            context: builderForm.context,
+            outputFormat: builderForm.outputFormat,
+            customFormat: builderForm.customFormat,
+            examples: builderForm.examples,
+            constraints: builderForm.constraints,
+            thinkingMode: builderForm.thinkingMode,
+            creativity: builderForm.creativity,
+          },
+    };
+  };
+
+  // Handle generate: first analyse, then either show questions or proceed
   const handleGenerate = async () => {
+    if (!selectedModel || !selectedGoal) return;
+
+    // Clear previous analysis and results
+    setAnalysisResult(null);
+    setQuestionAnswers({});
+    setIsImprovingExisting(false);
+
+    // Step 1: Analyse inputs
+    setIsAnalysing(true);
+    try {
+      const params = getCurrentInputs();
+      const analysis = await api.analyseInputs(params);
+
+      if (analysis.needsQuestions && analysis.questions.length > 0) {
+        // Show questions to the user
+        setAnalysisResult(analysis);
+        setIsAnalysing(false);
+        return;
+      }
+
+      // No questions needed, proceed directly to generation
+      setIsAnalysing(false);
+      await executeGenerate();
+    } catch (err) {
+      console.error('Analysis failed, proceeding to generate:', err);
+      setIsAnalysing(false);
+      // On analysis failure, proceed directly to generation
+      await executeGenerate();
+    }
+  };
+
+  // Execute the actual prompt generation (called after analysis or skip)
+  const executeGenerate = async (answers?: Array<{ questionId: string; question: string; answer: string }>) => {
     if (!selectedModel || !selectedGoal) return;
 
     setIsGenerating(true);
     setIsImprovingExisting(false);
     setGeneratedPrompt('');
     setQualityScore(null);
+    setAiScoreResult(null);
+    setAnalysisResult(null);
     scrollToOutput();
 
-    const isAudio = buildMethod === 'audio';
+    const params = getCurrentInputs();
 
     try {
       await api.generatePrompt(
         {
-          type: isAudio ? 'freeform' : 'form',
-          modelId: selectedModel,
-          goalCategory: selectedGoal,
-          inputs: isAudio
-            ? { freeformInput: audioTranscription }
-            : {
-                role: builderForm.role,
-                customRole: builderForm.customRole,
-                task: builderForm.task,
-                context: builderForm.context,
-                outputFormat: builderForm.outputFormat,
-                customFormat: builderForm.customFormat,
-                examples: builderForm.examples,
-                constraints: builderForm.constraints,
-                thinkingMode: builderForm.thinkingMode,
-                creativity: builderForm.creativity,
-              },
+          ...params,
+          refinementAnswers: answers,
         },
         // onChunk: append streamed text progressively
         (text) => {
@@ -534,14 +595,73 @@ export default function PromptBuilderPage() {
     }
   };
 
-  // Handle improve existing prompt via API with streaming
+  // Handle generating with answers from the refining questions
+  const handleGenerateWithAnswers = async () => {
+    if (!analysisResult) return;
+    const answers = analysisResult.questions
+      .filter(q => questionAnswers[q.id]?.trim())
+      .map(q => ({
+        questionId: q.id,
+        question: q.question,
+        answer: questionAnswers[q.id],
+      }));
+    await executeGenerate(answers.length > 0 ? answers : undefined);
+  };
+
+  // Handle skipping questions and generating directly
+  const handleSkipQuestions = async () => {
+    setAnalysisResult(null);
+    setQuestionAnswers({});
+    await executeGenerate();
+  };
+
+  // Handle improve existing prompt: first analyse, then show diagnosis or proceed
   const handleImproveExisting = async () => {
+    if (!selectedModel || !selectedGoal || !existingPrompt.trim()) return;
+
+    // Clear previous diagnosis
+    setExistingAnalysis(null);
+    setExistingQuestionAnswers({});
+
+    // Step 1: Analyse existing prompt
+    setIsAnalysingExisting(true);
+    try {
+      const analysis = await api.analyseExisting({
+        existingPrompt: existingPrompt.trim(),
+        modelId: selectedModel,
+        goalCategory: selectedGoal,
+      });
+
+      if ((analysis.diagnosis && analysis.diagnosis.length > 0) || (analysis.needsQuestions && analysis.questions.length > 0)) {
+        // Show diagnosis and optional questions
+        setExistingAnalysis(analysis);
+        setIsAnalysingExisting(false);
+        return;
+      }
+
+      // No diagnosis needed, proceed directly
+      setIsAnalysingExisting(false);
+      await executeImprove();
+    } catch (err) {
+      console.error('Analysis of existing prompt failed, proceeding to improve:', err);
+      setIsAnalysingExisting(false);
+      await executeImprove();
+    }
+  };
+
+  // Execute the actual improvement (called after diagnosis or skip)
+  const executeImprove = async (diagnosisContext?: {
+    diagnosis?: DiagnosisItem[];
+    answers?: Array<{ questionId: string; question: string; answer: string }>;
+  }) => {
     if (!selectedModel || !selectedGoal || !existingPrompt.trim()) return;
 
     setIsGenerating(true);
     setIsImprovingExisting(true);
     setGeneratedPrompt('');
     setQualityScore(null);
+    setAiScoreResult(null);
+    setExistingAnalysis(null);
     scrollToOutput();
 
     try {
@@ -550,6 +670,7 @@ export default function PromptBuilderPage() {
           existingPrompt: existingPrompt.trim(),
           modelId: selectedModel,
           goalCategory: selectedGoal,
+          diagnosisContext,
         },
         (text) => {
           setGeneratedPrompt(prev => prev + text);
@@ -577,6 +698,91 @@ export default function PromptBuilderPage() {
     }
   };
 
+  // Handle improving with diagnosis context
+  const handleImproveWithDiagnosis = async () => {
+    if (!existingAnalysis) return;
+    const answers = existingAnalysis.questions
+      .filter(q => existingQuestionAnswers[q.id]?.trim())
+      .map(q => ({
+        questionId: q.id,
+        question: q.question,
+        answer: existingQuestionAnswers[q.id],
+      }));
+    await executeImprove({
+      diagnosis: existingAnalysis.diagnosis,
+      answers: answers.length > 0 ? answers : undefined,
+    });
+  };
+
+  // Handle skipping diagnosis and improving directly
+  const handleSkipDiagnosis = async () => {
+    setExistingAnalysis(null);
+    setExistingQuestionAnswers({});
+    await executeImprove();
+  };
+
+  // Handle AI-based scoring
+  const handleScorePrompt = async () => {
+    if (!selectedModel || !selectedGoal || !generatedPrompt) return;
+
+    setIsScoring(true);
+    try {
+      const result = await api.scorePrompt({
+        promptText: generatedPrompt,
+        modelId: selectedModel,
+        goalCategory: selectedGoal,
+      });
+      setAiScoreResult(result);
+      setQualityScore(result.scores);
+    } catch (err) {
+      console.error('Scoring failed:', err);
+    } finally {
+      setIsScoring(false);
+    }
+  };
+
+  // Handle refine prompt via API with streaming (supports preset or custom)
+  const handleRefineWithText = async () => {
+    if (!selectedModel || !generatedPrompt || !refinementText.trim()) return;
+
+    const promptToRefine = generatedPrompt;
+    setIsGenerating(true);
+    setGeneratedPrompt('');
+    setQualityScore(null);
+    setAiScoreResult(null);
+
+    try {
+      await api.refinePrompt(
+        {
+          currentPrompt: promptToRefine,
+          customInstruction: refinementText.trim(),
+          modelId: selectedModel,
+        },
+        (text) => {
+          setGeneratedPrompt(prev => prev + text);
+        },
+        (result) => {
+          setQualityScore(result.qualityScore);
+          setVersions(prev => [{
+            id: Date.now().toString(),
+            content: result.fullText,
+            timestamp: new Date(),
+            qualityScore: result.qualityScore.overall,
+          }, ...prev]);
+          setIsGenerating(false);
+          setRefinementText('');
+        },
+        (errorMsg) => {
+          console.error('Refinement error:', errorMsg);
+          setIsGenerating(false);
+        }
+      );
+    } catch (err) {
+      console.error('Refinement failed:', err);
+      setIsGenerating(false);
+    }
+  };
+
   // Handle refine prompt via API with streaming
   const handleRefine = async (refinementType: string) => {
     if (!selectedModel || !generatedPrompt) return;
@@ -585,6 +791,7 @@ export default function PromptBuilderPage() {
     setIsGenerating(true);
     setGeneratedPrompt('');
     setQualityScore(null);
+    setAiScoreResult(null);
 
     try {
       await api.refinePrompt(
@@ -1188,12 +1395,12 @@ export default function PromptBuilderPage() {
   // Render Generate Button
   const renderGenerateButton = () => {
     const warningMessage = getGenerateWarningMessage();
-    const isDisabled = !canGenerate || isGenerating;
+    const isDisabled = !canGenerate || isGenerating || isAnalysing;
 
     const handleButtonClick = () => {
-      if (canGenerate && !isGenerating) {
+      if (canGenerate && !isGenerating && !isAnalysing) {
         handleGenerate();
-      } else if (!isGenerating) {
+      } else if (!isGenerating && !isAnalysing) {
         // Show warning when clicking disabled button
         setShowGenerateWarning(true);
         setTimeout(() => setShowGenerateWarning(false), 5000);
@@ -1220,7 +1427,12 @@ export default function PromptBuilderPage() {
             isDisabled ? 'opacity-50 cursor-not-allowed' : ''
           }`}
         >
-          {isGenerating && !isImprovingExisting ? (
+          {isAnalysing ? (
+            <>
+              <Loader2 className="w-6 h-6 animate-spin" />
+              Analysing your inputs...
+            </>
+          ) : isGenerating && !isImprovingExisting ? (
             <>
               <Loader2 className="w-6 h-6 animate-spin" />
               Generating...
@@ -1234,6 +1446,96 @@ export default function PromptBuilderPage() {
           )}
         </button>
       </div>
+    );
+  };
+
+  // Render refining questions panel
+  const renderRefiningQuestions = () => {
+    if (!analysisResult) return null;
+
+    return (
+      <section className="card mb-10 border-primary-200 bg-primary-50/30">
+        <div className="flex items-center gap-2 mb-4">
+          <HelpCircle className="w-5 h-5 text-primary-600" />
+          <h2 className="font-semibold text-gray-900">A few quick questions to improve your prompt</h2>
+        </div>
+
+        {analysisResult.inputSummary && (
+          <p className="text-sm text-gray-600 mb-6 bg-white rounded-lg p-3 border border-gray-100">
+            <span className="font-medium text-gray-700">What I understood: </span>
+            {analysisResult.inputSummary}
+          </p>
+        )}
+
+        <div className="space-y-5">
+          {analysisResult.questions.map((question) => (
+            <div
+              key={question.id}
+              className={`bg-white rounded-lg p-4 border ${
+                question.priority === 'high' ? 'border-amber-200' : 'border-gray-200'
+              }`}
+            >
+              <div className="flex items-start gap-2 mb-2">
+                {question.priority === 'high' && (
+                  <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium mt-0.5 flex-shrink-0">
+                    Important
+                  </span>
+                )}
+                <label className="text-sm font-medium text-gray-900">
+                  {question.question}
+                </label>
+              </div>
+
+              {question.reason && (
+                <p className="text-xs text-gray-500 mb-3">{question.reason}</p>
+              )}
+
+              {question.type === 'choice' && question.choices ? (
+                <div className="flex flex-wrap gap-2">
+                  {question.choices.map((choice) => (
+                    <button
+                      key={choice}
+                      onClick={() => setQuestionAnswers(prev => ({ ...prev, [question.id]: choice }))}
+                      className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${
+                        questionAnswers[question.id] === choice
+                          ? 'border-primary-500 bg-primary-50 text-primary-700 font-medium'
+                          : 'border-gray-200 hover:border-primary-300 text-gray-700'
+                      }`}
+                    >
+                      {choice}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <input
+                  type="text"
+                  value={questionAnswers[question.id] || ''}
+                  onChange={(e) => setQuestionAnswers(prev => ({ ...prev, [question.id]: e.target.value }))}
+                  placeholder="Type your answer..."
+                  className="input-field text-sm"
+                />
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-3 mt-6">
+          <button
+            onClick={handleGenerateWithAnswers}
+            className="btn-primary flex items-center gap-2"
+          >
+            <Sparkles className="w-5 h-5" />
+            Generate with these answers
+            <ArrowRight className="w-5 h-5" />
+          </button>
+          <button
+            onClick={handleSkipQuestions}
+            className="btn-secondary flex items-center gap-2 text-sm"
+          >
+            Skip and generate anyway
+          </button>
+        </div>
+      </section>
     );
   };
 
@@ -1283,37 +1585,88 @@ export default function PromptBuilderPage() {
               </pre>
             </div>
 
-            {/* Quality Scores */}
-            {qualityScore && (
-              <div className="border-t border-gray-200 pt-4">
-                <h3 className="text-sm font-medium text-gray-700 mb-3">Quality Analysis</h3>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                  {[
-                    { label: 'Clarity', value: qualityScore.clarity },
-                    { label: 'Completeness', value: qualityScore.completeness },
-                    { label: 'Specificity', value: qualityScore.specificity },
-                    { label: 'Structure', value: qualityScore.structure },
-                    { label: 'Overall', value: qualityScore.overall, highlight: true },
-                  ].map((score) => (
-                    <div
-                      key={score.label}
-                      className={`p-3 rounded-lg text-center ${
-                        score.highlight ? 'bg-primary-100' : 'bg-gray-50'
-                      }`}
-                    >
-                      <div className={`text-2xl font-bold ${
-                        score.value >= 80 ? 'text-green-600' :
-                        score.value >= 60 ? 'text-amber-600' :
-                        'text-gray-400'
-                      }`}>
-                        {score.value}
-                      </div>
-                      <div className="text-xs text-gray-600">{score.label}</div>
-                    </div>
-                  ))}
-                </div>
+            {/* Score Button & AI Scoring Results */}
+            <div className="border-t border-gray-200 pt-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium text-gray-700">Quality Analysis</h3>
+                <button
+                  onClick={handleScorePrompt}
+                  disabled={isScoring || isGenerating}
+                  className="btn-secondary flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isScoring ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Scoring...
+                    </>
+                  ) : (
+                    <>
+                      <BarChart2 className="w-4 h-4" />
+                      {aiScoreResult ? 'Re-score' : 'Score Prompt'}
+                    </>
+                  )}
+                </button>
               </div>
-            )}
+
+              {aiScoreResult ? (
+                <>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+                    {[
+                      { label: 'Clarity', value: aiScoreResult.scores.clarity },
+                      { label: 'Completeness', value: aiScoreResult.scores.completeness },
+                      { label: 'Specificity', value: aiScoreResult.scores.specificity },
+                      { label: 'Structure', value: aiScoreResult.scores.structure },
+                      { label: 'Overall', value: aiScoreResult.scores.overall, highlight: true },
+                    ].map((score) => (
+                      <div
+                        key={score.label}
+                        className={`p-3 rounded-lg text-center ${
+                          score.highlight ? 'bg-primary-100' : 'bg-gray-50'
+                        }`}
+                      >
+                        <div className={`text-2xl font-bold ${
+                          score.value >= 80 ? 'text-green-600' :
+                          score.value >= 60 ? 'text-amber-600' :
+                          'text-red-500'
+                        }`}>
+                          {score.value}
+                        </div>
+                        <div className="text-xs text-gray-600">{score.label}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Improvement Suggestions */}
+                  {aiScoreResult.suggestions.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-gray-700">Suggested Improvements</h4>
+                      {aiScoreResult.suggestions.map((suggestion, index) => (
+                        <div
+                          key={index}
+                          className={`flex items-start gap-2 p-3 rounded-lg ${
+                            suggestion.impact === 'high'
+                              ? 'bg-amber-50 border border-amber-200'
+                              : 'bg-gray-50 border border-gray-200'
+                          }`}
+                        >
+                          <ArrowRight className={`w-4 h-4 flex-shrink-0 mt-0.5 ${
+                            suggestion.impact === 'high' ? 'text-amber-600' : 'text-gray-400'
+                          }`} />
+                          <div>
+                            <span className="text-xs font-medium text-gray-500 uppercase">{suggestion.dimension}</span>
+                            <p className="text-sm text-gray-800">{suggestion.suggestion}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm text-gray-500">
+                  Click &quot;Score Prompt&quot; to evaluate your prompt against our quality rubric and get actionable suggestions.
+                </p>
+              )}
+            </div>
 
             {/* Feedback and Actions */}
             <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
@@ -1337,7 +1690,7 @@ export default function PromptBuilderPage() {
                   </button>
                 )}
                 <button
-                  onClick={isImprovingExisting ? handleImproveExisting : handleGenerate}
+                  onClick={isImprovingExisting ? () => executeImprove() : () => executeGenerate()}
                   className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 font-medium"
                 >
                   <RefreshCw className="w-4 h-4" />
@@ -1351,6 +1704,14 @@ export default function PromptBuilderPage() {
     );
   };
 
+  // Refinement template texts for populating the text box
+  const refinementTemplates: Record<string, string> = {
+    shorter: 'Make this prompt more concise. Remove redundancy and reduce length by 30-50% while preserving all essential instructions.',
+    detailed: 'Make this prompt more detailed and specific. Add precise instructions, expand constraints, and leave less room for interpretation.',
+    tone: 'Adjust the tone to be more [specify: formal/casual/empathetic/authoritative]. Ensure the language matches the desired register.',
+    examples: 'Add 1-2 concrete examples (few-shot) showing the expected input-output pattern to guide the AI model.',
+  };
+
   // Render refinement zone
   const renderRefinementZone = () => {
     if (!generatedPrompt) return null;
@@ -1362,39 +1723,63 @@ export default function PromptBuilderPage() {
           <h2 className="font-semibold text-gray-900">Refine Your Prompt</h2>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <button
-            onClick={() => handleRefine('shorter')}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+          {[
+            { type: 'shorter', label: 'Make it shorter', desc: 'More concise version' },
+            { type: 'detailed', label: 'More detailed', desc: 'Add specificity' },
+            { type: 'tone', label: 'Change tone', desc: 'Adjust formality' },
+            { type: 'examples', label: 'Add examples', desc: 'Include few-shot' },
+          ].map(({ type, label, desc }) => (
+            <button
+              key={type}
+              onClick={() => setRefinementText(refinementTemplates[type])}
+              disabled={isGenerating}
+              className={`p-4 rounded-lg border transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed ${
+                refinementText === refinementTemplates[type]
+                  ? 'border-primary-500 bg-primary-50'
+                  : 'border-gray-200 hover:border-primary-300 hover:bg-gray-50'
+              }`}
+            >
+              <div className="text-sm font-medium text-gray-900">{label}</div>
+              <div className="text-xs text-gray-500">{desc}</div>
+            </button>
+          ))}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Refinement instruction
+          </label>
+          <textarea
+            value={refinementText}
+            onChange={(e) => setRefinementText(e.target.value)}
+            placeholder="Click a button above or type your own refinement instruction..."
+            rows={3}
+            className="input-field resize-none text-sm"
             disabled={isGenerating}
-            className="p-4 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-gray-50 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <div className="text-sm font-medium text-gray-900">Make it shorter</div>
-            <div className="text-xs text-gray-500">More concise version</div>
-          </button>
-          <button
-            onClick={() => handleRefine('detailed')}
-            disabled={isGenerating}
-            className="p-4 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-gray-50 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <div className="text-sm font-medium text-gray-900">More detailed</div>
-            <div className="text-xs text-gray-500">Add specificity</div>
-          </button>
-          <button
-            onClick={() => handleRefine('tone')}
-            disabled={isGenerating}
-            className="p-4 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-gray-50 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <div className="text-sm font-medium text-gray-900">Change tone</div>
-            <div className="text-xs text-gray-500">Adjust formality</div>
-          </button>
-          <button
-            onClick={() => handleRefine('examples')}
-            disabled={isGenerating}
-            className="p-4 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-gray-50 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <div className="text-sm font-medium text-gray-900">Add examples</div>
-            <div className="text-xs text-gray-500">Include few-shot</div>
-          </button>
+          />
+          <div className="flex items-center justify-between mt-3">
+            <span className="text-xs text-gray-500">
+              Edit the text above or write your own custom refinement
+            </span>
+            <button
+              onClick={handleRefineWithText}
+              disabled={isGenerating || !refinementText.trim()}
+              className="btn-primary flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Refining...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-4 h-4" />
+                  Apply Refinement
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </section>
     );
@@ -1454,10 +1839,15 @@ export default function PromptBuilderPage() {
 
           <button
             onClick={handleImproveExisting}
-            disabled={!canImprove || !selectedGoal || isGenerating}
+            disabled={!canImprove || !selectedGoal || isGenerating || isAnalysingExisting}
             className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isGenerating && isImprovingExisting ? (
+            {isAnalysingExisting ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Analysing prompt...
+              </>
+            ) : isGenerating && isImprovingExisting ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
                 Improving...
@@ -1470,6 +1860,93 @@ export default function PromptBuilderPage() {
               </>
             )}
           </button>
+
+          {/* Diagnosis panel for existing prompt */}
+          {existingAnalysis && (
+            <div className="mt-6 border-t border-gray-200 pt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Search className="w-5 h-5 text-primary-600" />
+                <h3 className="font-semibold text-gray-900">Prompt Diagnosis</h3>
+              </div>
+
+              {/* Diagnosis items */}
+              {existingAnalysis.diagnosis.length > 0 && (
+                <div className="space-y-3 mb-5">
+                  {existingAnalysis.diagnosis.map((item, index) => (
+                    <div key={index} className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <span className="text-xs font-medium text-amber-700 uppercase">{item.dimension}</span>
+                          <p className="text-sm text-gray-800 mt-0.5">{item.issue}</p>
+                          <p className="text-xs text-gray-600 mt-1">Suggestion: {item.suggestion}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Optional questions */}
+              {existingAnalysis.needsQuestions && existingAnalysis.questions.length > 0 && (
+                <div className="space-y-4 mb-5">
+                  <p className="text-sm text-gray-600 font-medium">Optional: answer these to further improve the result</p>
+                  {existingAnalysis.questions.map((question) => (
+                    <div key={question.id} className="bg-white rounded-lg p-3 border border-gray-200">
+                      <label className="text-sm font-medium text-gray-900 block mb-1">
+                        {question.question}
+                      </label>
+                      {question.reason && (
+                        <p className="text-xs text-gray-500 mb-2">{question.reason}</p>
+                      )}
+                      {question.type === 'choice' && question.choices ? (
+                        <div className="flex flex-wrap gap-2">
+                          {question.choices.map((choice) => (
+                            <button
+                              key={choice}
+                              onClick={() => setExistingQuestionAnswers(prev => ({ ...prev, [question.id]: choice }))}
+                              className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${
+                                existingQuestionAnswers[question.id] === choice
+                                  ? 'border-primary-500 bg-primary-50 text-primary-700 font-medium'
+                                  : 'border-gray-200 hover:border-primary-300 text-gray-700'
+                              }`}
+                            >
+                              {choice}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <input
+                          type="text"
+                          value={existingQuestionAnswers[question.id] || ''}
+                          onChange={(e) => setExistingQuestionAnswers(prev => ({ ...prev, [question.id]: e.target.value }))}
+                          placeholder="Type your answer..."
+                          className="input-field text-sm"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleImproveWithDiagnosis}
+                  className="btn-primary flex items-center gap-2"
+                >
+                  <Sparkles className="w-5 h-5" />
+                  Improve with these insights
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={handleSkipDiagnosis}
+                  className="btn-secondary flex items-center gap-2 text-sm"
+                >
+                  Just improve it
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </section>
@@ -1555,6 +2032,9 @@ export default function PromptBuilderPage() {
 
       {/* Generate Button - Above existing prompt section */}
       {renderGenerateButton()}
+
+      {/* Refining Questions - Show when analysis returns questions */}
+      {renderRefiningQuestions()}
 
       {/* Generated Prompt Output - Only show here if NOT improving existing */}
       {!isImprovingExisting && renderPromptOutput()}

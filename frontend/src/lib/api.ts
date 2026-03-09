@@ -19,6 +19,9 @@ import type {
   Question,
   QuestionCategory,
   CustomQuestion,
+  Skill,
+  CustomSkill,
+  TeamSkill,
   Team,
   TeamSummary,
   TeamRole,
@@ -380,6 +383,165 @@ class ApiClient {
     return this.request<{ message: string }>(`/api/user/questions/${id}`, {
       method: 'DELETE',
     });
+  }
+
+  // Skills library endpoints
+  async getSkills(params?: { category?: string; q?: string; access?: 'free' | 'premium' | 'all'; page?: number; limit?: number }) {
+    const searchParams = new URLSearchParams();
+    if (params?.category) searchParams.set('category', params.category);
+    if (params?.q) searchParams.set('q', params.q);
+    if (params?.access) searchParams.set('access', params.access);
+    if (params?.page) searchParams.set('page', params.page.toString());
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+
+    const queryString = searchParams.toString();
+    return this.request<{ skills: Skill[]; total: number; page: number; limit: number; totalPages: number }>(
+      `/api/skills${queryString ? `?${queryString}` : ''}`
+    );
+  }
+
+  async getSkill(id: string) {
+    return this.request<{ skill: Skill }>(`/api/skills/${id}`);
+  }
+
+  async getSkillCategories() {
+    return this.request<{ categories: string[] }>('/api/skills/categories');
+  }
+
+  // Saved Skills endpoints
+  async getSavedSkills() {
+    return this.request<{ skills: Skill[]; total: number }>('/api/user/saved-skills');
+  }
+
+  async saveSkill(id: string) {
+    return this.request<{ message: string; savedCount: number }>(
+      `/api/user/saved-skills/${id}`,
+      { method: 'POST' }
+    );
+  }
+
+  async removeSavedSkill(id: string) {
+    return this.request<{ message: string; savedCount: number }>(
+      `/api/user/saved-skills/${id}`,
+      { method: 'DELETE' }
+    );
+  }
+
+  async updateSavedSkillCategory(id: string, categoryId: string | null) {
+    return this.request<{ message: string; categoryId: string | null }>(
+      `/api/user/saved-skills/${id}/category`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ categoryId }),
+      }
+    );
+  }
+
+  // Custom Skills endpoints
+  async getUserSkills() {
+    return this.request<{ skills: CustomSkill[]; total: number }>(
+      '/api/user/skills'
+    );
+  }
+
+  async createUserSkill(data: {
+    title: string;
+    content: string;
+    tags?: string[];
+    categoryId?: string | null;
+  }) {
+    return this.request<{ skill: CustomSkill; message: string }>(
+      '/api/user/skills',
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async updateUserSkill(
+    id: string,
+    data: {
+      title?: string;
+      content?: string;
+      tags?: string[];
+      categoryId?: string | null;
+    }
+  ) {
+    return this.request<{ skill: CustomSkill; message: string }>(
+      `/api/user/skills/${id}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async deleteUserSkill(id: string) {
+    return this.request<{ message: string }>(`/api/user/skills/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Team Skills endpoints
+  async getTeamSkills(teamId: string, params?: { category?: string; q?: string }) {
+    const searchParams = new URLSearchParams();
+    if (params?.category) searchParams.set('category', params.category);
+    if (params?.q) searchParams.set('q', params.q);
+
+    const queryString = searchParams.toString();
+    return this.request<{ skills: TeamSkill[]; total: number; categories: TeamCategory[] }>(
+      `/api/teams/${teamId}/skills${queryString ? `?${queryString}` : ''}`
+    );
+  }
+
+  async addTeamSkill(
+    teamId: string,
+    data: {
+      sourceType?: 'library' | 'custom';
+      sourceId?: string;
+      title: string;
+      content: string;
+      categoryId?: string;
+      tags?: string[];
+      notes?: string;
+    }
+  ) {
+    return this.request<{ message: string; skill: TeamSkill }>(
+      `/api/teams/${teamId}/skills`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async updateTeamSkill(
+    teamId: string,
+    skillId: string,
+    data: {
+      title?: string;
+      content?: string;
+      categoryId?: string | null;
+      tags?: string[];
+      notes?: string;
+      sourceType?: 'library' | 'custom';
+    }
+  ) {
+    return this.request<{ message: string; skill: TeamSkill }>(
+      `/api/teams/${teamId}/skills/${skillId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async removeTeamSkill(teamId: string, skillId: string) {
+    return this.request<{ message: string }>(
+      `/api/teams/${teamId}/skills/${skillId}`,
+      { method: 'DELETE' }
+    );
   }
 
   // Stripe endpoints
@@ -1210,12 +1372,40 @@ class ApiClient {
     }
   }
 
+  async analyseInputs(
+    params: {
+      type: 'form' | 'freeform';
+      modelId: string;
+      goalCategory: string;
+      inputs: Record<string, unknown>;
+    }
+  ): Promise<AnalysisResult> {
+    return this.request<AnalysisResult>('/api/builder/analyse', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  async analyseExisting(
+    params: {
+      existingPrompt: string;
+      modelId: string;
+      goalCategory: string;
+    }
+  ): Promise<ExistingAnalysisResult> {
+    return this.request<ExistingAnalysisResult>('/api/builder/analyse-existing', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
   async generatePrompt(
     params: {
       type: 'form' | 'freeform';
       modelId: string;
       goalCategory: string;
       inputs: Record<string, unknown>;
+      refinementAnswers?: Array<{ questionId: string; question: string; answer: string }>;
     },
     onChunk: (text: string) => void,
     onDone: (result: { fullText: string; qualityScore: QualityScore }) => void,
@@ -1229,6 +1419,10 @@ class ApiClient {
       existingPrompt: string;
       modelId: string;
       goalCategory: string;
+      diagnosisContext?: {
+        diagnosis?: Array<{ dimension: string; issue: string; suggestion: string }>;
+        answers?: Array<{ questionId: string; question: string; answer: string }>;
+      };
     },
     onChunk: (text: string) => void,
     onDone: (result: { fullText: string; qualityScore: QualityScore }) => void,
@@ -1237,10 +1431,24 @@ class ApiClient {
     return this.streamRequest('/api/builder/improve', params, onChunk, onDone, onError);
   }
 
+  async scorePrompt(
+    params: {
+      promptText: string;
+      modelId: string;
+      goalCategory: string;
+    }
+  ): Promise<AIScoreResult> {
+    return this.request<AIScoreResult>('/api/builder/score', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
   async refinePrompt(
     params: {
       currentPrompt: string;
-      refinementType: string;
+      refinementType?: string;
+      customInstruction?: string;
       modelId: string;
     },
     onChunk: (text: string) => void,
@@ -1258,6 +1466,45 @@ interface QualityScore {
   specificity: number;
   structure: number;
   overall: number;
+}
+
+// Analysis result types for refining questions
+export interface AnalysisQuestion {
+  id: string;
+  question: string;
+  reason: string;
+  type: 'text' | 'choice';
+  choices: string[] | null;
+  priority: 'high' | 'medium';
+}
+
+export interface AnalysisResult {
+  needsQuestions: boolean;
+  questions: AnalysisQuestion[];
+  inputSummary: string;
+}
+
+export interface DiagnosisItem {
+  dimension: string;
+  issue: string;
+  suggestion: string;
+}
+
+export interface ExistingAnalysisResult {
+  needsQuestions: boolean;
+  diagnosis: DiagnosisItem[];
+  questions: AnalysisQuestion[];
+}
+
+export interface ScoreSuggestion {
+  dimension: string;
+  suggestion: string;
+  impact: 'high' | 'medium';
+}
+
+export interface AIScoreResult {
+  scores: QualityScore;
+  suggestions: ScoreSuggestion[];
 }
 
 export const api = new ApiClient();

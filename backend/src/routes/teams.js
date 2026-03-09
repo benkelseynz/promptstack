@@ -1607,6 +1607,232 @@ router.patch('/:id/questions/:qId/notes', async (req, res, next) => {
 });
 
 // ==========================================
+// SKILL ROUTES
+// ==========================================
+
+// POST /api/teams/:id/skills - Add skill to team
+router.post('/:id/skills', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { sourceType, sourceId, title, content, categoryId, tags, notes } = req.body;
+
+    const isMember = await isTeamMember(req.user.id, id);
+    if (!isMember) {
+      throw new AppError('You are not a member of this team', 403);
+    }
+
+    const team = await getTeamById(id);
+    if (!team) {
+      throw new AppError('Team not found', 404);
+    }
+
+    if (!title || !title.trim()) {
+      throw new AppError('Skill title is required', 400);
+    }
+
+    if (!content || !content.trim()) {
+      throw new AppError('Skill content is required', 400);
+    }
+
+    // Check for duplicate library skill
+    if (sourceType === 'library' && sourceId) {
+      const existingSkill = (team.skills || []).find(
+        s => s.sourceType === 'library' && s.sourceId === sourceId
+      );
+      if (existingSkill) {
+        throw new AppError('This skill has already been added to the team', 409);
+      }
+    }
+
+    if (!team.skills) {
+      team.skills = [];
+    }
+
+    if (categoryId) {
+      const categoryExists = (team.categories || []).some(c => c.id === categoryId);
+      if (!categoryExists) {
+        throw new AppError('Invalid category', 400);
+      }
+    }
+
+    const newSkill = {
+      id: uuidv4(),
+      sourceType: sourceType || 'custom',
+      sourceId: sourceId || null,
+      title: title.trim(),
+      content: content.trim(),
+      categoryId: categoryId || null,
+      addedBy: req.user.id,
+      addedByName: getUserDisplayName(req.user),
+      addedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      notes: notes || '',
+      tags: tags || [],
+      memberTags: []
+    };
+
+    team.skills.push(newSkill);
+    team.updatedAt = new Date().toISOString();
+
+    const teamFilePath = getTeamFilePath(id);
+    await atomicWrite(teamFilePath, team);
+
+    await logPromptAdded(id, req.user, newSkill.title);
+
+    res.status(201).json({
+      message: 'Skill added to team',
+      skill: newSkill
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/teams/:id/skills - List team skills
+router.get('/:id/skills', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { category, q } = req.query;
+
+    const isMember = await isTeamMember(req.user.id, id);
+    if (!isMember) {
+      throw new AppError('You are not a member of this team', 403);
+    }
+
+    const team = await getTeamById(id);
+    if (!team) {
+      throw new AppError('Team not found', 404);
+    }
+
+    let skills = team.skills || [];
+
+    if (category) {
+      if (category === 'uncategorized') {
+        skills = skills.filter(s => !s.categoryId);
+      } else {
+        skills = skills.filter(s => s.categoryId === category);
+      }
+    }
+
+    if (q) {
+      const searchLower = q.toLowerCase();
+      skills = skills.filter(skill =>
+        skill.title.toLowerCase().includes(searchLower) ||
+        (skill.content && skill.content.toLowerCase().includes(searchLower)) ||
+        (skill.tags || []).some(t => t.toLowerCase().includes(searchLower))
+      );
+    }
+
+    skills.sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
+
+    res.json({
+      skills,
+      total: skills.length,
+      categories: team.categories || []
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// PATCH /api/teams/:id/skills/:skillId - Update team skill
+router.patch('/:id/skills/:skillId', async (req, res, next) => {
+  try {
+    const { id, skillId } = req.params;
+    const { title, content, categoryId, tags, notes, sourceType } = req.body;
+
+    const isMember = await isTeamMember(req.user.id, id);
+    if (!isMember) {
+      throw new AppError('You are not a member of this team', 403);
+    }
+
+    const team = await getTeamById(id);
+    if (!team) {
+      throw new AppError('Team not found', 404);
+    }
+
+    const skill = (team.skills || []).find(s => s.id === skillId);
+    if (!skill) {
+      throw new AppError('Skill not found', 404);
+    }
+
+    if (categoryId !== undefined && categoryId !== null) {
+      const categoryExists = (team.categories || []).some(c => c.id === categoryId);
+      if (!categoryExists) {
+        throw new AppError('Invalid category', 400);
+      }
+    }
+
+    if (title !== undefined) skill.title = title.trim();
+    if (content !== undefined) skill.content = content.trim();
+    if (categoryId !== undefined) skill.categoryId = categoryId;
+    if (tags !== undefined) skill.tags = tags;
+    if (notes !== undefined) {
+      skill.notes = notes;
+      skill.notesUpdatedBy = req.user.id;
+      skill.notesUpdatedByName = getUserDisplayName(req.user);
+      skill.notesUpdatedAt = new Date().toISOString();
+    }
+    if (sourceType !== undefined) skill.sourceType = sourceType;
+
+    skill.updatedAt = new Date().toISOString();
+    team.updatedAt = new Date().toISOString();
+
+    const teamFilePath = getTeamFilePath(id);
+    await atomicWrite(teamFilePath, team);
+
+    res.json({
+      message: 'Skill updated',
+      skill
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE /api/teams/:id/skills/:skillId - Remove skill from team
+router.delete('/:id/skills/:skillId', async (req, res, next) => {
+  try {
+    const { id, skillId } = req.params;
+
+    const isMember = await isTeamMember(req.user.id, id);
+    if (!isMember) {
+      throw new AppError('You are not a member of this team', 403);
+    }
+
+    const team = await getTeamById(id);
+    if (!team) {
+      throw new AppError('Team not found', 404);
+    }
+
+    const skillIndex = (team.skills || []).findIndex(s => s.id === skillId);
+    if (skillIndex === -1) {
+      throw new AppError('Skill not found', 404);
+    }
+
+    const skill = team.skills[skillIndex];
+
+    // Check permissions
+    const userRole = await getUserTeamRole(req.user.id, id);
+    if (skill.addedBy !== req.user.id && !hasAdminPermission(userRole)) {
+      throw new AppError('You can only remove skills you added', 403);
+    }
+
+    team.skills.splice(skillIndex, 1);
+    team.updatedAt = new Date().toISOString();
+
+    const teamFilePath = getTeamFilePath(id);
+    await atomicWrite(teamFilePath, team);
+
+    res.json({
+      message: 'Skill removed from team'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ==========================================
 // WORKFLOW ROUTES
 // ==========================================
 

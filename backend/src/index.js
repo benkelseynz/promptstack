@@ -16,9 +16,11 @@ const teamsRoutes = require('./routes/teams');
 const workflowsRoutes = require('./routes/workflows');
 const transcriptionRoutes = require('./routes/transcription');
 const builderRoutes = require('./routes/builder');
+const skillsRoutes = require('./routes/skills');
 const { globalRateLimiter } = require('./middleware/rateLimiter');
 const { errorHandler } = require('./middleware/errorHandler');
 const { initSearchIndex, watchForChanges } = require('./services/searchIndex');
+const { initSkillsIndex } = require('./services/skillsIndex');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -53,6 +55,7 @@ app.use('/api/teams', teamsRoutes);
 app.use('/api/workflows', workflowsRoutes);
 app.use('/api/transcription', transcriptionRoutes);
 app.use('/api/builder', builderRoutes);
+app.use('/api/skills', skillsRoutes);
 
 // Error handling
 app.use(errorHandler);
@@ -66,6 +69,7 @@ app.use((req, res) => {
 async function startServer() {
   try {
     await initSearchIndex();
+    await initSkillsIndex();
     
     if (process.env.NODE_ENV === 'development') {
       watchForChanges();

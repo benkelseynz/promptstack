@@ -310,7 +310,9 @@ export type ActivityType =
   | 'workflow_deleted'
   | 'prompt_tagged'
   | 'category_created'
-  | 'category_deleted';
+  | 'category_deleted'
+  | 'skill_added'
+  | 'skill_removed';
 
 export interface TeamActivity {
   id: string;
@@ -330,6 +332,7 @@ export interface TeamAnalytics {
     totalPrompts: number;
     totalQuestions: number;
     totalWorkflows: number;
+    totalSkills: number;
     totalCategories: number;
   };
   trends: {
@@ -370,6 +373,7 @@ export interface Team {
   categories: TeamCategory[];
   prompts?: TeamPrompt[];
   questions?: TeamQuestion[];
+  skills?: TeamSkill[];
   settings?: {
     allowMemberInvites: boolean;
     requireApproval: boolean;
@@ -396,6 +400,48 @@ export interface TeamInvitation {
   role: TeamRole;
   createdAt: string;
   expiresAt: string;
+}
+
+// Skill Types
+export interface Skill {
+  id: string;
+  title: string;
+  content: string;
+  preview: string;
+  access: 'free' | 'premium';
+  category?: string;
+  tags: string[];
+  keywords: string[];
+  isLocked: boolean;
+}
+
+export interface CustomSkill {
+  id: string;
+  title: string;
+  content: string;
+  tags: string[];
+  categoryId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TeamSkill {
+  id: string;
+  sourceType: 'library' | 'custom';
+  sourceId?: string;
+  title: string;
+  content: string;
+  categoryId?: string;
+  addedBy: string;
+  addedByName?: string;
+  addedAt: string;
+  updatedAt?: string;
+  notes?: string;
+  notesUpdatedBy?: string;
+  notesUpdatedByName?: string;
+  notesUpdatedAt?: string;
+  tags?: string[];
+  memberTags?: TeamPromptTag[];
 }
 
 // Personal Workflow Types (for premium users)

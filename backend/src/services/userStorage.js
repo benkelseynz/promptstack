@@ -561,6 +561,161 @@ async function getUserCustomQuestions(userId) {
   return userData?.customQuestions || [];
 }
 
+// =====================
+// Custom Skills
+// =====================
+
+// Add custom skill
+async function addCustomSkill(userId, skillData) {
+  const userData = await getUserById(userId);
+
+  if (!userData) {
+    return null;
+  }
+
+  const newSkill = {
+    id: uuidv4(),
+    ...skillData,
+    categoryId: skillData.categoryId || null,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  userData.customSkills = userData.customSkills || [];
+  userData.customSkills.push(newSkill);
+
+  const userFilePath = getUserFilePath(userId);
+  await atomicWrite(userFilePath, userData);
+
+  return newSkill;
+}
+
+// Update custom skill
+async function updateCustomSkill(userId, skillId, updates) {
+  const userData = await getUserById(userId);
+
+  if (!userData) {
+    return null;
+  }
+
+  const skillIndex = userData.customSkills?.findIndex(s => s.id === skillId);
+
+  if (skillIndex === -1 || skillIndex === undefined) {
+    return null;
+  }
+
+  userData.customSkills[skillIndex] = {
+    ...userData.customSkills[skillIndex],
+    ...updates,
+    updatedAt: new Date().toISOString()
+  };
+
+  const userFilePath = getUserFilePath(userId);
+  await atomicWrite(userFilePath, userData);
+
+  return userData.customSkills[skillIndex];
+}
+
+// Delete custom skill
+async function deleteCustomSkill(userId, skillId) {
+  const userData = await getUserById(userId);
+
+  if (!userData) {
+    return false;
+  }
+
+  const skillIndex = userData.customSkills?.findIndex(s => s.id === skillId);
+
+  if (skillIndex === -1 || skillIndex === undefined) {
+    return false;
+  }
+
+  userData.customSkills.splice(skillIndex, 1);
+
+  const userFilePath = getUserFilePath(userId);
+  await atomicWrite(userFilePath, userData);
+
+  return true;
+}
+
+// Get user custom skills
+async function getUserCustomSkills(userId) {
+  const userData = await getUserById(userId);
+  return userData?.customSkills || [];
+}
+
+// =====================
+// Saved Skills
+// =====================
+
+// Save library skill reference
+async function saveLibrarySkill(userId, skillId) {
+  const userData = await getUserById(userId);
+
+  if (!userData) {
+    return null;
+  }
+
+  const savedEntries = normalizeSavedEntries(userData.savedSkills);
+
+  if (!savedEntries.some(entry => entry.id === skillId)) {
+    savedEntries.push({ id: skillId, categoryId: null });
+    userData.savedSkills = savedEntries;
+
+    const userFilePath = getUserFilePath(userId);
+    await atomicWrite(userFilePath, userData);
+  }
+
+  return savedEntries;
+}
+
+// Remove saved library skill
+async function removeSavedSkill(userId, skillId) {
+  const userData = await getUserById(userId);
+
+  if (!userData) {
+    return null;
+  }
+
+  const savedEntries = normalizeSavedEntries(userData.savedSkills);
+  userData.savedSkills = savedEntries.filter(entry => entry.id !== skillId);
+
+  const userFilePath = getUserFilePath(userId);
+  await atomicWrite(userFilePath, userData);
+
+  return userData.savedSkills;
+}
+
+// Get saved skill entries with category metadata
+async function getSavedSkillEntries(userId) {
+  const userData = await getUserById(userId);
+  return normalizeSavedEntries(userData?.savedSkills);
+}
+
+// Update saved skill category
+async function updateSavedSkillCategory(userId, skillId, categoryId) {
+  const userData = await getUserById(userId);
+
+  if (!userData) {
+    return null;
+  }
+
+  const savedEntries = normalizeSavedEntries(userData.savedSkills);
+  const entry = savedEntries.find(item => item.id === skillId);
+
+  if (!entry) {
+    return null;
+  }
+
+  entry.categoryId = categoryId || null;
+  userData.savedSkills = savedEntries;
+
+  const userFilePath = getUserFilePath(userId);
+  await atomicWrite(userFilePath, userData);
+
+  return entry;
+}
+
 // Section names for validation
 const PROFILE_SECTIONS = ['role', 'communication', 'writingStyle', 'workingStyle', 'formatting', 'personal'];
 
@@ -721,6 +876,16 @@ module.exports = {
   updateCustomQuestion,
   deleteCustomQuestion,
   getUserCustomQuestions,
+  // Custom skills
+  addCustomSkill,
+  updateCustomSkill,
+  deleteCustomSkill,
+  getUserCustomSkills,
+  // Saved skills
+  saveLibrarySkill,
+  removeSavedSkill,
+  getSavedSkillEntries,
+  updateSavedSkillCategory,
   // Profile
   getUserProfile,
   updateUserProfile,

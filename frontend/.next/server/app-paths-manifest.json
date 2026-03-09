@@ -1,6 +1,8 @@
 {
-  "/dashboard/settings/page": "app/dashboard/settings/page.js",
-  "/page": "app/page.js",
+  "/dashboard/saved/page": "app/dashboard/saved/page.js",
+  "/dashboard/skills/page": "app/dashboard/skills/page.js",
   "/dashboard/page": "app/dashboard/page.js",
-  "/dashboard/builder/page": "app/dashboard/builder/page.js"
+  "/dashboard/builder/page": "app/dashboard/builder/page.js",
+  "/dashboard/workflows/page": "app/dashboard/workflows/page.js",
+  "/dashboard/upgrade/page": "app/dashboard/upgrade/page.js"
 }

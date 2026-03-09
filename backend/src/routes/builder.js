@@ -6,7 +6,10 @@ const {
   generatePromptStream,
   improvePromptStream,
   refinePromptStream,
+  analyseInputs,
+  analyseExistingPrompt,
   scorePromptQuality,
+  scorePromptWithAI,
 } = require('../services/promptBuilder');
 
 const router = express.Router();
@@ -29,29 +32,61 @@ const VALID_GOALS = [
 // Valid refinement types
 const VALID_REFINEMENTS = ['shorter', 'detailed', 'tone', 'examples'];
 
+// Shared inputs schema
+const inputsSchema = z.object({
+  // Form fields
+  role: z.string().optional(),
+  customRole: z.string().optional(),
+  task: z.string().optional(),
+  context: z.string().optional(),
+  outputFormat: z.string().optional(),
+  customFormat: z.string().optional(),
+  examples: z.string().optional(),
+  constraints: z.string().optional(),
+  thinkingMode: z.boolean().optional(),
+  creativity: z.number().min(0).max(100).optional(),
+  // Freeform field
+  freeformInput: z.string().optional(),
+});
+
+// Refinement answer schema
+const refinementAnswerSchema = z.object({
+  questionId: z.string(),
+  question: z.string(),
+  answer: z.string(),
+});
+
 // Validation schemas
 const generateSchema = z.object({
   type: z.enum(['form', 'freeform']),
   modelId: z.string().refine(v => VALID_MODELS.includes(v), 'Invalid model'),
   goalCategory: z.string().refine(v => VALID_GOALS.includes(v), 'Invalid goal category'),
-  inputs: z.object({
-    // Form fields
-    role: z.string().optional(),
-    customRole: z.string().optional(),
-    task: z.string().optional(),
-    context: z.string().optional(),
-    outputFormat: z.string().optional(),
-    customFormat: z.string().optional(),
-    examples: z.string().optional(),
-    constraints: z.string().optional(),
-    thinkingMode: z.boolean().optional(),
-    creativity: z.number().min(0).max(100).optional(),
-    // Freeform field
-    freeformInput: z.string().optional(),
-  }),
+  inputs: inputsSchema,
+  refinementAnswers: z.array(refinementAnswerSchema).optional(),
+});
+
+const analyseSchema = z.object({
+  type: z.enum(['form', 'freeform']),
+  modelId: z.string().refine(v => VALID_MODELS.includes(v), 'Invalid model'),
+  goalCategory: z.string().refine(v => VALID_GOALS.includes(v), 'Invalid goal category'),
+  inputs: inputsSchema,
 });
 
 const improveSchema = z.object({
+  existingPrompt: z.string().min(1, 'Existing prompt is required').max(10000),
+  modelId: z.string().refine(v => VALID_MODELS.includes(v), 'Invalid model'),
+  goalCategory: z.string().refine(v => VALID_GOALS.includes(v), 'Invalid goal category'),
+  diagnosisContext: z.object({
+    diagnosis: z.array(z.object({
+      dimension: z.string(),
+      issue: z.string(),
+      suggestion: z.string(),
+    })).optional(),
+    answers: z.array(refinementAnswerSchema).optional(),
+  }).optional(),
+});
+
+const analyseExistingSchema = z.object({
   existingPrompt: z.string().min(1, 'Existing prompt is required').max(10000),
   modelId: z.string().refine(v => VALID_MODELS.includes(v), 'Invalid model'),
   goalCategory: z.string().refine(v => VALID_GOALS.includes(v), 'Invalid goal category'),
@@ -59,8 +94,18 @@ const improveSchema = z.object({
 
 const refineSchema = z.object({
   currentPrompt: z.string().min(1, 'Current prompt is required').max(10000),
-  refinementType: z.string().refine(v => VALID_REFINEMENTS.includes(v), 'Invalid refinement type'),
+  refinementType: z.string().optional(),
+  customInstruction: z.string().max(2000).optional(),
   modelId: z.string().refine(v => VALID_MODELS.includes(v), 'Invalid model'),
+}).refine(
+  data => data.refinementType || data.customInstruction,
+  'Either refinementType or customInstruction is required'
+);
+
+const scoreSchema = z.object({
+  promptText: z.string().min(1, 'Prompt text is required').max(10000),
+  modelId: z.string().refine(v => VALID_MODELS.includes(v), 'Invalid model'),
+  goalCategory: z.string().refine(v => VALID_GOALS.includes(v), 'Invalid goal category'),
 });
 
 /**
@@ -112,6 +157,59 @@ async function streamToSSE(res, streamPromise, req) {
   }
 }
 
+// POST /api/builder/analyse
+// Analyse user inputs and return targeted follow-up questions (non-streaming JSON)
+router.post('/analyse', authenticate, async (req, res, next) => {
+  try {
+    const validated = analyseSchema.parse(req.body);
+
+    // Validate that required fields exist for the given type
+    if (validated.type === 'form' && !validated.inputs.task) {
+      throw new AppError('Task description is required for analysis', 400);
+    }
+    if (validated.type === 'freeform' && !validated.inputs.freeformInput) {
+      throw new AppError('Freeform input is required for analysis', 400);
+    }
+
+    const result = await analyseInputs({
+      type: validated.type,
+      inputs: validated.inputs,
+      modelId: validated.modelId,
+      goalCategory: validated.goalCategory,
+      userId: req.user.id,
+    });
+
+    res.json(result);
+  } catch (error) {
+    if (error.name === 'ZodError' || error.isOperational) {
+      return next(error);
+    }
+    next(error);
+  }
+});
+
+// POST /api/builder/analyse-existing
+// Analyse an existing prompt and return diagnosis + optional questions (non-streaming JSON)
+router.post('/analyse-existing', authenticate, async (req, res, next) => {
+  try {
+    const validated = analyseExistingSchema.parse(req.body);
+
+    const result = await analyseExistingPrompt({
+      existingPrompt: validated.existingPrompt,
+      modelId: validated.modelId,
+      goalCategory: validated.goalCategory,
+      userId: req.user.id,
+    });
+
+    res.json(result);
+  } catch (error) {
+    if (error.name === 'ZodError' || error.isOperational) {
+      return next(error);
+    }
+    next(error);
+  }
+});
+
 // POST /api/builder/generate
 // Generate a prompt from form or freeform inputs (streaming SSE)
 router.post('/generate', authenticate, async (req, res, next) => {
@@ -132,6 +230,7 @@ router.post('/generate', authenticate, async (req, res, next) => {
       modelId: validated.modelId,
       goalCategory: validated.goalCategory,
       userId: req.user.id,
+      refinementAnswers: validated.refinementAnswers,
     });
 
     await streamToSSE(res, streamPromise, req);
@@ -155,9 +254,31 @@ router.post('/improve', authenticate, async (req, res, next) => {
       modelId: validated.modelId,
       goalCategory: validated.goalCategory,
       userId: req.user.id,
+      diagnosisContext: validated.diagnosisContext,
     });
 
     await streamToSSE(res, streamPromise, req);
+  } catch (error) {
+    if (error.name === 'ZodError' || error.isOperational) {
+      return next(error);
+    }
+    next(error);
+  }
+});
+
+// POST /api/builder/score
+// Score a prompt using AI-based rubric evaluation (non-streaming JSON)
+router.post('/score', authenticate, async (req, res, next) => {
+  try {
+    const validated = scoreSchema.parse(req.body);
+
+    const result = await scorePromptWithAI({
+      promptText: validated.promptText,
+      modelId: validated.modelId,
+      goalCategory: validated.goalCategory,
+    });
+
+    res.json(result);
   } catch (error) {
     if (error.name === 'ZodError' || error.isOperational) {
       return next(error);
@@ -175,6 +296,7 @@ router.post('/refine', authenticate, async (req, res, next) => {
     const streamPromise = refinePromptStream({
       currentPrompt: validated.currentPrompt,
       refinementType: validated.refinementType,
+      customInstruction: validated.customInstruction,
       modelId: validated.modelId,
     });
 
